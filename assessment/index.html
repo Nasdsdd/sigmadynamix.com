@@ -772,7 +772,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v13.1";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v13.2";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -1411,12 +1411,20 @@ async function requestSession(){
      (identifiants opaques) et sens imposé par session. */
   EV.arm  = data.arm  || "B";   /* doit rester identique au repli de RESOLVED_ARM */
   EV.cell = data.cell || null;
-  /* Ne devrait jamais arriver : le serveur honore le bras transmis. Si ça se
-     produit, le candidat a vu une présentation qui ne correspond pas à son test,
-     et ses résultats seraient inexploitables. */
-  if(EV.arm !== RESOLVED_ARM)
-    throw new Error("Something went out of sync on our side. Please email "
-      + SUPPORT_EMAIL + " and we will get you back on track.");
+  /* v13.2 : le bras du serveur fait foi, on s'aligne dessus.
+     Pourquoi l'ancien controle levait une erreur a tort : le PREMIER appel se
+     fait sans jeton (claim:true) et tire un bras dans la rotation globale,
+     alors que le SECOND, avec jeton, renvoie le bras de l'invitation — pose
+     par le declencheur assign_cell() des l'insertion en base. Les deux n'ont
+     aucune raison de coincider, et le candidat restait bloque.
+     Se realigner est sans consequence : depuis la v13 le bras n'influence plus
+     rien (journees et sens viennent de SESSION_ROSTER, isPairedArm() est
+     toujours faux), donc la presentation vue par le candidat correspond a son
+     test quel que soit le bras. */
+  if(EV.arm !== RESOLVED_ARM){
+    RESOLVED_ARM = EV.arm;
+    try{ sessionStorage.setItem(ARM_KEY, RESOLVED_ARM); }catch(e){}
+  }
   /* v13 : le plan ne vient plus du serveur — journees et sens sont fixes,
      seul l'ordre varie. Voir SESSION_ROSTER. */
   EV.plan = shuffledRoster(SESSION.token || candidate.email);

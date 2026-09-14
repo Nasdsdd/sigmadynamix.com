@@ -1479,7 +1479,7 @@ async function requestSessionREAL(){
   /* v8.0 : les packs sont embarqués, plus de téléchargement.
      Le serveur ne renvoie que le plan : bras, cellule, ordre des journées
      (identifiants opaques) et sens imposé par session. */
-  EV.arm  = data.arm  || "A";
+  EV.arm  = data.arm  || "B";   /* doit rester identique au repli de RESOLVED_ARM */
   EV.cell = data.cell || null;
   /* Ne devrait jamais arriver : le serveur honore le bras transmis. Si ça se
      produit, le candidat a vu une présentation qui ne correspond pas à son test,
@@ -1660,7 +1660,7 @@ function initCharts(){
 function setupReplay(pack, maxSignals, startMs, mode, side){
   Object.assign(S, {
     pack, maxSignals,
-    mode: mode || "paired",        // "paired" (bras A) | "single" (bras B et C)
+    mode: mode || "single",        // "single" partout depuis la v13 ; "paired" n'est plus servi
     side: side || null,            // sens imposé en mode single
     sigTable: SIGNAL_TABLE[pack.id] || null,   // signaux figés (null en démo)
     sigIdx: 0, records: [],

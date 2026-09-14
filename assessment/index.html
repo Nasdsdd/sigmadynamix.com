@@ -772,7 +772,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v13";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v13.1";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -794,10 +794,16 @@ console.log("Sigma assessment build:", BUILD);
    Le bras est mémorisé pour l'onglet : un rechargement en cours de parcours
    redonne le même, sinon le candidat verrait une présentation puis passerait
    un test d'un autre bras. */
-/* v8.1 : le recrutement ne se fait plus qu'en sens unique. Le bras A (deux
-   jambes appariees) est desactive ici ; remettre true pour le reactiver. */
+/* v13.1 : le bras n'a plus AUCUNE influence sur le deroule du test — les trois
+   journees et leurs sens viennent de SESSION_ROSTER. On laisse donc passer le
+   bras du serveur tel quel.
+   Le remappage A -> B/C de la v8.1 cassait le controle de coherence : le
+   serveur avait deja enregistre A via claim_arm(), le client renvoyait B ou C,
+   et la comparaison EV.arm !== RESOLVED_ARM levait "Something went out of
+   sync". Le mode apparie reste neutralise, mais par isPairedArm() ci-dessous,
+   pas en falsifiant le bras. */
 const PAIRED_ENABLED = false;
-const noPaired = a => (!PAIRED_ENABLED && a === "A") ? (Math.random() < 0.5 ? "B" : "C") : a;
+const noPaired = a => a;
 
 const ARM_KEY = "sigma_arm";
 let RESOLVED_ARM = "A";
@@ -820,7 +826,7 @@ async function resolveArm(){
   try{ sessionStorage.setItem(ARM_KEY, RESOLVED_ARM); }catch(e){}
   return true;
 }
-const isPairedArm = () => RESOLVED_ARM === "A";
+const isPairedArm = () => PAIRED_ENABLED && RESOLVED_ARM === "A";
 
 const ATTEMPT_KEY = "sigma_attempt";
 const RETAKE_USED_KEY = "sigma_retakes_used";

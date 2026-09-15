@@ -772,7 +772,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v13.2";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v13.3";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -960,7 +960,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
      Les liens nominatifs (?t=…) continuent de fonctionner : une invitation
      déjà envoyée ne doit jamais être invalidée par la fermeture du site.
      Mettre HIRING_LOCK_ALL à true pour bloquer aussi les liens nominatifs. */
-  const HIRING_OPEN     = false;
+  const HIRING_OPEN     = true;   /* v13.3 : acces libre, sans jeton */
   const HIRING_LOCK_ALL = false;
 
   if(!HIRING_OPEN){

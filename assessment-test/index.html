@@ -772,7 +772,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v13.2";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v14";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + " · TEST · bras " + RESOLVED_ARM;
   const b = document.createElement("div");
@@ -1038,14 +1038,14 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     return;
   }
 
-  const ok = await resolveArm();
-  if(!ok){
-    $("stage0").classList.add("hidden");
-    const b = $("stageBlocked");
-    const p = b.querySelector("p") || b;
-    p.textContent = "Our assessment service is temporarily unavailable. "
-      + "Please try again in a few minutes, or email " + SUPPORT_EMAIL + ".";
-    b.classList.remove("hidden");
+  /* v14 : le bras ne sert plus a rien fonctionnellement (isPairedArm() est
+     toujours faux, le plan vient de SESSION_ROSTER). On tente de le reclamer
+     pour garder la tracabilite cote serveur, mais on n'affiche plus l'ecran
+     "service indisponible" quand l'appel echoue : le candidat peut passer son
+     test sans backend. */
+  try{ await resolveArm(); }
+  catch(e){ console.warn("resolveArm indisponible, on continue :", e && e.message); }
+  if(false){
     return;
   }
   const fd = $("formDuration");
@@ -1446,7 +1446,11 @@ async function requestSession(){
   SESSION.token = "stub-" + cell + "-" + Date.now().toString(36);
   EV.arm  = spec.arm;
   EV.cell = cell;
-  EV.plan = spec.sessions.map(s=>({ packId:s.packId, mode:s.mode, side:s.side }));
+  /* v14 : le stub servait son propre plan depuis CELL_GRID, avec des sens qui
+     ne correspondaient plus a la production (on y a vu 2 BUY + 1 SELL au lieu
+     de 1 BUY + 2 SELL). On utilise le meme roster que la production, sinon la
+     plateforme de test ne teste pas ce qui tourne reellement. */
+  EV.plan = shuffledRoster(SESSION.token);
   if(EV.plan.some(p=>!packs.find(k=>k.id===p.packId)))
     throw new Error("pack absent du build : " + EV.plan.map(p=>p.packId).join(", "));
   SESSION.ready = true;
@@ -2477,16 +2481,19 @@ $("btnStartTests").addEventListener("click", async ()=>{
   const btn = $("btnStartTests");
   btn.disabled = true; btn.textContent = "Preparing your assessment…";
   $("warnErr").classList.add("hidden");
-  try{
-    await requestSession();                 // le serveur autorise et fournit les journées
-    EV.sessionIdx = 0; EV.results = [];
-    $("stageWarn").classList.add("hidden");
-    showBrief();
-  }catch(e){
-    $("warnErr").textContent = e.message;
-    $("warnErr").classList.remove("hidden");
-    btn.disabled = false; btn.textContent = "I understand — start the tests";
-  }
+  /* v14 : le test demarre TOUJOURS. Les journees et les sens viennent de
+     SESSION_ROSTER, embarque dans cette page : le serveur n'a plus rien a
+     fournir pour commencer. On l'appelle quand meme, pour tracer la tentative
+     et recuperer un jeton de session quand il y en a un, mais son echec
+     n'empeche plus rien. Les resultats partent de toute facon par email
+     (FormSubmit), independamment de Supabase. */
+  try{ await requestSession(); }
+  catch(e){ console.warn("start-attempt indisponible, on continue :", e.message); }
+  if(!Array.isArray(EV.plan) || EV.plan.length !== SESSION_ROSTER.length)
+    EV.plan = shuffledRoster(SESSION.token || (candidate && candidate.email) || "sigma");
+  EV.sessionIdx = 0; EV.results = [];
+  $("stageWarn").classList.add("hidden");
+  showBrief();
 });
 
 function showBrief(){
@@ -2522,6 +2529,15 @@ $("btnStartSession").addEventListener("click", ()=>{
 
 function startTestSession(){
   MODE = "test";
+  /* v13.4 : filet de securite. Le plan ne depend plus du serveur depuis la v13
+     (journees et sens viennent de SESSION_ROSTER), mais il etait encore pose
+     par requestSession() — laquelle leve une erreur des que le backend ne
+     repond pas 200, par exemple sans jeton, quand aucune invitation ne
+     correspond a l'e-mail saisi. EV.plan restait alors vide et le demarrage
+     plantait sur plan.packId. On le reconstruit ici plutot que de dependre
+     d'un appel reseau qui ne sert plus a le determiner. */
+  if(!Array.isArray(EV.plan) || EV.plan.length !== SESSION_ROSTER.length)
+    EV.plan = shuffledRoster(SESSION.token || (candidate && candidate.email) || "sigma");
   const plan = EV.plan[EV.sessionIdx];
   const pack = packs.find(p=>p.id===plan.packId);
   $("sim").classList.remove("hidden");

@@ -18,12 +18,12 @@ tailwind.config = {
   theme: {
     extend: {
       colors: {
-        void:   '#06080F',
-        navy:   '#0B1223',
-        panel:  '#0E1729',
-        ink:    '#0A1120',
-        line:   'rgba(148,163,184,0.14)',
-        strong: 'rgba(148,163,184,0.26)',
+        void:   '#080C17',
+        navy:   '#0F1728',
+        panel:  '#0F1728',
+        ink:    '#0B1220',
+        line:   'rgba(140,163,197,0.14)',
+        strong: 'rgba(140,163,197,0.26)',
         fg:     '#E9EEF8',
         muted:  '#93A2BD',
         faint:  '#5C6C88',
@@ -46,7 +46,7 @@ tailwind.config = {
 </script>
 <style>
   html { -webkit-text-size-adjust: 100%; }
-  body { background-color: #06080F; }
+  body { background-color: #080C17; }
   ::selection { background: #0060F8; color: #F8F8F8; }
   .num { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
   .disp { font-family: 'Space Grotesk', 'Segoe UI', sans-serif; }
@@ -60,29 +60,46 @@ tailwind.config = {
     font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
     color: #5C6C88; font-weight: 400; text-align: right; white-space: nowrap;
-    padding: 12px 16px; background: #0A1120;
-    border-bottom: 1px solid rgba(148,163,184,0.14);
+    padding: 12px 16px; background: #0B1220;
+    border-bottom: 1px solid rgba(140,163,197,0.14);
   }
   .grid-tbl th:first-child, .grid-tbl td:first-child { text-align: left; }
   .grid-tbl td {
     font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
     font-size: 12.5px; text-align: right; white-space: nowrap;
-    padding: 11px 16px; border-bottom: 1px solid rgba(148,163,184,0.08);
+    padding: 11px 16px; border-bottom: 1px solid rgba(140,163,197,0.08);
   }
   .grid-tbl tbody tr:last-child td { border-bottom: none; }
   .grid-tbl tbody tr:hover td { background: rgba(79,140,255,0.05); }
   .grid-tbl tfoot td {
     font-family: 'IBM Plex Mono', ui-monospace, monospace;
     font-size: 12.5px; text-align: right; padding: 13px 16px;
-    border-top: 1px solid rgba(148,163,184,0.14); background: #0A1120;
+    border-top: 1px solid rgba(140,163,197,0.14); background: #0B1220;
   }
   .scroll-x { overflow-x: auto; }
   .scroll-y { max-height: 30rem; overflow-y: auto; }
   .scroll-y thead th { position: sticky; top: 0; z-index: 1; }
   .scroll-x::-webkit-scrollbar, .scroll-y::-webkit-scrollbar { width: 9px; height: 9px; }
   .scroll-x::-webkit-scrollbar-thumb, .scroll-y::-webkit-scrollbar-thumb {
-    background: rgba(148,163,184,0.2); border-radius: 5px; }
+    background: rgba(140,163,197,0.2); border-radius: 5px; }
+
+  /* Séparateurs de section : hairline dégradée, lisible surtout au centre.
+     Réservée aux respirations de page — les filets des tableaux restent francs,
+     ils servent à aligner des chiffres. */
+  .sep {
+    height: 5px;
+    background: linear-gradient(180deg,
+      rgba(140,163,197,0)   0%,
+      rgba(140,163,197,.13) 50%,
+      rgba(140,163,197,0)   100%);
+    -webkit-mask-image: linear-gradient(90deg,
+      rgba(0,0,0,0) 0%, rgba(0,0,0,.08) 20%, rgba(0,0,0,.42) 36%,
+      #000 50%, rgba(0,0,0,.42) 64%, rgba(0,0,0,.08) 80%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(90deg,
+      rgba(0,0,0,0) 0%, rgba(0,0,0,.08) 20%, rgba(0,0,0,.42) 36%,
+      #000 50%, rgba(0,0,0,.42) 64%, rgba(0,0,0,.08) 80%, rgba(0,0,0,0) 100%);
+  }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
@@ -117,8 +134,10 @@ tailwind.config = {
 <main id="main">
 
 <!-- ══ PAGE HEAD ══ -->
-<section class="border-b border-line">
-  <div class="mx-auto max-w-site px-4 pb-6 pt-10 sm:px-6 lg:px-8 lg:pt-12">
+<section class="relative overflow-hidden">
+  <div class="pointer-events-none absolute inset-0" aria-hidden="true"
+       style="background:radial-gradient(ellipse 88% 67% at 50% -19%, rgba(0,96,248,0.200) 0%, rgba(8,12,23,0) 71%)"></div>
+  <div class="relative mx-auto max-w-site px-4 pb-6 pt-10 sm:px-6 lg:px-8 lg:pt-12">
     <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Operator area</p>
     <h1 class="disp tight mt-4 text-3xl font-semibold sm:text-4xl" id="page-title">Your desk performance</h1>
     <p class="mt-4 max-w-2xl text-base leading-relaxed text-muted" id="range">—</p>
@@ -141,7 +160,7 @@ tailwind.config = {
 <div id="view-perf">
 
   <!-- period + equity curve: the curve is the headline, the figures read off it -->
-  <section class="border-b border-line py-10 lg:py-12">
+  <section class="py-10 lg:py-12">
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
 
       <div class="flex flex-wrap items-center gap-2" id="periods">
@@ -209,7 +228,9 @@ tailwind.config = {
   </section>
 
   <!-- statistics: the site's own spec-list idiom, two columns -->
-  <section class="border-b border-line py-14 lg:py-16" id="stats-sec">
+<div class="sep" role="presentation" aria-hidden="true"></div>
+
+  <section class="py-14 lg:py-16" id="stats-sec">
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
       <div class="max-w-2xl">
         <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Key statistics</p>
@@ -227,7 +248,9 @@ tailwind.config = {
   </section>
 
   <!-- accounts + sessions -->
-  <section class="border-b border-line py-14 lg:py-16" id="tables-sec">
+<div class="sep" role="presentation" aria-hidden="true"></div>
+
+  <section class="py-14 lg:py-16" id="tables-sec">
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
       <div class="max-w-2xl">
         <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Breakdown</p>
@@ -245,6 +268,8 @@ tailwind.config = {
   </section>
 
   <!-- trade log -->
+<div class="sep" role="presentation" aria-hidden="true"></div>
+
   <section class="py-14 lg:py-16" id="log-sec">
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
       <div class="flex flex-wrap items-end justify-between gap-4">
@@ -265,7 +290,7 @@ tailwind.config = {
 <!-- ══════════════ PAYOUTS ══════════════ -->
 <div id="view-pay" class="hidden">
 
-  <section class="border-b border-line py-10 lg:py-12">
+  <section class="py-10 lg:py-12">
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="rounded-card border border-line bg-panel p-6 lg:p-7">
@@ -287,7 +312,9 @@ tailwind.config = {
     </div>
   </section>
 
-  <section class="border-b border-line py-14 lg:py-16">
+<div class="sep" role="presentation" aria-hidden="true"></div>
+
+  <section class="py-14 lg:py-16">
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
       <div class="max-w-2xl">
         <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Payment history</p>
@@ -304,6 +331,8 @@ tailwind.config = {
       </div>
     </div>
   </section>
+
+<div class="sep" role="presentation" aria-hidden="true"></div>
 
   <section class="py-14 lg:py-16">
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
@@ -331,9 +360,11 @@ tailwind.config = {
 </main>
 
 <!-- ══ FOOTER ══ -->
-<footer class="border-t border-line">
+<div class="sep" role="presentation" aria-hidden="true"></div>
+
+<footer>
   <div class="mx-auto max-w-site px-4 py-10 sm:px-6 lg:px-8">
-    <div class="flex flex-col justify-between gap-4 text-xs text-muted sm:flex-row">
+    <div class="flex justify-center text-xs text-muted">
       <a href="mailto:support@sigmadynamix.com" class="num transition-colors duration-200 hover:text-blue">support@sigmadynamix.com</a>
     </div>
   </div>
@@ -656,7 +687,7 @@ function drawCurve(){
     </defs>
     <path d="${line} L${W},${y(lo)} L0,${y(lo)} Z" fill="url(#eqfill)"/>
     <line x1="0" y1="${zero}" x2="${W}" y2="${zero}"
-          stroke="rgba(148,163,184,0.26)" stroke-width="1" stroke-dasharray="3 6"/>
+          stroke="rgba(140,163,197,0.26)" stroke-width="1" stroke-dasharray="3 6"/>
     <path d="${line}" fill="none" stroke="#0060F8" stroke-width="1.75"
           stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
     <circle cx="${x(eq.length - 1)}" cy="${y(end)}" r="3.6"

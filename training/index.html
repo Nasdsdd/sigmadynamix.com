@@ -451,7 +451,13 @@
    ================================================================ */
 
 const CONFIG = {
-  accessCode:      "SIGMA",        // code d'accès training
+  // Codes d'accès training. Valeur = dernier jour de validité (AAAA-MM-JJ,
+  // inclus, heure locale de l'opérateur) ou null = pas d'expiration.
+  // Ajouter un accès = ajouter une ligne ici, puis pousser la page.
+  accessCodes: {
+    "SIGMA":      null,          // permanent
+    "SEPTEMBER2": "2026-10-04"   // ouvert le 19/09/2026, 15 jours
+  },
   packDir:         "daypacks/",    // dossier des daypack_YYYYMMDD.json en ligne
   auth:            { dTicks: 50 }, // D du cycle leader (50 ticks = 12,5 pts NQ)
   signalWindowSec: 180,            // fenêtre d'entrée : 3 minutes
@@ -539,10 +545,32 @@ async function loadPack(dayIso){
 $("btnLogin").addEventListener("click", doLogin);
 $("fCode").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); });
 
+// Renvoie {ok:true} | {ok:false, reason:"unknown"|"expired", until}
+function checkAccessCode(raw){
+  const code = String(raw || "").trim().toUpperCase();
+  const table = CONFIG.accessCodes || {};
+  let until;
+  let found = false;
+  for(const k in table){
+    if(k.toUpperCase() === code){ found = true; until = table[k]; break; }
+  }
+  if(!found) return { ok:false, reason:"unknown" };
+  if(until == null) return { ok:true };
+  // Valide jusqu'à la fin du jour indiqué (23:59:59.999 locale).
+  const [y, m, d] = String(until).split("-").map(Number);
+  const end = new Date(y, m - 1, d, 23, 59, 59, 999);
+  if(Date.now() > end.getTime()) return { ok:false, reason:"expired", until };
+  return { ok:true, until };
+}
+
 function doLogin(){
   const name = $("fName").value.trim();
   const code = $("fCode").value.trim();
-  if(code.toUpperCase() !== CONFIG.accessCode.toUpperCase()){
+  const res = checkAccessCode(code);
+  if(!res.ok){
+    $("loginErr").textContent = res.reason === "expired"
+      ? "This training code has expired. Contact support@sigmadynamix.com for a new one."
+      : "Invalid access code.";
     $("loginErr").classList.remove("hidden");
     return;
   }

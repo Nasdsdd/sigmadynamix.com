@@ -334,8 +334,6 @@ tailwind.config = {
 <footer class="border-t border-line">
   <div class="mx-auto max-w-site px-4 py-10 sm:px-6 lg:px-8">
     <div class="flex flex-col justify-between gap-4 text-xs text-muted sm:flex-row">
-      <p class="num" id="foot-terms">—</p>
-      <p class="num" id="foot-stamp">—</p>
       <a href="mailto:support@sigmadynamix.com" class="num transition-colors duration-200 hover:text-blue">support@sigmadynamix.com</a>
     </div>
   </div>
@@ -749,18 +747,13 @@ document.getElementById('op-accts').textContent = OPERATOR.accounts.join('  ·  
 document.title = OPERATOR.name + ' — Sigma Dynamix';
 
 document.getElementById('fee-rate').textContent = `$${nf(FEE)}`;
-document.getElementById('foot-terms').textContent =
-  `${CONTRACT} · $${nf(PV, 0)} per point · $${nf(FEE)} round turn`;
-document.getElementById('foot-stamp').textContent = DATA.generatedAt
-  ? 'Published ' + DATA.generatedAt.replace('T', ' ').replace('Z', ' UTC') : '';
-
 if(DATA.minimum){
   document.getElementById('pay-min').textContent =
     `A guaranteed minimum applies — ${DATA.minimum} — and if your half of the profit falls below it, you are paid the minimum.`;
 }
 if(DATA.bankHint){
   document.getElementById('pay-bank').innerHTML =
-    `Payments go to the bank account on file, ending <span class="num text-fg">${DATA.bankHint}</span>. Write to the desk to change it.`;
+    `Payments go to the bank account on file, <span class="num text-fg">XXXX ${DATA.bankHint}</span>. Write to the desk to change it.`;
 }
 
 document.getElementById('signout').addEventListener('click', signOut);

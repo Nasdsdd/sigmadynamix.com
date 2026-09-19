@@ -940,7 +940,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
      Les liens nominatifs (?t=…) continuent de fonctionner : une invitation
      déjà envoyée ne doit jamais être invalidée par la fermeture du site.
      Mettre HIRING_LOCK_ALL à true pour bloquer aussi les liens nominatifs. */
-  const HIRING_OPEN     = true;   /* v13.3 : acces libre, sans jeton */
+  const HIRING_OPEN     = false;  /* fermé : seuls les liens nominatifs ?t=… passent */
   const HIRING_LOCK_ALL = false;
 
   if(!HIRING_OPEN){

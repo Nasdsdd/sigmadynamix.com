@@ -155,13 +155,14 @@
     white-space:nowrap;margin-bottom:6px}
   #btnClose{background:var(--panel2);border:1px solid var(--strong);color:var(--text);width:100%;
     margin-top:8px;padding:10px 0;border-radius:var(--r-ctl);font-weight:600;cursor:pointer}
-  .tbtn:disabled,#btnClose:disabled{opacity:.3;cursor:not-allowed}
+  .tbtn:disabled,.cbtn:disabled{opacity:.3;cursor:not-allowed}
   .posline{display:flex;justify-content:space-between;font-size:13px;margin-top:9px;color:var(--muted)}
   .posline b{color:var(--text)}
   #log{max-height:170px;overflow-y:auto;font-size:12px}
   #log table{width:100%;border-collapse:collapse}
   #log td{padding:4px;border-bottom:1px solid var(--border)}
   #log .w{color:var(--green)} #log .l{color:var(--red)} #log .m{color:var(--amber)}
+  #log .lb{color:#4F8CFF} #log .ls{color:#FCA5A5}
 
   /* ---- Demo captions ---- */
   #caption{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:20;max-width:70%;
@@ -309,8 +310,12 @@
   .ghostb:hover{border-color:var(--accent);color:var(--accent)}
 
   /* panneau simulateur : version mono-jambe */
-  #btnOpen{background:var(--green);color:#FFFFFF}
-  #btnOpen.sell{background:var(--red);color:#FFFFFF}
+  /* Un signal, une direction : les deux boutons se verrouillent des qu'une
+     position est prise, jusqu'au signal suivant. */
+  #btnBuy{background:var(--green);color:#FFFFFF}
+  #btnSell{background:var(--red);color:#FFFFFF}
+  .legrow .tbtn{flex:1}
+  .cbtn.wide{width:100%;margin-top:8px;padding:11px 0}
   #pauseBox{display:flex;flex-direction:column;gap:8px}
   #pauseBox button{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);
     border-radius:10px;padding:10px 0;font-size:13px;font-weight:600;cursor:pointer}
@@ -353,7 +358,7 @@
 <div class="stage" id="stageLogin">
   <div class="card">
     <h2>Training platform</h2>
-    <p class="lead">Replay the live market on a day of your choice and practise the authorization cycle. Sessions are not recorded and do not affect your evaluation.</p>
+    <p class="lead">Replay the live market on a day of your choice and practise the authorization cycle. At each authorization you pick your own direction — buy or sell. Sessions are not recorded and do not affect your evaluation.</p>
     <label for="fName">Operator name</label>
     <input type="text" id="fName" autocomplete="name" placeholder="Your name">
     <label for="fCode">Access code</label>
@@ -367,7 +372,7 @@
 <div class="stage hidden" id="stageSetup">
   <div class="card wide">
     <h2>Session setup</h2>
-    <p class="lead" id="setupHello">Choose a trading day, your side and the time you step in.</p>
+    <p class="lead" id="setupHello">Choose a trading day and the time you step in.</p>
 
     <h3 class="sect">0 · Demo <span class="sub">how a signal is traded</span></h3>
     <div id="demoStep">
@@ -397,14 +402,7 @@
     </div>
     <button class="ghostb" id="btnRandDay">🎲 Random available day</button>
 
-    <h3 class="sect">2 · Your side</h3>
-    <div class="choice" id="sideChoice">
-      <button class="chip" data-side="BUY">BUY only</button>
-      <button class="chip" data-side="SELL">SELL only</button>
-      <button class="chip" data-side="RANDOM">🎲 Random</button>
-    </div>
-
-    <h3 class="sect">3 · Start time <span class="sub">New York</span></h3>
+    <h3 class="sect">2 · Start time <span class="sub">New York</span></h3>
     <div class="choice" id="timeChoice"></div>
 
     <p class="err hidden" id="setupErr"></p>
@@ -434,9 +432,10 @@
     </div>
     <div class="pbox" id="orderBox">
       <div class="legrow">
-        <button class="tbtn" id="btnOpen" disabled>BUY</button>
-        <button class="cbtn" id="btnClose" disabled>Close</button>
+        <button class="tbtn" id="btnBuy" disabled>BUY</button>
+        <button class="tbtn" id="btnSell" disabled>SELL</button>
       </div>
+      <button class="cbtn wide" id="btnClose" disabled>Close position</button>
       <div class="posline"><span>Entry</span><b class="num" id="pEntry">—</b></div>
       <div class="posline"><span>Trailing stop</span><b class="num" id="pStop">—</b></div>
       <div class="posline"><span>Floating PnL (net)</span><b class="num" id="pFloat">—</b></div>
@@ -448,7 +447,7 @@
       <button id="btnQuit">■ End session</button>
     </div>
     <div class="pbox" id="log">
-      <div class="loghead">SIG · ENTRY · EXIT · NET</div>
+      <div class="loghead">SIG · DIR · ENTRY · EXIT · NET</div>
       <table id="logTable"></table>
     </div>
   </div>
@@ -492,6 +491,8 @@
       <div class="stat"><span>Signals missed</span><b class="num" id="eMiss">—</b></div>
       <div class="stat"><span>Best trade</span><b class="num" id="eBest">—</b></div>
       <div class="stat"><span>Worst trade</span><b class="num" id="eWorst">—</b></div>
+      <div class="stat"><span>Buys (net)</span><b class="num" id="eBuy">—</b></div>
+      <div class="stat"><span>Sells (net)</span><b class="num" id="eSell">—</b></div>
     </div>
     <button class="btn" id="btnAgain">New session</button>
   </div>
@@ -517,7 +518,9 @@ const CONFIG = {
     "SEPTEMBER2":  "2026-10-04"   // ouvert le 19/09/2026, 15 jours
   },
   packDir:         "daypacks/",    // dossier des daypack_YYYYMMDD.json en ligne
-  auth:            { dTicks: 50 }, // D du cycle leader (50 ticks = 12,5 pts NQ)
+  /* Cycle leader : D1 = amplitude du premier swing (phase 1), D2 = amplitude
+     de chacun des deux retours (phase 2). 40 ticks = 10 pts NQ. */
+  auth:            { d1Ticks: 40, d2Ticks: 40 },
   signalWindowSec: 180,            // fenêtre d'entrée : 3 minutes
   trailingTicks:   70,             // trailing SL de sortie (70 ticks = 17,5 pts)
   cooldownMs:      30000,          // pause de 30 s après chaque signal
@@ -651,7 +654,7 @@ function doLogin(){
   $("stageLogin").classList.add("hidden");
   $("stageSetup").classList.remove("hidden");
   $("setupHello").textContent =
-    `Welcome ${S.operator}. Choose a trading day, your side and the time you step in.`;
+    `Welcome ${S.operator}. Choose a trading day and the time you step in.`;
   buildTimeSlots();
   renderCalendar();
 }
@@ -735,15 +738,8 @@ $("btnRandDay").addEventListener("click", ()=>{
 });
 
 /* ================================================================
-   CHOIX DU CÔTÉ ET DE L'HEURE
+   CHOIX DE L'HEURE DE DÉPART
    ================================================================ */
-$("sideChoice").addEventListener("click", e=>{
-  const b = e.target.closest(".chip"); if(!b) return;
-  S.sidePick = b.dataset.side;
-  [...$("sideChoice").children].forEach(x=>x.classList.toggle("on", x === b));
-  refreshStart();
-});
-
 function buildTimeSlots(){
   $("timeChoice").innerHTML =
     CONFIG.startSlots.map(t=>`<button class="chip" data-t="${t}">${t}</button>`).join("") +
@@ -757,7 +753,7 @@ $("timeChoice").addEventListener("click", e=>{
 });
 
 function refreshStart(){
-  $("btnStart").disabled = !(S.day && S.sidePick && S.timePick);
+  $("btnStart").disabled = !(S.day && S.timePick);
 }
 function flash(msg){
   const e = $("setupErr");
@@ -773,7 +769,6 @@ $("btnStart").addEventListener("click", async ()=>{
   $("loadStatus").textContent = "Loading day pack…";
   try{
     const pack = await loadPack(S.day);
-    S.side  = S.sidePick === "RANDOM" ? (Math.random() < 0.5 ? "BUY" : "SELL") : S.sidePick;
     S.start = S.timePick === "RANDOM"
       ? CONFIG.startSlots[Math.floor(Math.random()*CONFIG.startSlots.length)]
       : S.timePick;
@@ -792,10 +787,8 @@ function beginSession(pack){
   const startMs = nyToUtcMs(S.day, S.start + ":00");
   const endMs   = nyToUtcMs(S.day, CONFIG.lastSignalNY);
   setupReplay(pack, startMs, endMs);
-  $("siTitle").textContent = `${S.day} · ${pack.symbol || "NQ"} · ${S.side} only`;
+  $("siTitle").textContent = `${S.day} · ${pack.symbol || "NQ"}`;
   $("siSub").textContent   = `Start ${S.start} NY · signals until ${CONFIG.lastSignalNY.slice(0,5)} NY`;
-  $("btnOpen").textContent = S.side;
-  $("btnOpen").classList.toggle("sell", S.side === "SELL");
   runClock();
 }
 
@@ -905,7 +898,7 @@ function advance(dtMs){
     S.tickIdx++;
   }
   $("siSub").textContent = fmtClock(S.marketMs) +
-    (MODE === "demo" ? " · demo" : " · " + S.side + " only");
+    (MODE === "demo" ? " · demo" : " · buy or sell");
   updateWindow();
   if(MODE === "demo") demoScriptTick();
   if(S.pos) updatePosUI();
@@ -966,22 +959,24 @@ function cycleReset(price){
   return { phase:1, hi:price, lo:price, touchedUp:false, touchedDown:false };
 }
 function cycleStep(c, price){
-  const D = CONFIG.auth.dTicks * (S.pack.tickSize || 0.25);
+  const tick = S.pack.tickSize || 0.25;
+  const D1 = CONFIG.auth.d1Ticks * tick;   // premier swing
+  const D2 = CONFIG.auth.d2Ticks * tick;   // les deux retours
   if(c.phase === 1){
     if(price > c.hi) c.hi = price;
     if(price < c.lo) c.lo = price;
-    if(c.hi - price >= D || price - c.lo >= D){
+    if(c.hi - price >= D1 || price - c.lo >= D1){
       c.phase = 2; c.hi = price; c.lo = price;
     }
     return false;
   }
   if(!c.touchedDown){
     if(price > c.hi) c.hi = price;
-    if(c.hi - price >= D) c.touchedDown = true;
+    if(c.hi - price >= D2) c.touchedDown = true;
   }
   if(!c.touchedUp){
     if(price < c.lo) c.lo = price;
-    if(price - c.lo >= D) c.touchedUp = true;
+    if(price - c.lo >= D2) c.touchedUp = true;
   }
   return c.touchedUp && c.touchedDown;
 }
@@ -1026,8 +1021,12 @@ function setSignalUI(on){
   $("lampWrap").classList.toggle("calc", !on && !anyPos);
   $("signalTxt").classList.toggle("go", on);
   $("signalCount").classList.toggle("go", on);
-  $("signalTxt").textContent = on ? "AUTHORIZED — " + S.side : "WAITING";
-  $("btnOpen").disabled  = !(on && !S.pos && !S.legTaken);
+  $("signalTxt").textContent = on ? "AUTHORIZED — BUY or SELL" : "WAITING";
+  /* Les deux boutons partagent le meme verrou : prendre l'un ferme l'autre
+     jusqu'au signal suivant. */
+  const canOpen = !!(on && !S.pos && !S.legTaken);
+  $("btnBuy").disabled  = !canOpen;
+  $("btnSell").disabled = !canOpen;
   $("btnClose").disabled = !S.pos;
   $("btnSkip").disabled  = !!(S.winOpen || S.winClosed || S.pos);
   $("btnPause").disabled = !!(S.winOpen || S.winClosed || S.pos);
@@ -1038,13 +1037,15 @@ function setSignalUI(on){
    ================================================================ */
 const trailPts = () => CONFIG.trailingTicks * (S.pack.tickSize || 0.25);
 
-function openPos(){
+function openPos(side){
+  /* `legTaken` porte deja la regle : une seule entree par signal. Le sens n'est
+     plus impose pour la session, il se choisit ici, signal par signal. */
   if(!S.winOpen || S.pos || S.legTaken) return;
   const sp = CONFIG.costs.spreadPts;
-  const entry = S.side === "BUY" ? S.price + sp : S.price - sp;
+  const entry = side === "BUY" ? S.price + sp : S.price - sp;
   S.pos = {
-    side:S.side, entry, best:S.price,
-    stop: S.side === "BUY" ? S.price - trailPts() : S.price + trailPts(),
+    side, entry, best:S.price,
+    stop: side === "BUY" ? S.price - trailPts() : S.price + trailPts(),
     tOpen:S.marketMs, reaction:+((S.marketMs - S.winStartMs)/1000).toFixed(1)
   };
   S.legTaken = true;
@@ -1123,10 +1124,11 @@ function logSignal(r){
   const row = $("logTable").insertRow(0);
   if(r.result !== "trade"){
     row.innerHTML = `<td class="num">#${r.signalIdx}</td>
-      <td class="num m" colspan="3">missed</td>`;
+      <td class="num m" colspan="4">missed</td>`;
     return;
   }
   row.innerHTML = `<td class="num">#${r.signalIdx}</td>
+    <td class="num ${r.side === "BUY" ? "lb" : "ls"}">${r.side === "BUY" ? "B" : "S"}</td>
     <td class="num">${r.entry.toFixed(2)}</td>
     <td class="num">${r.exit.toFixed(2)}</td>
     <td class="num"><b class="${r.pnl>=0?"w":"l"}">${r.pnl>=0?"+":""}${r.pnl.toFixed(2)}</b></td>`;
@@ -1153,7 +1155,8 @@ function predictNextSignalMs(){
 /* ================================================================
    CONTRÔLES
    ================================================================ */
-$("btnOpen").addEventListener("click", openPos);
+$("btnBuy").addEventListener("click",  ()=>openPos("BUY"));
+$("btnSell").addEventListener("click", ()=>openPos("SELL"));
 $("btnClose").addEventListener("click", ()=>{ if(S.pos) closePos(S.price, true); });
 
 $("btnSkip").addEventListener("click", ()=>{
@@ -1188,7 +1191,7 @@ function endSession(){
   const pnls   = trades.map(r=>r.pnl);
   const f = v => (v>=0?"+":"") + v.toFixed(2);
 
-  $("endSub").textContent = `${S.operator} · ${S.day} · ${S.side} only · start ${S.start} NY`;
+  $("endSub").textContent = `${S.operator} · ${S.day} · start ${S.start} NY`;
   $("ePnl").textContent    = f(S.total);
   $("ePnl").className      = "num " + (S.total>=0 ? "w" : "l");
   $("eWin").textContent    = trades.length ? Math.round(100*wins.length/trades.length) + " %" : "—";
@@ -1196,6 +1199,13 @@ function endSession(){
   $("eMiss").textContent   = miss;
   $("eBest").textContent   = pnls.length ? f(Math.max(...pnls)) : "—";
   $("eWorst").textContent  = pnls.length ? f(Math.min(...pnls)) : "—";
+  /* Repartition par direction : elle varie maintenant d'un signal a l'autre. */
+  for(const [side, id] of [["BUY","eBuy"], ["SELL","eSell"]]){
+    const t = trades.filter(r => r.side === side);
+    const v = t.reduce((a, r) => a + r.pnl, 0);
+    $(id).textContent = t.length ? `${f(v)} (${t.length})` : "—";
+    $(id).className   = "num " + (v >= 0 ? "w" : "l");
+  }
 
   $("sim").classList.add("hidden");
   $("stageEnd").classList.remove("hidden");
@@ -1310,9 +1320,6 @@ function startDemo(withTour){
   const d  = CONFIG.demo;
   const sd = d.single;
   const pack = decodePack(DEMO_PACK);
-  S.side = sd.side;
-  $("btnOpen").textContent = S.side;
-  $("btnOpen").classList.toggle("sell", S.side === "SELL");
   $("siTitle").textContent = "Strategy demo";
   $("siSub").textContent   = "NQ futures · " + sd.side + " examples";
   setupReplay(pack, nyToUtcMs(d.day, sd.startNY), nyToUtcMs(d.day, CONFIG.lastSignalNY));
@@ -1339,7 +1346,7 @@ function runDemoTrades(){
     }, 10000);
   say("Welcome. You are watching a real replay of the NQ futures market. The top chart shows 100-tick candles, the bottom one shows 1-minute candles.");
   S.introT = setTimeout(()=>{ if(MODE==="demo" && !demoPaused)
-      say("Our strategy works in pairs. Every trade involves two operators: a buyer, and a seller. You will be assigned one single role. Today's example shows the buyer's side — your paired seller does the exact opposite.");
+      say("Our strategy works in pairs. Every trade involves two operators: a buyer, and a seller. At each authorization you choose your own direction. Once you have placed a buy, the sell is locked until the next signal, and the other way round — one position per signal, never both. Today's example takes the buy side.");
     }, 11000);
   runClock();
 }
@@ -1352,7 +1359,7 @@ function buildDemoScriptSingle(d){
         say("Authorization! The lead strategy just completed its cycle — the light turns green for every operator, buyers and sellers alike. As buyers, we do not take the authorization price: we wait for a lower price, for a better entry.");
     }},
     { price: d.entry1Price, dir:"down", run: ()=>{
-        openPos();
+        openPos("BUY");
         say("There — the price came down to our level, and we buy at " + S.pos.entry.toFixed(2) + ". The entry and trailing stop lines appear on both charts.");
     }},
     { price: d.exit1Price, dir:"up", need:"pos", run: ()=>{
@@ -1373,7 +1380,7 @@ function buildDemoScriptSingle(d){
         say("New authorization. Watch the price push up right after it — we do not chase: that is most likely where the seller is placing his entry. As buyers, we stay patient and let the price come back to us.");
     }},
     { at: at(d.entry2NY), run: ()=>{
-        openPos();
+        openPos("BUY");
         say("Now the price came back — we enter at " + S.pos.entry.toFixed(2) + ".");
     }},
     { price: d.exit2Price, dir:"up", need:"pos", run: ()=>{
@@ -1470,9 +1477,9 @@ const TOUR = [
   { el:"signalBox", title:"Authorization signal",
     text:"The spinning ring means the firm's lead strategy is computing. When its cycle completes, the lamp turns green — you are AUTHORIZED to enter. The countdown shows the time remaining: 3 min, 2 min, 1 min, then the signal expires and counts as missed." },
   { el:"orderBox",  title:"Order panel",
-    text:"Each signal gives you one position, in the side you chose for this session — a single entry button, and the side cannot be changed once the session has started. It carries a trailing stop of 70 ticks and its own Close button. Every number you see, including this log, is net of trading costs." },
+    text:"At each authorization you choose your direction: BUY or SELL. Placing one locks the other until the next signal — one position per signal, never both. It carries a trailing stop of 70 ticks and a Close button. Every number you see, including this log, is net of trading costs." },
   { el:"log",       title:"Trade log",
-    text:"One line per signal: your net result on that signal, after trading costs." },
+    text:"One line per signal: the direction you took, B or S, and your net result after trading costs." },
   { el:"pauseBox",  title:"Next signal, Pause & End",
     text:"\"Next signal\" fast-forwards the replay to just before the next authorization — no need to wait in real time. Pause is allowed between two signals only, never while a signal is live or a position is open. \"End session\" stops the replay and shows your statistics." }
 ];

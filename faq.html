@@ -230,15 +230,25 @@ tailwind.config = {
     <div class="mt-8 divide-y divide-line overflow-hidden rounded-card border border-line bg-panel">
       <details class="group" open>
         <summary class="flex cursor-pointer items-start justify-between gap-4 p-5 text-[15.5px] font-medium sm:p-6">
-          <span>What does it mean to be assigned a Buyer or Seller role?</span>
+          <span>Do I get assigned to buy or sell?</span>
           <span class="num mt-0.5 shrink-0 text-muted transition-transform duration-200 group-open:rotate-45">+</span>
         </summary>
         <div class="px-5 pb-6 text-[14.5px] leading-relaxed text-muted sm:px-6">
-          Your role is assigned by Sigma Dynamix. On each signal, Buyers open a buy
-          position and Sellers open a sell position on NQ. Operators always work in
-          pairs — one Buyer, one Seller, on the same signal. You do not coordinate
-          with your pair; the desk handles that. You manage your own entry and exit
-          on your side.
+          No. You choose on every signal. We send the signal, and you decide to buy
+          or sell in the move that follows. Several operators trade the same move,
+          each finding their own edge in it.
+        </div>
+      </details>
+      <details class="group">
+        <summary class="flex cursor-pointer items-start justify-between gap-4 p-5 text-[15.5px] font-medium sm:p-6">
+          <span>Do I need to analyse the market or build a strategy?</span>
+          <span class="num mt-0.5 shrink-0 text-muted transition-transform duration-200 group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-5 pb-6 text-[14.5px] leading-relaxed text-muted sm:px-6">
+          No. The signal and its timing come from us. Your job is execution — entry,
+          trade management, exit. It is scalping: you are in and out of the same
+          move fast. We synchronise timing across operators and build teams trading
+          it together.
         </div>
       </details>
       <details class="group">
@@ -247,14 +257,14 @@ tailwind.config = {
           <span class="num mt-0.5 shrink-0 text-muted transition-transform duration-200 group-open:rotate-45">+</span>
         </summary>
         <div class="px-5 pb-6 text-[14.5px] leading-relaxed text-muted sm:px-6">
-          Hunt the best price on your side: Buyers wait for a slight dip, Sellers for
-          a slight push higher on the same wave. Each operator then closes
-          independently — the Buyer on the way up, the Seller once price comes back
-          down. Patience on each entry is what widens the spread.
+          There is no fixed pattern, only a signal to read. Two operators can trade
+          the same signal differently, as shown below: one buys early into the dip
+          and exits into strength, the other waits, sells once the move has run
+          further, and covers on the pullback that follows.
           <div class="mt-5 rounded-ctl border border-line bg-void p-4">
             <svg viewBox="0 0 760 270" class="mx-auto block h-auto w-full" style="max-width:620px"
                  xmlns="http://www.w3.org/2000/svg" role="img"
-                 aria-label="One signal, one pair: the buyer enters low and closes on the way up, the seller enters high and closes once price comes back down">
+                 aria-label="One signal read two ways: one operator buys the dip and exits into strength, the other sells the extended high and covers on the pullback">
               <line x1="18" y1="90"  x2="742" y2="90"  stroke="rgba(140,163,197,0.13)" stroke-width="1"/>
               <line x1="18" y1="145" x2="742" y2="145" stroke="rgba(140,163,197,0.13)" stroke-width="1"/>
               <line x1="18" y1="200" x2="742" y2="200" stroke="rgba(140,163,197,0.13)" stroke-width="1"/>
@@ -263,25 +273,25 @@ tailwind.config = {
 
               <line x1="118" y1="194" x2="118" y2="222" stroke="rgba(0,96,248,0.7)" stroke-width="1.1" stroke-dasharray="3 3"/>
               <circle cx="118" cy="194" r="4.6" fill="#0060F8" stroke="#080C17" stroke-width="1.8"/>
-              <rect x="58" y="224" width="120" height="22" rx="4.5" fill="#0060F8"/>
-              <text x="118" y="239" text-anchor="middle" fill="#FFFFFF" style="font:600 11px 'Inter',sans-serif;letter-spacing:.5px">1 · BUYER ENTERS</text>
+              <rect x="52" y="224" width="132" height="22" rx="4.5" fill="#0060F8"/>
+              <text x="118" y="239" text-anchor="middle" fill="#FFFFFF" style="font:600 11px 'Inter',sans-serif;letter-spacing:.5px">A · BUYS THE DIP</text>
 
               <line x1="245" y1="135" x2="245" y2="56" stroke="rgba(233,238,248,0.45)" stroke-width="1.1" stroke-dasharray="3 3"/>
               <circle cx="245" cy="135" r="4.6" fill="#E9EEF8" stroke="#080C17" stroke-width="1.8"/>
-              <rect x="185" y="34" width="120" height="22" rx="4.5" fill="#E9EEF8"/>
-              <text x="245" y="49" text-anchor="middle" fill="#080C17" style="font:600 11px 'Inter',sans-serif;letter-spacing:.5px">2 · SELLER ENTERS</text>
+              <rect x="179" y="34" width="132" height="22" rx="4.5" fill="#E9EEF8"/>
+              <text x="245" y="49" text-anchor="middle" fill="#080C17" style="font:600 11px 'Inter',sans-serif;letter-spacing:.5px">B · SELLS THE HIGH</text>
 
               <line x1="438" y1="110" x2="438" y2="56" stroke="rgba(0,96,248,0.7)" stroke-width="1.1" stroke-dasharray="3 3"/>
               <circle cx="438" cy="110" r="4.6" fill="#0060F8" stroke="#080C17" stroke-width="1.8"/>
               <rect x="378" y="34" width="120" height="22" rx="4.5" fill="#0060F8"/>
-              <text x="438" y="49" text-anchor="middle" fill="#FFFFFF" style="font:600 11px 'Inter',sans-serif;letter-spacing:.5px">3 · BUYER CLOSES</text>
+              <text x="438" y="49" text-anchor="middle" fill="#FFFFFF" style="font:600 11px 'Inter',sans-serif;letter-spacing:.5px">A · EXITS +</text>
 
               <line x1="624" y1="200" x2="624" y2="222" stroke="rgba(233,238,248,0.45)" stroke-width="1.1" stroke-dasharray="3 3"/>
               <circle cx="624" cy="200" r="4.6" fill="#E9EEF8" stroke="#080C17" stroke-width="1.8"/>
               <rect x="564" y="224" width="120" height="22" rx="4.5" fill="#E9EEF8"/>
-              <text x="624" y="239" text-anchor="middle" fill="#080C17" style="font:600 11px 'Inter',sans-serif;letter-spacing:.5px">4 · SELLER CLOSES</text>
+              <text x="624" y="239" text-anchor="middle" fill="#080C17" style="font:600 11px 'Inter',sans-serif;letter-spacing:.5px">B · COVERS +</text>
 
-              <text x="742" y="16" text-anchor="end" fill="rgba(147,162,189,0.8)" style="font:500 10.5px 'IBM Plex Mono',monospace">NQ · one signal, one pair, two operators</text>
+              <text x="742" y="16" text-anchor="end" fill="rgba(147,162,189,0.8)" style="font:500 10.5px 'IBM Plex Mono',monospace">NQ · one signal, two reads</text>
             </svg>
           </div>
         </div>

@@ -257,11 +257,15 @@ tailwind.config = {
         <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl" id="bd-title">By session.</h2>
       </div>
 
-      <div class="mt-10 overflow-hidden rounded-card border border-line bg-panel" id="acct-card">
+      <div class="mt-10 overflow-hidden rounded-card border border-line bg-panel">
+        <div class="scroll-x"><table class="grid-tbl" id="t-side"></table></div>
+      </div>
+
+      <div class="mt-4 overflow-hidden rounded-card border border-line bg-panel" id="acct-card">
         <div class="scroll-x"><table class="grid-tbl" id="t-acct"></table></div>
       </div>
 
-      <div class="mt-4 overflow-hidden rounded-card border border-line bg-panel" id="day-card">
+      <div class="mt-4 overflow-hidden rounded-card border border-line bg-panel">
         <div class="scroll-x"><table class="grid-tbl" id="t-day"></table></div>
       </div>
     </div>
@@ -576,25 +580,55 @@ function render(){
     row('Contract', `${CONTRACT} · ${LOTS === 1 ? '1 lot' : 'up to ' + LOTS + ' lots'}`)
   ].join('');
 
-  /* ---- accounts: only meaningful when the operator runs both directions ---- */
+  /* ---- direction: operators pick their own side, so long and short are
+         separate skills and are reported separately ---- */
+  const SIDES = [['B', 'Long'], ['S', 'Short']];
+  document.getElementById('t-side').innerHTML = `
+    <thead><tr><th>Direction</th><th>Trades</th><th>W / L</th><th>Win rate</th>
+    <th>Points</th><th>Gross</th><th>Fees</th><th>Net USD</th></tr></thead>
+    <tbody>${SIDES.map(([code, label]) => {
+      const x = stats(VIEW.filter(t => t.side === code));
+      if(!x.n) return `<tr>
+        <td>${pill(label, code === 'B' ? 'green' : 'loss')}</td>
+        <td class="text-faint">0</td><td class="text-faint">—</td><td class="text-faint">—</td>
+        <td class="text-faint">—</td><td class="text-faint">—</td><td class="text-faint">—</td>
+        <td class="text-faint">—</td></tr>`;
+      return `<tr>
+        <td>${pill(label, code === 'B' ? 'green' : 'loss')}</td>
+        <td>${x.n}</td><td class="text-muted">${x.wins} / ${x.losses}</td>
+        <td>${nf(x.winRate, 0)}%</td>
+        <td class="${tone(x.pts)}">${points(x.pts)}</td>
+        <td class="${tone(x.gross)}">${money(x.gross)}</td>
+        <td class="text-faint">${money(x.fees)}</td>
+        <td class="${tone(x.net)}">${money(x.net)}</td></tr>`;
+    }).join('')}</tbody>
+    <tfoot><tr><td class="text-faint">Both</td><td>${s.n}</td>
+      <td class="text-muted">${s.wins} / ${s.losses}</td><td>${nf(s.winRate, 0)}%</td>
+      <td class="${tone(s.pts)}">${points(s.pts)}</td><td class="${tone(s.gross)}">${money(s.gross)}</td>
+      <td class="text-faint">${money(s.fees)}</td>
+      <td class="${tone(s.net)}">${money(s.net)}</td></tr></tfoot>`;
+
+  /* ---- accounts: only worth a table when there is more than one ---- */
   const paired = OPERATOR.accounts.length > 1;
   document.getElementById('acct-card').classList.toggle('hidden', !paired);
-  document.getElementById('day-card').classList.toggle('mt-4', paired);
-  document.getElementById('day-card').classList.toggle('mt-10', !paired);
-  document.getElementById('bd-title').textContent = paired ? 'By account, then by session.' : 'By session.';
+  document.getElementById('bd-title').textContent =
+    paired ? 'By direction, account and session.' : 'By direction, then by session.';
 
   const accts = !paired ? [] : OPERATOR.accounts.map(a => {
     const l = VIEW.filter(t => t.account === a);
-    const b = l.filter(t => t.side === 'B').length;
-    return {a, role: b >= l.length - b ? 'Buy side' : 'Sell side', s: stats(l)};
+    const b = l.filter(t => t.side === 'B').length, sl = l.length - b;
+    // a handle is no longer tied to one side: report the mix it actually traded
+    const mix = !l.length ? '—' : sl === 0 ? 'Long only' : b === 0 ? 'Short only'
+              : `${b} long · ${sl} short`;
+    return {a, mix, kind: sl === 0 ? 'green' : b === 0 ? 'loss' : 'plain', s: stats(l)};
   }).filter(x => x.s.n);
 
   document.getElementById('t-acct').innerHTML = `
-    <thead><tr><th>Account</th><th>Role</th><th>Trades</th><th>W / L</th><th>Win rate</th>
+    <thead><tr><th>Account</th><th>Directions</th><th>Trades</th><th>W / L</th><th>Win rate</th>
     <th>Points</th><th>Gross</th><th>Fees</th><th>Net USD</th></tr></thead>
     <tbody>${accts.map(x => `<tr>
       <td class="text-fg">${x.a}</td>
-      <td>${pill(x.role, x.role === 'Buy side' ? 'green' : 'loss')}</td>
+      <td>${pill(x.mix, x.kind)}</td>
       <td>${x.s.n}</td>
       <td class="text-muted">${x.s.wins} / ${x.s.losses}</td>
       <td>${nf(x.s.winRate, 0)}%</td>

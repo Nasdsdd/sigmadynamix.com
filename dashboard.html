@@ -131,6 +131,18 @@ tailwind.config = {
   </nav>
 </header>
 
+<div id="stale" class="hidden border-b border-amber/25 bg-amber/[0.07]">
+  <div class="mx-auto flex max-w-site flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 lg:px-8">
+    <p class="text-[13px] leading-relaxed text-muted">
+      Newer results have been published since you signed in.
+    </p>
+    <button type="button" id="stale-go"
+            class="cursor-pointer rounded-ctl border border-amber/40 px-3.5 py-1.5 text-[12.5px] font-medium text-amber transition-colors duration-200 hover:bg-amber/10">
+      Sign in again to load them
+    </button>
+  </div>
+</div>
+
 <main id="main">
 
 <!-- ══ PAGE HEAD ══ -->
@@ -822,6 +834,70 @@ if(DATA.bankHint){
 }
 
 document.getElementById('signout').addEventListener('click', signOut);
+
+/* ============================================================================
+   Keeping the page current.
+
+   The session holds the data as it stood at sign-in. Left alone, an operator
+   who signed in before a publication would keep seeing that older snapshot
+   until their session expired. So on every load the page asks the server what
+   the latest publication is, and:
+     · with the key in the session — re-fetches, re-decrypts, reloads silently
+     · without it (a session opened by an older build) — says so and offers
+       the sign-in link, rather than showing stale figures in silence
+   A failure here is not fatal: the page keeps showing what it already has.
+   ============================================================================ */
+(function refresh(){
+  if(!SESSION.payload || !SESSION.payload.generatedAt) return;
+  if(!window.crypto || !crypto.subtle || !window.fetch) return;
+
+  const bust = '?v=' + Date.now();
+  const store = () => {
+    try { return localStorage.getItem(SESSION_KEY) ? localStorage : sessionStorage; }
+    catch(e){ return null; }
+  };
+
+  function offerSignIn(){
+    const bar = document.getElementById('stale');
+    if(bar) bar.classList.remove('hidden');
+  }
+
+  function fromB64(b64){
+    const bin = atob(b64), out = new Uint8Array(bin.length);
+    for(let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  fetch('data/directory.json' + bust, {cache: 'no-store'})
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(dir => {
+      if(!dir.generatedAt || dir.generatedAt === SESSION.payload.generatedAt) return;
+
+      // something newer exists
+      if(!SESSION.key || !SESSION.file){ offerSignIn(); return; }
+
+      return fetch('data/' + SESSION.file + bust, {cache: 'no-store'})
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(env => crypto.subtle
+          .importKey('raw', fromB64(SESSION.key), 'AES-GCM', false, ['decrypt'])
+          .then(k => crypto.subtle.decrypt(
+            {name: 'AES-GCM', iv: fromB64(env.nonce)}, k, fromB64(env.data))))
+        .then(plain => {
+          const fresh = JSON.parse(new TextDecoder().decode(plain));
+          if(fresh.generatedAt === SESSION.payload.generatedAt) return;
+          const st = store();
+          if(!st) return;
+          SESSION.payload = fresh;
+          st.setItem(SESSION_KEY, JSON.stringify(SESSION));
+          location.reload();
+        })
+        .catch(offerSignIn);
+    })
+    .catch(() => { /* offline or unreachable: keep showing what we have */ });
+})();
+
+const staleGo = document.getElementById('stale-go');
+if(staleGo) staleGo.addEventListener('click', signOut);
 
 const PER_ON = 'border-blue bg-blue/10 text-fg';
 const PER_OFF = 'border-line text-muted';

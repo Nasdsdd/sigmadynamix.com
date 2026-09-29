@@ -834,8 +834,14 @@ document.title = OPERATOR.name + ' — Sigma Dynamix';
 
 document.getElementById('fee-rate').textContent = `$${nf(FEE)}`;
 if(DATA.minimum){
+  const since = DATA.startedOn
+    ? new Date(DATA.startedOn + 'T12:00:00').toLocaleDateString('en-GB',
+        {day: 'numeric', month: 'long', year: 'numeric'})
+    : '';
   document.getElementById('pay-min').textContent =
-    `From your second month a guaranteed minimum applies — ${DATA.minimum} — and if your split comes to less, the firm pays the difference.`;
+    `From your second month a guaranteed minimum applies — ${DATA.minimum} — and if your split `
+    + `comes to less, the firm pays the difference. Those months are counted from your first day `
+    + `on the live desk${since ? ', ' + since + ',' : ''} and not from the calendar.`;
 }
 if(DATA.bankHint){
   document.getElementById('pay-bank').innerHTML =

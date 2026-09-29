@@ -118,13 +118,8 @@
   /* ---- v16.3 : écran d'accueil ---- */
   #stageVideo{max-width:860px}
   .card.welcome{position:relative;overflow:hidden;text-align:center;padding:48px 40px 40px;
-    background:radial-gradient(120% 70% at 50% -10%, rgba(0,96,248,.20), transparent 60%), var(--panel)}
-  .welcome::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
-    background-image:linear-gradient(rgba(148,163,184,.06) 1px,transparent 1px),
-                     linear-gradient(90deg,rgba(148,163,184,.06) 1px,transparent 1px);
-    background-size:32px 32px;
-    -webkit-mask-image:radial-gradient(80% 60% at 50% 0%,#000 30%,transparent 75%);
-            mask-image:radial-gradient(80% 60% at 50% 0%,#000 30%,transparent 75%)}
+    /* v16.4 : plus de grille — même halo que sigmadynamix.com */
+    background:radial-gradient(ellipse 88% 67% at 50% -19%, rgba(0,96,248,.20) 0%, rgba(8,12,23,0) 71%), var(--panel)}
   .welcome > *{position:relative}
   .w-logo{width:68px;height:68px;border-radius:16px;display:block;margin:0 auto 22px;
     box-shadow:0 0 0 1px var(--strong),0 10px 40px rgba(0,96,248,.35)}
@@ -787,7 +782,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v16.3";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v16.4";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });

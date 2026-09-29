@@ -932,7 +932,7 @@ window.addEventListener('resize', () => {
   if(!document.getElementById('view-perf').classList.contains('hidden') && VIEW.length) drawCurve();
 });
 
-const START = DAYS.length > 1 ? '7' : 'session';
+const START = '30';
 document.querySelectorAll('.per').forEach(b => {
   const on = b.dataset.p === START;
   b.setAttribute('aria-pressed', String(on));

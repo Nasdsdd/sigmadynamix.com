@@ -354,21 +354,21 @@ tailwind.config = {
 
   <section class="py-14 lg:py-16">
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
-      <div class="grid gap-4 lg:grid-cols-2">
+      <div class="grid gap-4">
+        <div class="rounded-card border border-line bg-panel p-6 lg:p-8">
+          <h3 class="disp tight text-lg font-semibold">Where it is sent</h3>
+          <p class="mt-4 text-sm leading-relaxed text-muted" id="pay-bank">
+            Payments go to the bank account on file. Write to the desk to change it.
+          </p>
+        </div>
         <div class="rounded-card border border-line bg-panel p-6 lg:p-8">
           <h3 class="disp tight text-lg font-semibold">How your payout is calculated</h3>
-          <p class="mt-4 text-sm leading-relaxed text-muted">
+          <p class="mt-4 max-w-3xl text-sm leading-relaxed text-muted">
             You receive 50% of the net profit generated on your accounts over the period, after
             round-turn commissions. <span id="pay-min"></span>
             Payments go out by bank transfer at the beginning of each month. Your first one needs
             four full weeks of trading on desk capital — start late in a month and those weeks carry
             into the next, so you are paid at the beginning of the month after.
-          </p>
-        </div>
-        <div class="rounded-card border border-line bg-panel p-6 lg:p-8">
-          <h3 class="disp tight text-lg font-semibold">Where it is sent</h3>
-          <p class="mt-4 text-sm leading-relaxed text-muted" id="pay-bank">
-            Payments go to the bank account on file. Write to the desk to change it.
           </p>
         </div>
       </div>
@@ -530,6 +530,8 @@ function setPeriod(p){
   if(p === 'session') VIEW = ALL.filter(t => t.openDate === last);
   else if(p === 'all') VIEW = ALL.slice();
   else if(p === 'month'){
+    // the calendar month we are actually in — not a window measured back from
+    // the last session, so it lines up with how the period is paid
     const now = new Date();
     const m = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     VIEW = ALL.filter(t => t.openDate.slice(0, 7) === m);
@@ -834,6 +836,7 @@ document.title = OPERATOR.name + ' — Sigma Dynamix';
 
 document.getElementById('fee-rate').textContent = `$${nf(FEE)}`;
 if(DATA.minimum){
+  // months run from the operator's own start on the desk, not the calendar
   const since = DATA.startedOn
     ? new Date(DATA.startedOn + 'T12:00:00').toLocaleDateString('en-GB',
         {day: 'numeric', month: 'long', year: 'numeric'})

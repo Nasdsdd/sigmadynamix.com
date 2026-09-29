@@ -182,6 +182,8 @@ tailwind.config = {
                 class="per num cursor-pointer rounded-ctl border border-line px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-muted transition-colors duration-200 hover:border-strong hover:text-fg">7 days</button>
         <button data-p="30" aria-pressed="false"
                 class="per num cursor-pointer rounded-ctl border border-line px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-muted transition-colors duration-200 hover:border-strong hover:text-fg">30 days</button>
+        <button data-p="month" aria-pressed="false"
+                class="per num cursor-pointer rounded-ctl border border-line px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-muted transition-colors duration-200 hover:border-strong hover:text-fg">Current month</button>
         <button data-p="all" aria-pressed="false"
                 class="per num cursor-pointer rounded-ctl border border-line px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-muted transition-colors duration-200 hover:border-strong hover:text-fg">All time</button>
       </div>
@@ -525,6 +527,11 @@ function setPeriod(p){
   if(!last){ VIEW = []; render(); return; }
   if(p === 'session') VIEW = ALL.filter(t => t.openDate === last);
   else if(p === 'all') VIEW = ALL.slice();
+  else if(p === 'month'){
+    const now = new Date();
+    const m = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    VIEW = ALL.filter(t => t.openDate.slice(0, 7) === m);
+  }
   else {
     const cut = new Date(last + 'T00:00:00');
     cut.setDate(cut.getDate() - (parseInt(p, 10) - 1));
@@ -932,7 +939,7 @@ window.addEventListener('resize', () => {
   if(!document.getElementById('view-perf').classList.contains('hidden') && VIEW.length) drawCurve();
 });
 
-const START = '30';
+const START = 'month';
 document.querySelectorAll('.per').forEach(b => {
   const on = b.dataset.p === START;
   b.setAttribute('aria-pressed', String(on));

@@ -360,7 +360,9 @@ tailwind.config = {
           <p class="mt-4 text-sm leading-relaxed text-muted">
             You receive 50% of the net profit generated on your accounts over the period, after
             round-turn commissions. <span id="pay-min"></span>
-            Payments are released within five business days of the period close.
+            Payments go out by bank transfer at the beginning of each month. Your first one needs
+            four full weeks of trading on desk capital — start late in a month and those weeks carry
+            into the next, so you are paid at the beginning of the month after.
           </p>
         </div>
         <div class="rounded-card border border-line bg-panel p-6 lg:p-8">
@@ -833,7 +835,7 @@ document.title = OPERATOR.name + ' — Sigma Dynamix';
 document.getElementById('fee-rate').textContent = `$${nf(FEE)}`;
 if(DATA.minimum){
   document.getElementById('pay-min').textContent =
-    `A guaranteed minimum applies — ${DATA.minimum} — and if your half of the profit falls below it, you are paid the minimum.`;
+    `From your second month a guaranteed minimum applies — ${DATA.minimum} — and if your split comes to less, the firm pays the difference.`;
 }
 if(DATA.bankHint){
   document.getElementById('pay-bank').innerHTML =

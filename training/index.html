@@ -1346,7 +1346,7 @@ function runDemoTrades(){
     }, 10000);
   say("Welcome. You are watching a real replay of the NQ futures market. The top chart shows 100-tick candles, the bottom one shows 1-minute candles.");
   S.introT = setTimeout(()=>{ if(MODE==="demo" && !demoPaused)
-      say("Our strategy works in pairs. Every trade involves two operators: a buyer, and a seller. At each authorization you choose your own direction. Once you have placed a buy, the sell is locked until the next signal, and the other way round — one position per signal, never both. Today's example takes the buy side.");
+      say("Our strategy works in pairs. Every trade involves two operators: a buyer, and a seller. At each authorization you choose your own direction. On the live desk a side may be assigned to you instead, and that role can change over time. Once you have placed a buy, the sell is locked until the next signal, and the other way round — one position per signal, never both. Today's example takes the buy side.");
     }, 11000);
   runClock();
 }

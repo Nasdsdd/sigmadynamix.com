@@ -787,7 +787,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v16.6";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v16.7";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -2397,7 +2397,7 @@ function showFinal(){
   localStorage.setItem(ATTEMPT_KEY, JSON.stringify(flag));
   $("stage4").classList.remove("hidden");
   $("resName").textContent =
-    `${candidate.first} ${candidate.last} — ${candidate.email} (screening: ${candidate.score} pts)`;
+    `${candidate.first} ${candidate.last} — ${candidate.email}`;   /* v16.7 : le score de screening n'est plus montré au candidat */
   let allT=[], missed=0;
   EV.results.forEach((r,i)=>{
     allT = allT.concat(r.records.filter(x=>x.result==="trade"));
@@ -2510,7 +2510,7 @@ function showFinal(){
     const body = encodeURIComponent(
       `Hello,\n\nPlease find attached my assessment results file.\n\n` +
       `Name: ${candidate.first} ${candidate.last}\nEmail: ${candidate.email}\n` +
-      `Screening score: ${candidate.score}\nTotal PnL: ${pnl.toFixed(2)} pts — Win rate: ${(winRate*100).toFixed(0)}% — Missed: ${missed}\n\n` +
+      `Total PnL: ${pnl.toFixed(2)} pts — Win rate: ${(winRate*100).toFixed(0)}% — Missed: ${missed}\n\n` +
       `(Do not forget to attach the downloaded results file.)`);
     location.href = `mailto:${CONFIG.reportEmail}?cc=${CONFIG.reportCc}&subject=${subj}&body=${body}`;
   };

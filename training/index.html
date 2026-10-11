@@ -108,6 +108,9 @@
   /* ---- Simulator ---- */
   #sim{display:grid;grid-template-columns:1fr 290px;gap:12px;padding:12px;height:calc(100vh - 61px)}
   #charts{display:grid;grid-template-rows:1fr 1fr;gap:12px;min-height:0;position:relative}
+  .dragnote{font-size:11px;color:var(--muted);line-height:1.5;margin-top:9px}
+  .orbline{display:block;margin-top:5px;font-family:var(--mono);font-size:11px;color:var(--link)}
+  .fixednote{font-size:12px;color:var(--muted);margin-left:10px}
   .chartBox{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-card);
     overflow:hidden;position:relative;min-height:0}
   .chartBox .clabel{position:absolute;top:8px;left:10px;z-index:5;font-family:var(--mono);
@@ -210,7 +213,7 @@
 
   @media(max-width:860px){
     #sim{grid-template-columns:1fr;height:auto}
-    #charts{grid-template-rows:36vh 28vh}
+    #charts{grid-template-rows:34vh 26vh}
     .hstat{gap:10px;font-size:12px}
   }
   /* FAQ */
@@ -414,8 +417,9 @@
 <!-- ===== SIMULATOR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div class="chartBox" id="boxTick"><div class="clabel">100-TICK CHART</div><div class="cdiv" id="chartTick"></div></div>
-    <div class="chartBox" id="boxMin"><div class="clabel">1-MINUTE CHART</div><div class="cdiv" id="chartMin"></div></div>
+    <div class="chartBox" id="boxMin"><div class="clabel">1-MINUTE CHART</div>
+      <div class="cdiv" id="chartMin"></div></div>
+    <div class="chartBox" id="boxM5"><div class="clabel">5-MINUTE CHART</div><div class="cdiv" id="chartM5"></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -424,7 +428,8 @@
     </div>
   </div>
   <div id="panel">
-    <div class="pbox" id="sessionInfo"><b id="siTitle">—</b><span id="siSub">—</span></div>
+    <div class="pbox" id="sessionInfo"><b id="siTitle">—</b><span id="siSub">—</span>
+      <span id="orbLine" class="orbline">—</span></div>
     <div class="pbox" id="signalBox">
       <div id="lampWrap"><div id="signalLamp"></div></div>
       <div id="signalTxt">WAITING</div>
@@ -437,8 +442,10 @@
       </div>
       <button class="cbtn wide" id="btnClose" disabled>Close position</button>
       <div class="posline"><span>Entry</span><b class="num" id="pEntry">—</b></div>
-      <div class="posline"><span>Trailing stop</span><b class="num" id="pStop">—</b></div>
+      <div class="posline"><span>Stop</span><b class="num" id="pStop">—</b></div>
+      <div class="posline"><span>Target</span><b class="num" id="pTP">—</b></div>
       <div class="posline"><span>Floating PnL (net)</span><b class="num" id="pFloat">—</b></div>
+      <p class="dragnote">Drag the stop to tighten it, never past the 30-point cap. Double-click a chart to set a target, drag it to move it, double-click it again to drop it.</p>
       <div class="spreadline"><span>Session net (pts)</span><b class="num" id="pTotal">0.00</b></div>
     </div>
     <div class="pbox" id="pauseBox">
@@ -514,15 +521,18 @@ const CONFIG = {
     "OCTOBER1":    "2026-10-21"   // ouvert le 06/10/2026, 15 jours
   },
   packDir:         "daypacks/",    // dossier des daypack_YYYYMMDD.json en ligne
-  /* Cycle leader : D1 = amplitude du premier swing (phase 1), D2 = amplitude
-     de chacun des deux retours (phase 2). 40 ticks = 10 pts NQ. */
-  auth:            { d1Ticks: 40, d2Ticks: 40 },
+  /* ---- ORB de l'open US ----
+     La plage se forme entre 09:30 et 09:45 New York. Autour de chacun de ses
+     deux bords on pose une zone de `zonePts` de part et d'autre, soit une
+     bande de 2 x zonePts. Le prix entre dans une bande -> autorisation. Il
+     faut en ressortir et y revenir pour en obtenir une autre. */
+  orb:             { fromNY:"09:30:00", toNY:"09:45:00", zonePts: 10 },
   signalWindowSec: 180,            // fenêtre d'entrée : 3 minutes
-  trailingTicks:   70,             // trailing SL de sortie (70 ticks = 17,5 pts)
-  cooldownMs:      30000,          // pause de 30 s après chaque signal
+  stopPts:         30,             // stop figé à 30 pts, resserrable, jamais au-delà
+  maxTrades:       2,              // 2 trades par journée au maximum
   costs:           { spreadPts: 0.50, commissionPts: 0.25, spreadOnStop: false },
   lastSignalNY:    "11:00:00",     // plus aucun signal déclenché après cette heure NY
-  startSlots:      ["09:45","09:50","09:55","10:00","10:05","10:10","10:15","10:20"],
+  startSlots:      ["09:45"],      // le départ est toujours 09:45, juste après la plage
   calFrom:         "2026-01-01",   // bornes de navigation du calendrier
   hideHours:       false,          // heure affichée en clair en training
   /* ---- DEMO (identique a la plateforme d'evaluation) ----
@@ -543,7 +553,9 @@ let MODE = "live";     // "demo" pendant la demonstration, "live" en training
 const $ = id => document.getElementById(id);
 const S = {};          // état de session
 let chartT, chartM, seriesT, seriesM;
-let lineEntry = null, lineStop = null;
+let LN = { entry:[], stop:[], tp:[] };   // lignes de la position, sur les deux graphiques
+let orbLines = [];                        // plage et zones
+let DRAG = null;                          // ligne saisie a la souris
 const packCache = {};  // day -> pack décodé
 const availCache = {}; // "YYYY-MM" -> { "YYYY-MM-DD": true|false }
 
@@ -737,9 +749,11 @@ $("btnRandDay").addEventListener("click", ()=>{
    CHOIX DE L'HEURE DE DÉPART
    ================================================================ */
 function buildTimeSlots(){
+  /* L'ORB se forme de 09:30 a 09:45 : la seance ne peut commencer qu'apres. */
+  S.timePick = CONFIG.startSlots[0];
   $("timeChoice").innerHTML =
-    CONFIG.startSlots.map(t=>`<button class="chip" data-t="${t}">${t}</button>`).join("") +
-    `<button class="chip" data-t="RANDOM">🎲 Random</button>`;
+    `<button class="chip on" data-t="${S.timePick}">${S.timePick}</button>` +
+    `<span class="fixednote">fixed — the opening range closes at 09:45</span>`;
 }
 $("timeChoice").addEventListener("click", e=>{
   const b = e.target.closest(".chip"); if(!b) return;
@@ -765,9 +779,7 @@ $("btnStart").addEventListener("click", async ()=>{
   $("loadStatus").textContent = "Loading day pack…";
   try{
     const pack = await loadPack(S.day);
-    S.start = S.timePick === "RANDOM"
-      ? CONFIG.startSlots[Math.floor(Math.random()*CONFIG.startSlots.length)]
-      : S.timePick;
+    S.start = CONFIG.startSlots[0];
     $("loadStatus").textContent = "";
     $("stageSetup").classList.add("hidden");
     $("sim").classList.remove("hidden");
@@ -784,7 +796,7 @@ function beginSession(pack){
   const endMs   = nyToUtcMs(S.day, CONFIG.lastSignalNY);
   setupReplay(pack, startMs, endMs);
   $("siTitle").textContent = `${S.day} · ${pack.symbol || "NQ"}`;
-  $("siSub").textContent   = `Start ${S.start} NY · signals until ${CONFIG.lastSignalNY.slice(0,5)} NY`;
+  $("siSub").textContent   = `Start ${S.start} NY · ${CONFIG.maxTrades} trades max · signals until ${CONFIG.lastSignalNY.slice(0,5)} NY`;
   runClock();
 }
 
@@ -824,16 +836,79 @@ function initCharts(){
   };
   const cs = { upColor:"#22C55E", downColor:"#EF4444",
     wickUpColor:"#22C55E", wickDownColor:"#EF4444", borderVisible:false };
-  chartT = LightweightCharts.createChart($("chartTick"), opts);
+  /* chartT = graphique du haut (1 minute, basculable en ticks)
+     chartM = graphique du bas (5 minutes) */
+  chartT = LightweightCharts.createChart($("chartMin"), opts);
   seriesT = chartT.addCandlestickSeries(cs);
-  chartM = LightweightCharts.createChart($("chartMin"), opts);
+  chartM = LightweightCharts.createChart($("chartM5"), opts);
   seriesM = chartM.addCandlestickSeries(cs);
   const ro = new ResizeObserver(()=>{
-    chartT.applyOptions({width:$("chartTick").clientWidth, height:$("chartTick").clientHeight});
-    chartM.applyOptions({width:$("chartMin").clientWidth, height:$("chartMin").clientHeight});
+    chartT.applyOptions({width:$("chartMin").clientWidth, height:$("chartMin").clientHeight});
+    chartM.applyOptions({width:$("chartM5").clientWidth, height:$("chartM5").clientHeight});
   });
-  ro.observe($("chartTick")); ro.observe($("chartMin"));
+  ro.observe($("chartMin")); ro.observe($("chartM5"));
+  attachDrag(chartT, seriesT, $("chartMin"));
+  attachDrag(chartM, seriesM, $("chartM5"));
 }
+
+/* ================================================================
+   SAISIE DES LIGNES A LA SOURIS
+   Le stop se rapproche en le glissant, jamais au-dela du plafond. L'objectif
+   se pose d'un double-clic sur le graphique, se deplace au glisser, et se
+   retire d'un double-clic dessus.
+   ================================================================ */
+const HIT_PX = 9;
+function hitLine(ser, y){
+  const p = S.pos; if(!p) return null;
+  let best = null, bd = HIT_PX;
+  const probe = (key, price) => {
+    if(price == null) return;
+    const c = ser.priceToCoordinate(price);
+    if(c == null) return;
+    const d = Math.abs(c - y);
+    if(d < bd){ bd = d; best = key; }
+  };
+  probe("stop", p.stop); probe("tp", p.target);
+  return best;
+}
+function attachDrag(chart, ser, el){
+  el.style.touchAction = "none";
+  const yOf = e => e.clientY - el.getBoundingClientRect().top;
+  el.addEventListener("pointermove", e => {
+    if(DRAG){
+      const pr = ser.priceToCoordinate ? ser.coordinateToPrice(yOf(e)) : null;
+      if(pr != null){ if(DRAG.key === "stop") setStop(pr); else setTarget(pr); }
+      e.preventDefault(); return;
+    }
+    el.style.cursor = hitLine(ser, yOf(e)) ? "ns-resize" : "";
+  });
+  el.addEventListener("pointerdown", e => {
+    const k = hitLine(ser, yOf(e)); if(!k) return;
+    DRAG = { key:k, ser };
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    chartT.applyOptions({handleScroll:false, handleScale:false});
+    chartM.applyOptions({handleScroll:false, handleScale:false});
+    e.preventDefault();
+  });
+  const stop = e => {
+    if(!DRAG) return;
+    DRAG = null;
+    try{ el.releasePointerCapture(e.pointerId); }catch(err){}
+    chartT.applyOptions({handleScroll:true, handleScale:true});
+    chartM.applyOptions({handleScroll:true, handleScale:true});
+  };
+  el.addEventListener("pointerup", stop);
+  el.addEventListener("pointercancel", stop);
+  el.addEventListener("dblclick", e => {
+    if(!S.pos) return;
+    const y = yOf(e);
+    if(hitLine(ser, y) === "tp"){ setTarget(null); return; }   // double-clic dessus : on l'enleve
+    const pr = ser.coordinateToPrice(y);
+    if(pr != null) setTarget(pr);
+  });
+}
+
+
 
 /* ================================================================
    REPLAY
@@ -841,9 +916,9 @@ function initCharts(){
 function setupReplay(pack, startMs, endMs){
   Object.assign(S, {
     pack, startMs, endMs,
-    sigIdx:0, records:[], total:0,
+    sigIdx:0, records:[], total:0, tradesDone:0, zoneArmed:true, orb:null, sigSide:null,
     tickIdx:0, marketMs:0,
-    barsT:[], barsM:[], tickInBar:0,
+    barsM:[], barsM5:[],
     price:null, pos:null, cycle:null, cycleStartAt:0,
     legTaken:false, legRecords:[], winOpen:false, winClosed:false,
     winStartMs:0, winEndMs:0, winStartPrice:null,
@@ -855,8 +930,51 @@ function setupReplay(pack, startMs, endMs){
   $("pTotal").textContent = "0.00";
   S.nyOff = tzOffsetMs(startMs, "America/New_York");
   fastForwardTo(Math.max(startMs, pack.ticks[0][0]));
-  S.cycle = cycleReset(S.price);      // le cycle leader se lance à l'heure de départ
+  computeORB();
 }
+
+/* ================================================================
+   PLAGE D'OUVERTURE
+   Le plus haut et le plus bas entre 09:30 et 09:45 New York, lus directement
+   dans le daypack. Autour de chaque bord, une bande de CONFIG.orb.zonePts de
+   part et d'autre : c'est l'entree dans cette bande qui donne l'autorisation.
+   ================================================================ */
+function computeORB(){
+  /* la journee vient du daypack lui-meme : en demo, S.day n'est pas renseigne */
+  const day = (S.pack && S.pack.day) || S.day;
+  if(!day){ S.orb = null; $("orbLine").textContent = ""; return; }
+  const from = nyToUtcMs(day, CONFIG.orb.fromNY);
+  const to   = nyToUtcMs(day, CONFIG.orb.toNY);
+  let hi = null, lo = null;
+  for(const [ms, px] of S.pack.ticks){
+    if(ms < from) continue;
+    if(ms >= to) break;
+    hi = hi === null ? px : Math.max(hi, px);
+    lo = lo === null ? px : Math.min(lo, px);
+  }
+  if(hi === null){ S.orb = null; $("orbLine").textContent = "opening range unavailable for this day"; return; }
+  const z = CONFIG.orb.zonePts;
+  S.orb = { hi, lo, zHi:[hi-z, hi+z], zLo:[lo-z, lo+z] };
+  S.zoneArmed = true;
+  drawORB();
+  $("orbLine").textContent =
+    `ORB ${hi.toFixed(2)} / ${lo.toFixed(2)} · ${(hi-lo).toFixed(2)} pts · zones ${2*z} pts wide`;
+}
+function drawORB(){
+  for(const l of orbLines) try{ l.ser.removePriceLine(l.line); }catch(e){}
+  orbLines = [];
+  if(!S.orb) return;
+  const add = (ser, price, color, style, title) =>
+    orbLines.push({ ser, line: ser.createPriceLine({ price, color, lineWidth:style===0?2:1,
+                    lineStyle:style, axisLabelVisible:style===0, title }) });
+  for(const ser of [seriesT, seriesM]){
+    add(ser, S.orb.hi, "#4D8FFA", 0, "ORB high");
+    add(ser, S.orb.lo, "#F0B429", 0, "ORB low");
+    for(const v of [S.orb.zHi[0], S.orb.zHi[1]]) add(ser, v, "rgba(77,143,250,.45)", 1, "");
+    for(const v of [S.orb.zLo[0], S.orb.zLo[1]]) add(ser, v, "rgba(240,180,41,.45)", 1, "");
+  }
+}
+const inBand = (p, z) => p >= z[0] && p <= z[1];
 
 function fastForwardTo(targetMs){
   const T = S.pack.ticks;
@@ -865,13 +983,14 @@ function fastForwardTo(targetMs){
     S.tickIdx++;
   }
   S.marketMs = targetMs;
-  const sliceT = S.barsT.slice(-400);
-  seriesT.setData(sliceT);
-  seriesM.setData(S.barsM);
-  const fT = Math.max(0, sliceT.length-90);
-  const fM = Math.max(0, S.barsM.length-45);
-  chartT.timeScale().setVisibleLogicalRange({from: fT, to: sliceT.length + rightPad(fT, sliceT.length)});
-  chartM.timeScale().setVisibleLogicalRange({from: fM, to: S.barsM.length + rightPad(fM, S.barsM.length)});
+  /* le graphique du haut garde une fenetre de travail, celui du bas la journee */
+  const top = S.barsM.slice(-180);
+  seriesT.setData(top);
+  seriesM.setData(S.barsM5);
+  const fT = Math.max(0, top.length - 60);
+  const fM = Math.max(0, S.barsM5.length - 40);
+  chartT.timeScale().setVisibleLogicalRange({from: fT, to: top.length + rightPad(fT, top.length)});
+  chartM.timeScale().setVisibleLogicalRange({from: fM, to: S.barsM5.length + rightPad(fM, S.barsM5.length)});
 }
 
 function runClock(){
@@ -893,8 +1012,8 @@ function advance(dtMs){
     applyTick(T[S.tickIdx][0], T[S.tickIdx][1], false);
     S.tickIdx++;
   }
-  $("siSub").textContent = fmtClock(S.marketMs) +
-    (MODE === "demo" ? " · demo" : " · buy or sell");
+  $("siSub").textContent = fmtClock(S.marketMs) + (MODE === "demo" ? " · demo"
+    : " · " + S.tradesDone + "/" + CONFIG.maxTrades + " trades");
   updateWindow();
   if(MODE === "demo") demoScriptTick();
   if(S.pos) updatePosUI();
@@ -907,16 +1026,7 @@ function applyTick(ms, price, bulk){
   S.price = price;
   const nyMs = ms + S.nyOff;
   const tSec = Math.floor(nyMs/1000);
-  let newBarT = false, newBarM = false;
-  if(S.tickInBar === 0){
-    newBarT = true;
-    S.barsT.push({time:tSec, open:price, high:price, low:price, close:price});
-    const n = S.barsT.length;
-    if(n>1 && S.barsT[n-1].time <= S.barsT[n-2].time) S.barsT[n-1].time = S.barsT[n-2].time+1;
-  }
-  const bt = S.barsT[S.barsT.length-1];
-  bt.high=Math.max(bt.high,price); bt.low=Math.min(bt.low,price); bt.close=price;
-  S.tickInBar = (S.tickInBar+1) % 100;
+  let newBarM = false;
   const mSec = Math.floor(nyMs/60000)*60;
   let bm = S.barsM[S.barsM.length-1];
   if(!bm || bm.time !== mSec){
@@ -925,56 +1035,38 @@ function applyTick(ms, price, bulk){
     newBarM = true;
   }
   bm.high=Math.max(bm.high,price); bm.low=Math.min(bm.low,price); bm.close=price;
-  if(!bulk){ seriesT.update(bt); seriesM.update(bm); }
+  const m5Sec = Math.floor(nyMs/300000)*300;
+  let b5 = S.barsM5[S.barsM5.length-1];
+  if(!b5 || b5.time !== m5Sec){
+    b5 = {time:m5Sec, open:price, high:price, low:price, close:price};
+    S.barsM5.push(b5);
+  }
+  b5.high=Math.max(b5.high,price); b5.low=Math.min(b5.low,price); b5.close=price;
+  if(!bulk){ seriesT.update(bm); seriesM.update(b5); }
   /* La derniere bougie est maintenue a distance du bord droit, sinon les
      etiquettes d'entree et de stop se posent dessus. rightOffset ne vaut que
      pour le defilement automatique : des qu'un cadrage explicite a ete pose,
      l'ecart se referme bougie apres bougie. On le reaffirme donc ici, a chaque
      nouvelle bougie seulement (scrollToPosition compte en bougies). */
-  if(!bulk && newBarT) keepRightPad(chartT);
-  if(!bulk && newBarM) keepRightPad(chartM);
+  if(!bulk && newBarM){ keepRightPad(chartT); keepRightPad(chartM); }
   if(S.pos) checkStop(price);
 
   const open = ms < S.endMs;   // plus de nouveau signal après 11:00 NY
-  if(!S.cycle && S.cycleStartAt && ms >= S.cycleStartAt && open){
-    S.cycle = cycleReset(price);
-    S.cycleStartAt = 0;
-  }
-  /* --- CYCLE LEADER Sigma Dynamix (fidèle au trading-server Step 1/2/3) ---
-     Phase 1 : premier swing de D ticks depuis un extrême GLISSANT
-               (hausse de D depuis le plus-bas OU baisse de D depuis le plus-haut).
-     Phase 2 : les deux extrêmes trailent depuis la conversion ; quand une baisse
-               de D depuis le plus-haut ET une hausse de D depuis le plus-bas ont
-               eu lieu (peu importe l'ordre) -> AUTORISATION.                    */
-  if(S.cycle && !S.winOpen && open){
-    if(cycleStep(S.cycle, price)) fireSignal(ms);
-  }
-}
 
-function cycleReset(price){
-  return { phase:1, hi:price, lo:price, touchedUp:false, touchedDown:false };
-}
-function cycleStep(c, price){
-  const tick = S.pack.tickSize || 0.25;
-  const D1 = CONFIG.auth.d1Ticks * tick;   // premier swing
-  const D2 = CONFIG.auth.d2Ticks * tick;   // les deux retours
-  if(c.phase === 1){
-    if(price > c.hi) c.hi = price;
-    if(price < c.lo) c.lo = price;
-    if(c.hi - price >= D1 || price - c.lo >= D1){
-      c.phase = 2; c.hi = price; c.lo = price;
+  /* --- DECLENCHEUR ORB ---
+     Le prix entre dans la bande d'un des deux bords de la plage : autorisation.
+     Tant qu'il y reste, rien de neuf. Il doit en ressortir pour que la bande
+     se rearme, et c'est le retour suivant qui donne le signal d'apres. */
+  if(S.orb){
+    const inside = inBand(price, S.orb.zHi) || inBand(price, S.orb.zLo);
+    if(!inside) S.zoneArmed = true;
+    else if(S.zoneArmed && open && !S.winOpen && !S.winClosed && !S.pos &&
+            S.tradesDone < CONFIG.maxTrades){
+      S.zoneArmed = false;
+      S.sigSide = inBand(price, S.orb.zHi) ? "high" : "low";
+      fireSignal(ms);
     }
-    return false;
   }
-  if(!c.touchedDown){
-    if(price > c.hi) c.hi = price;
-    if(c.hi - price >= D2) c.touchedDown = true;
-  }
-  if(!c.touchedUp){
-    if(price < c.lo) c.lo = price;
-    if(price - c.lo >= D2) c.touchedUp = true;
-  }
-  return c.touchedUp && c.touchedDown;
 }
 
 function fireSignal(ms){
@@ -985,7 +1077,6 @@ function fireSignal(ms){
   S.winEndMs = ms + CONFIG.signalWindowSec*1000;
   S.legTaken = false;
   S.legRecords = [];
-  S.cycle = null;
   setSignalUI(true);
 }
 
@@ -1017,21 +1108,69 @@ function setSignalUI(on){
   $("lampWrap").classList.toggle("calc", !on && !anyPos);
   $("signalTxt").classList.toggle("go", on);
   $("signalCount").classList.toggle("go", on);
-  $("signalTxt").textContent = on ? "AUTHORIZED — BUY or SELL" : "WAITING";
+  $("signalTxt").textContent = on
+    ? "AUTHORIZED — " + (S.sigSide === "high" ? "ORB HIGH" : "ORB LOW")
+    : (S.tradesDone >= CONFIG.maxTrades ? "DAILY QUOTA USED" : "WAITING");
   /* Les deux boutons partagent le meme verrou : prendre l'un ferme l'autre
      jusqu'au signal suivant. */
   const canOpen = !!(on && !S.pos && !S.legTaken);
   $("btnBuy").disabled  = !canOpen;
   $("btnSell").disabled = !canOpen;
   $("btnClose").disabled = !S.pos;
-  $("btnSkip").disabled  = !!(S.winOpen || S.winClosed || S.pos);
+  $("btnSkip").disabled  = !!(S.winOpen || S.winClosed || S.pos || S.tradesDone >= CONFIG.maxTrades);
   $("btnPause").disabled = !!(S.winOpen || S.winClosed || S.pos);
 }
 
 /* ================================================================
    TRADING (mono-jambe)
    ================================================================ */
-const trailPts = () => CONFIG.trailingTicks * (S.pack.tickSize || 0.25);
+const stopPts = () => CONFIG.stopPts;
+
+/* Les lignes de la position sont posees sur les deux graphiques. */
+function posLineAdd(key, price, color, style, title){
+  LN[key] = [seriesT, seriesM].map(ser => ({ ser,
+    line: ser.createPriceLine({ price, color, lineWidth:1, lineStyle:style, title }) }));
+}
+function posLineMove(key, price){ for(const l of LN[key]) try{ l.line.applyOptions({price}); }catch(e){} }
+function posLineDrop(key){
+  for(const l of LN[key] || []) try{ l.ser.removePriceLine(l.line); }catch(e){}
+  LN[key] = [];
+}
+
+/* Le stop ne peut jamais risquer plus que le plafond, mais il peut etre
+   rapproche autant qu'on veut, et meme passe au-dela de l'entree. */
+/* tout prix pose a la souris est ramene sur la grille des ticks :
+   un stop a 31194,7789 n'existe pas sur le marche */
+const onTick = v => { const t = S.pack.tickSize || 0.25; return Math.round(v / t) * t; };
+function clampStop(v){
+  const p = S.pos; if(!p) return null;
+  v = onTick(v);
+  const cap = stopPts();
+  const lo = p.side === "BUY" ? p.entry - cap : S.price + (S.pack.tickSize||0.25);
+  const hi = p.side === "BUY" ? S.price - (S.pack.tickSize||0.25) : p.entry + cap;
+  if(hi < lo) return null;
+  return Math.min(Math.max(v, lo), hi);
+}
+function setStop(v){
+  const p = S.pos; if(!p || !isFinite(v)) return false;
+  const c = clampStop(v); if(c === null) return false;
+  p.stop = c; posLineMove("stop", c); updatePosUI(); return true;
+}
+function clampTarget(v){
+  const p = S.pos; if(!p) return null;
+  const t = S.pack.tickSize || 0.25;
+  v = onTick(v);
+  return p.side === "BUY" ? Math.max(v, S.price + t) : Math.min(v, S.price - t);
+}
+function setTarget(v){
+  const p = S.pos; if(!p) return false;
+  if(v === null){ p.target = null; posLineDrop("tp"); updatePosUI(); return true; }
+  const c = clampTarget(v); if(c === null) return false;
+  p.target = c;
+  if(LN.tp && LN.tp.length) posLineMove("tp", c);
+  else posLineAdd("tp", c, "#22C55E", 2, "target");
+  updatePosUI(); return true;
+}
 
 function openPos(side){
   /* `legTaken` porte deja la regle : une seule entree par signal. Le sens n'est
@@ -1040,33 +1179,38 @@ function openPos(side){
   const sp = CONFIG.costs.spreadPts;
   const entry = side === "BUY" ? S.price + sp : S.price - sp;
   S.pos = {
-    side, entry, best:S.price,
-    stop: side === "BUY" ? S.price - trailPts() : S.price + trailPts(),
+    side, entry, target:null,
+    stop: side === "BUY" ? entry - stopPts() : entry + stopPts(),
     tOpen:S.marketMs, reaction:+((S.marketMs - S.winStartMs)/1000).toFixed(1)
   };
   S.legTaken = true;
-  lineEntry = seriesT.createPriceLine({price:entry, color:"#38BDF8", lineWidth:1, title:"entry"});
-  lineStop  = seriesT.createPriceLine({price:S.pos.stop, color:"#F97316", lineWidth:1, title:"stop"});
+  posLineAdd("entry", entry, "#38BDF8", 0, "entry");
+  posLineAdd("stop", S.pos.stop, "#F97316", 0, "stop");
   setSignalUI(S.winOpen);
   updatePosUI();
 }
 
+/* Stop fige : il ne suit pas le prix, il attend. L'objectif se declenche au
+   contact. Si les deux sont touches sur le meme tick, le stop l'emporte. */
 function checkStop(price){
   const p = S.pos;
   if(p.side === "BUY"){
-    if(price > p.best){ p.best = price; p.stop = price - trailPts(); if(lineStop) lineStop.applyOptions({price:p.stop}); }
-    if(price <= p.stop) closePos(p.stop, false);
+    if(price <= p.stop) return closePos(p.stop, false);
+    if(p.target && price >= p.target) return closePos(p.target, false);
   } else {
-    if(price < p.best){ p.best = price; p.stop = price + trailPts(); if(lineStop) lineStop.applyOptions({price:p.stop}); }
-    if(price >= p.stop) closePos(p.stop, false);
+    if(price >= p.stop) return closePos(p.stop, false);
+    if(p.target && price <= p.target) return closePos(p.target, false);
   }
 }
 
 function updatePosUI(){
   const p = S.pos;
-  if(!p){ $("pEntry").textContent = "—"; $("pStop").textContent = "—"; $("pFloat").textContent = "—"; return; }
+  if(!p){ $("pEntry").textContent = "—"; $("pStop").textContent = "—"; $("pTP").textContent = "—"; $("pFloat").textContent = "—"; return; }
   $("pEntry").textContent = p.entry.toFixed(2);
-  $("pStop").textContent  = p.stop.toFixed(2);
+  const risk = p.side === "BUY" ? p.entry - p.stop : p.stop - p.entry;
+  $("pStop").textContent  = p.stop.toFixed(2) + "  (" + (risk>=0?"−":"+") + Math.abs(risk).toFixed(2) + ")";
+  $("pTP").textContent    = p.target ? p.target.toFixed(2) +
+    "  (+" + Math.abs(p.side === "BUY" ? p.target - p.entry : p.entry - p.target).toFixed(2) + ")" : "—";
   const gross = p.side === "BUY" ? S.price - p.entry : p.entry - S.price;
   const net = gross - CONFIG.costs.spreadPts - CONFIG.costs.commissionPts;
   const el = $("pFloat");
@@ -1088,10 +1232,7 @@ function closePos(exit, manual){
   setSignalUI(S.winOpen);
   return pnl;                 // la narration de la demo annonce ce net
 }
-function removeLines(){
-  if(lineEntry){ seriesT.removePriceLine(lineEntry); lineEntry = null; }
-  if(lineStop){  seriesT.removePriceLine(lineStop);  lineStop  = null; }
-}
+function removeLines(){ posLineDrop("entry"); posLineDrop("stop"); posLineDrop("tp"); }
 
 function finishSignal(){
   S.winClosed = false;
@@ -1110,10 +1251,10 @@ function finishSignal(){
   /* pause de 30 s avant de relancer le calcul du cycle suivant.
      En demo le cycle organique reste coupe : les deux autorisations sont
      jouees par le script, a l'heure exacte. */
-  S.cycle = null;
-  S.cycleStartAt = (MODE === "demo") ? 0 : S.marketMs + CONFIG.cooldownMs;
+  if(r && r.result === "trade") S.tradesDone++;
   setSignalUI(false);
-  $("btnSkip").classList.add("blink");
+  if(S.tradesDone >= CONFIG.maxTrades) $("btnSkip").classList.remove("blink");
+  else $("btnSkip").classList.add("blink");
 }
 
 function logSignal(r){
@@ -1130,27 +1271,23 @@ function logSignal(r){
     <td class="num"><b class="${r.pnl>=0?"w":"l"}">${r.pnl>=0?"+":""}${r.pnl.toFixed(2)}</b></td>`;
 }
 
-/* ---------------- prédiction du prochain signal ---------------- */
+/* ---------------- prédiction du prochain signal ----------------
+   On rejoue les ticks a venir avec la meme regle que le direct : il faut etre
+   ressorti des deux bandes, puis y revenir. */
 function predictNextSignalMs(){
+  if(!S.orb) return null;
   const T = S.pack.ticks;
-  let i = S.tickIdx, c;
-  if(S.cycle){
-    c = Object.assign({}, S.cycle);
-  } else {
-    while(i < T.length && T[i][0] < S.cycleStartAt) i++;
-    if(i >= T.length) return null;
-    c = cycleReset(T[i][1]);
-  }
-  for(; i < T.length; i++){
-    if(T[i][0] >= S.endMs) return null;
-    if(cycleStep(c, T[i][1])) return T[i][0];
+  let armed = S.zoneArmed;
+  for(let i = S.tickIdx; i < T.length; i++){
+    const ms = T[i][0], px = T[i][1];
+    if(ms >= S.endMs) return null;
+    const inside = inBand(px, S.orb.zHi) || inBand(px, S.orb.zLo);
+    if(!inside) armed = true;
+    else if(armed) return ms;
   }
   return null;
 }
 
-/* ================================================================
-   CONTRÔLES
-   ================================================================ */
 $("btnBuy").addEventListener("click",  ()=>openPos("BUY"));
 $("btnSell").addEventListener("click", ()=>openPos("SELL"));
 $("btnClose").addEventListener("click", ()=>{ if(S.pos) closePos(S.price, true); });
@@ -1316,15 +1453,16 @@ function startDemo(withTour){
   const d  = CONFIG.demo;
   const sd = d.single;
   const pack = decodePack(DEMO_PACK);
-  $("siTitle").textContent = "Strategy demo";
-  $("siSub").textContent   = "NQ futures · " + sd.side + " examples";
-  setupReplay(pack, nyToUtcMs(d.day, sd.startNY), nyToUtcMs(d.day, CONFIG.lastSignalNY));
-  S.cycle = null; S.cycleStartAt = 0;   // detection organique coupee : demo scriptee
+  $("siTitle").textContent = "Guided tour";
+  $("siSub").textContent   = "NQ futures · how the screen works";
+  /* On ouvre le replay a 09:45 comme une vraie seance, pour que la plage
+     d'ouverture et ses zones soient a l'ecran pendant la visite. */
+  setupReplay(pack, nyToUtcMs(d.day, "09:45:00"), nyToUtcMs(d.day, CONFIG.lastSignalNY));
+  stopClock();                          // ecran fige pendant les explications
   setSignalUI(false);
-  buildDemoScriptSingle(sd);
-  /* 1) visite guidee sur l'ecran fige, 2) puis lancement des trades demo */
-  if(withTour) startTour(runDemoTrades);
-  else runDemoTrades();
+  /* La demonstration narree a deux trades portait l'ancienne strategie : elle
+     est retiree tant qu'elle n'a pas ete re-enregistree sur l'ORB. */
+  startTour(()=>endDemo(true));
 }
 
 /* ---- Script de la demo : evenements aux heures marche exactes ----
@@ -1466,18 +1604,18 @@ addEventListener("keydown", e => { if(e.key === "Escape" && MODE === "demo") qui
    VISITE GUIDEE — spotlight sur les zones de la fenetre
    ================================================================ */
 const TOUR = [
-  { el:"boxTick",   title:"100-tick chart",
-    text:"Each candle here closes after exactly 100 trades — this is the fast view our operators watch for execution." },
   { el:"boxMin",    title:"1-minute chart",
-    text:"The same market in 1-minute candles, to keep the broader context in sight." },
+    text:"The working chart: this is where you read the opening range and place your orders." },
+  { el:"boxM5",     title:"5-minute chart",
+    text:"The same market in 5-minute candles, to keep the shape of the session in sight." },
   { el:"signalBox", title:"Authorization signal",
-    text:"The spinning ring means the firm's lead strategy is computing. When its cycle completes, the lamp turns green — you are AUTHORIZED to enter. The countdown shows the time remaining: 3 min, 2 min, 1 min, then the signal expires and counts as missed." },
+    text:"The opening range is the high and the low between 09:30 and 09:45 New York, drawn on both charts with a 20-point band around each edge. Price coming back into one of those bands turns the lamp green — you are AUTHORIZED. The countdown shows the time left to enter. Price must leave the band and come back for the next signal." },
   { el:"orderBox",  title:"Order panel",
-    text:"At each authorization you choose your direction: BUY or SELL. Placing one locks the other until the next signal — one position per signal, never both. It carries a trailing stop of 70 ticks and a Close button. Every number you see, including this log, is net of trading costs." },
+    text:"At each authorization you choose your direction: BUY or SELL — one trade per signal, and two trades for the whole day. A fixed 30-point stop is placed for you; drag it on either chart to tighten it, never beyond those 30 points. Double-click a chart to set a target, drag it to move it, double-click it again to drop it." },
   { el:"log",       title:"Trade log",
     text:"One line per signal: the direction you took, B or S, and your net result after trading costs." },
   { el:"pauseBox",  title:"Next signal, Pause & End",
-    text:"\"Next signal\" fast-forwards the replay to just before the next authorization — no need to wait in real time. Pause is allowed between two signals only, never while a signal is live or a position is open. \"End session\" stops the replay and shows your statistics." }
+    text:"\"Next signal\" fast-forwards the replay to just before the next return into a band — no need to wait in real time. Pause is allowed between two signals only, never while a signal is live or a position is open. \"End session\" closes the day and shows your result." }
 ];
 let tourIdx = 0, tourOnFinish = null;
 

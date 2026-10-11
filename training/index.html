@@ -109,6 +109,23 @@
   #sim{display:grid;grid-template-columns:1fr 290px;gap:12px;padding:12px;height:calc(100vh - 61px)}
   #charts{display:grid;grid-template-rows:1fr 1fr;gap:12px;min-height:0;position:relative}
   .dragnote{font-size:11px;color:var(--muted);line-height:1.5;margin-top:9px}
+  .speedlab{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.10em;
+    color:var(--muted);margin-bottom:7px}
+  .spd{display:flex;gap:6px}
+  .spd button{flex:1;background:var(--panel2);border:1px solid var(--border);color:var(--muted);
+    border-radius:8px;padding:7px 0;font-family:var(--mono);font-size:12px;cursor:pointer}
+  .spd button:hover{border-color:var(--accent);color:var(--text)}
+  .spd button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  /* menu au clic sur un graphique */
+  #chartMenu{position:fixed;z-index:60;background:var(--panel);border:1px solid var(--accent);
+    border-radius:10px;padding:6px;box-shadow:0 8px 30px rgba(0,0,0,.55);min-width:168px}
+  #chartMenu .cmpx{font-family:var(--mono);font-size:11px;color:var(--muted);padding:4px 8px 6px;
+    border-bottom:1px solid var(--border);margin-bottom:5px}
+  #chartMenu button{display:block;width:100%;text-align:left;background:transparent;border:none;
+    color:var(--text);font-family:var(--sans);font-size:13px;padding:7px 9px;border-radius:7px;cursor:pointer}
+  #chartMenu button:hover:not(:disabled){background:rgba(0,96,248,.18)}
+  #chartMenu button:disabled{opacity:.35;cursor:not-allowed}
+  #chartMenu button .k{font-family:var(--mono);font-size:11px;color:var(--muted);float:right;margin-left:12px}
   .orbline{display:block;margin-top:5px;font-family:var(--mono);font-size:11px;color:var(--link)}
   .fixednote{font-size:12px;color:var(--muted);margin-left:10px}
   .chartBox{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-card);
@@ -421,6 +438,7 @@
       <div class="cdiv" id="chartMin"></div></div>
     <div class="chartBox" id="boxM5"><div class="clabel">5-MINUTE CHART</div><div class="cdiv" id="chartM5"></div></div>
     <div id="caption" class="hidden"></div>
+    <div id="chartMenu" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
       <button id="btnVoice">🔊 Voice: on</button>
@@ -445,8 +463,14 @@
       <div class="posline"><span>Stop</span><b class="num" id="pStop">—</b></div>
       <div class="posline"><span>Target</span><b class="num" id="pTP">—</b></div>
       <div class="posline"><span>Floating PnL (net)</span><b class="num" id="pFloat">—</b></div>
-      <p class="dragnote">Drag the stop to tighten it, never past the 30-point cap. Double-click a chart to set a target, drag it to move it, double-click it again to drop it.</p>
+      <p class="dragnote">Click anywhere on a chart for what you can do at that price: a limit order while you wait, a target or a tighter stop once you are in. Any line you see can be dragged.</p>
       <div class="spreadline"><span>Session net (pts)</span><b class="num" id="pTotal">0.00</b></div>
+    </div>
+    <div class="pbox" id="speedBox">
+      <span class="speedlab">REPLAY SPEED</span>
+      <div class="spd" id="speedSel">
+        <button class="on" data-x="1">×1</button><button data-x="5">×5</button>
+      </div>
     </div>
     <div class="pbox" id="pauseBox">
       <button id="btnSkip">⏭ Next signal</button>
@@ -553,9 +577,11 @@ let MODE = "live";     // "demo" pendant la demonstration, "live" en training
 const $ = id => document.getElementById(id);
 const S = {};          // état de session
 let chartT, chartM, seriesT, seriesM;
-let LN = { entry:[], stop:[], tp:[] };   // lignes de la position, sur les deux graphiques
+let LN = { entry:[], stop:[], tp:[], lim:[] };  // lignes de la position et de l'ordre
 let orbLines = [];                        // plage et zones
 let DRAG = null;                          // ligne saisie a la souris
+let JUSTDRAGGED = false;                  // vrai juste apres un glissement
+let SPEED = 1;                            // multiplicateur du temps de marche
 const packCache = {};  // day -> pack décodé
 const availCache = {}; // "YYYY-MM" -> { "YYYY-MM-DD": true|false }
 
@@ -852,10 +878,105 @@ function initCharts(){
 }
 
 /* ================================================================
+   MENU AU CLIC SUR UN GRAPHIQUE
+   Il propose exactement ce qui est faisable au prix vise : un ordre limite
+   quand on est a plat et autorise, un objectif quand on porte une position,
+   et le deplacement du stop quand la place le permet.
+   ================================================================ */
+function closeChartMenu(){ $("chartMenu").classList.add("hidden"); }
+function openChartMenu(cx, cy, px){
+  const m = $("chartMenu"), f = v => v.toFixed(2);
+  const items = [];
+  if(S.pos){
+    const legalTP = (S.pos.side === "BUY") === (px > S.price);
+    items.push({ k:"tp", label:"Take profit here", key:f(px), on:legalTP });
+    if(S.pos.target !== null) items.push({ k:"tpoff", label:"Remove target", key:"", on:true });
+    const c = clampStop(px);
+    items.push({ k:"sl", label:"Move stop here", key:f(px),
+                 on: c !== null && Math.abs(c - px) < 1e-9 });
+  } else {
+    const side = limitSideFor(px);
+    const can = canPlaceLimit() && !!side;
+    items.push({ k:"lim", label:(side === "SELL" ? "Sell" : "Buy") + " limit order",
+                 key:f(px), on:can });
+    if(S.limit) items.push({ k:"limoff", label:"Cancel limit order", key:"", on:true });
+  }
+  m.innerHTML = `<div class="cmpx">${f(px)}</div>` + items.map(i =>
+    `<button data-k="${i.k}"${i.on ? "" : " disabled"}>${i.label}<span class="k">${i.key}</span></button>`).join("");
+  m.dataset.px = px;
+  m.classList.remove("hidden");
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.min(cx + 6, innerWidth - r.width - 10) + "px";
+  m.style.top  = Math.min(cy + 6, innerHeight - r.height - 10) + "px";
+}
+$("chartMenu").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b || b.disabled) return;
+  const px = +$("chartMenu").dataset.px;
+  if(b.dataset.k === "tp")        setTarget(px);
+  else if(b.dataset.k === "tpoff") setTarget(null);
+  else if(b.dataset.k === "sl")    setStop(px);
+  else if(b.dataset.k === "lim")   placeLimit(px);
+  else if(b.dataset.k === "limoff") cancelLimit();
+  closeChartMenu();
+});
+addEventListener("pointerdown", e => {
+  if(!$("chartMenu").contains(e.target)) closeChartMenu();
+}, true);
+addEventListener("keydown", e => { if(e.key === "Escape") closeChartMenu(); });
+
+/* ================================================================
+   ORDRE LIMITE
+   Pose sur le graphique pendant une autorisation, du bon cote du marche : un
+   achat sous le prix, une vente au-dessus. Il est servi a son prix exact des
+   que le marche vient le chercher, sans spread — on etait du cote passif.
+   Il vit le temps de l'autorisation : si la fenetre se referme avant qu'il
+   soit servi, le signal est compte comme manque, comme une entree non prise.
+   ================================================================ */
+function canPlaceLimit(){
+  return !!(S.winOpen && !S.pos && !S.legTaken && S.tradesDone < CONFIG.maxTrades);
+}
+const limitSideFor = px => px === S.price ? null : (px < S.price ? "BUY" : "SELL");
+function placeLimit(px){
+  if(!canPlaceLimit()) return false;
+  const v = onTick(px), side = limitSideFor(v);
+  if(!side) return false;
+  posLineDrop("lim");
+  S.limit = { side, px:v };
+  posLineAdd("lim", v, side === "BUY" ? "#22C55E" : "#EF4444", 1,
+             side === "BUY" ? "buy limit" : "sell limit");
+  updatePosUI();
+  return true;
+}
+function moveLimit(px){
+  if(!S.limit) return false;
+  const v = onTick(px), side = limitSideFor(v);
+  if(!side) return false;
+  S.limit.px = v;
+  if(side !== S.limit.side){        // passe de l'autre cote du marche : il change de sens
+    S.limit.side = side;
+    posLineDrop("lim");
+    posLineAdd("lim", v, side === "BUY" ? "#22C55E" : "#EF4444", 1,
+               side === "BUY" ? "buy limit" : "sell limit");
+  } else posLineMove("lim", v);
+  updatePosUI();
+  return true;
+}
+function cancelLimit(){ S.limit = null; posLineDrop("lim"); updatePosUI(); }
+/* Execution : le marche vient toucher le prix de l'ordre. */
+function checkLimit(price){
+  const o = S.limit; if(!o || S.pos) return;
+  const hit = o.side === "BUY" ? price <= o.px : price >= o.px;
+  if(!hit) return;
+  const px = o.px;
+  S.limit = null; posLineDrop("lim");
+  openPos(o.side, px);              // servi a son prix, sans spread
+}
+
+/* ================================================================
    SAISIE DES LIGNES A LA SOURIS
-   Le stop se rapproche en le glissant, jamais au-dela du plafond. L'objectif
-   se pose d'un double-clic sur le graphique, se deplace au glisser, et se
-   retire d'un double-clic dessus.
+   Toute ligne visible se saisit et se deplace a la souris : le stop se
+   rapproche sans jamais depasser le plafond, l'objectif et l'ordre limite
+   vont ou on veut. Un clic dans le vide ouvre le menu du prix vise.
    ================================================================ */
 const HIT_PX = 9;
 function hitLine(ser, y){
@@ -871,19 +992,30 @@ function hitLine(ser, y){
   probe("stop", p.stop); probe("tp", p.target);
   return best;
 }
+/* hors position, seule la ligne de l'ordre limite se saisit */
+function hitAny(ser, y){
+  if(S.pos) return hitLine(ser, y);
+  if(!S.limit) return null;
+  const c = ser.priceToCoordinate(S.limit.px);
+  return (c != null && Math.abs(c - y) < HIT_PX) ? "lim" : null;
+}
 function attachDrag(chart, ser, el){
   el.style.touchAction = "none";
   const yOf = e => e.clientY - el.getBoundingClientRect().top;
   el.addEventListener("pointermove", e => {
     if(DRAG){
-      const pr = ser.priceToCoordinate ? ser.coordinateToPrice(yOf(e)) : null;
-      if(pr != null){ if(DRAG.key === "stop") setStop(pr); else setTarget(pr); }
+      const pr = ser.coordinateToPrice(yOf(e));
+      if(pr != null){
+        if(DRAG.key === "stop") setStop(pr);
+        else if(DRAG.key === "tp") setTarget(pr);
+        else moveLimit(pr);
+      }
       e.preventDefault(); return;
     }
-    el.style.cursor = hitLine(ser, yOf(e)) ? "ns-resize" : "";
+    el.style.cursor = hitAny(ser, yOf(e)) ? "ns-resize" : "";
   });
   el.addEventListener("pointerdown", e => {
-    const k = hitLine(ser, yOf(e)); if(!k) return;
+    const k = hitAny(ser, yOf(e)); if(!k) return;
     DRAG = { key:k, ser };
     try{ el.setPointerCapture(e.pointerId); }catch(err){}
     chartT.applyOptions({handleScroll:false, handleScale:false});
@@ -893,18 +1025,23 @@ function attachDrag(chart, ser, el){
   const stop = e => {
     if(!DRAG) return;
     DRAG = null;
+    JUSTDRAGGED = true;             // le clic qui suit le relachement n'ouvre pas le menu
     try{ el.releasePointerCapture(e.pointerId); }catch(err){}
     chartT.applyOptions({handleScroll:true, handleScale:true});
     chartM.applyOptions({handleScroll:true, handleScale:true});
   };
   el.addEventListener("pointerup", stop);
   el.addEventListener("pointercancel", stop);
-  el.addEventListener("dblclick", e => {
-    if(!S.pos) return;
+  /* Clic dans le vide : on propose ce qui est possible a ce prix. Un clic sur
+     une ligne existante la saisit (gere plus haut), pas de menu. */
+  el.addEventListener("click", e => {
+    if(DRAG) return;
+    if(JUSTDRAGGED){ JUSTDRAGGED = false; return; }
     const y = yOf(e);
-    if(hitLine(ser, y) === "tp"){ setTarget(null); return; }   // double-clic dessus : on l'enleve
+    if(hitAny(ser, y)) return;
     const pr = ser.coordinateToPrice(y);
-    if(pr != null) setTarget(pr);
+    if(pr == null) return;
+    openChartMenu(e.clientX, e.clientY, onTick(pr));
   });
 }
 
@@ -916,7 +1053,7 @@ function attachDrag(chart, ser, el){
 function setupReplay(pack, startMs, endMs){
   Object.assign(S, {
     pack, startMs, endMs,
-    sigIdx:0, records:[], total:0, tradesDone:0, zoneArmed:true, orb:null, sigSide:null,
+    sigIdx:0, records:[], total:0, tradesDone:0, zoneArmed:true, orb:null, sigSide:null, limit:null,
     tickIdx:0, marketMs:0,
     barsM:[], barsM5:[],
     price:null, pos:null, cycle:null, cycleStartAt:0,
@@ -1007,7 +1144,7 @@ function stopClock(){ cancelAnimationFrame(S.timer); }
 
 function advance(dtMs){
   const T = S.pack.ticks;
-  S.marketMs += (MODE === "demo") ? dtMs * (CONFIG.demoSpeed || 1) : dtMs;
+  S.marketMs += (MODE === "demo") ? dtMs * (CONFIG.demoSpeed || 1) : dtMs * SPEED;
   while(S.tickIdx < T.length && T[S.tickIdx][0] <= S.marketMs){
     applyTick(T[S.tickIdx][0], T[S.tickIdx][1], false);
     S.tickIdx++;
@@ -1049,7 +1186,7 @@ function applyTick(ms, price, bulk){
      l'ecart se referme bougie apres bougie. On le reaffirme donc ici, a chaque
      nouvelle bougie seulement (scrollToPosition compte en bougies). */
   if(!bulk && newBarM){ keepRightPad(chartT); keepRightPad(chartM); }
-  if(S.pos) checkStop(price);
+  if(S.pos) checkStop(price); else checkLimit(price);
 
   const open = ms < S.endMs;   // plus de nouveau signal après 11:00 NY
 
@@ -1093,7 +1230,7 @@ function updateWindow(){
     $("signalCount").textContent = Math.max(0,left) + " s";
     if(S.marketMs >= S.winEndMs){
       S.winOpen = false; S.winClosed = true;
-      if(!S.legTaken) S.legRecords.push({ result:"missed", tSignal:S.winStartMs });
+      if(!S.legTaken){ cancelLimit(); S.legRecords.push({ result:"missed", tSignal:S.winStartMs }); }
       setSignalUI(false);
     }
   } else {
@@ -1172,18 +1309,21 @@ function setTarget(v){
   updatePosUI(); return true;
 }
 
-function openPos(side){
+function openPos(side, atPrice){
   /* `legTaken` porte deja la regle : une seule entree par signal. Le sens n'est
-     plus impose pour la session, il se choisit ici, signal par signal. */
+     plus impose pour la session, il se choisit ici, signal par signal.
+     `atPrice` : execution d'un ordre limite, a son prix et sans spread. */
   if(!S.winOpen || S.pos || S.legTaken) return;
   const sp = CONFIG.costs.spreadPts;
-  const entry = side === "BUY" ? S.price + sp : S.price - sp;
+  const entry = atPrice !== undefined ? atPrice
+              : (side === "BUY" ? S.price + sp : S.price - sp);
   S.pos = {
     side, entry, target:null,
     stop: side === "BUY" ? entry - stopPts() : entry + stopPts(),
     tOpen:S.marketMs, reaction:+((S.marketMs - S.winStartMs)/1000).toFixed(1)
   };
   S.legTaken = true;
+  cancelLimit();
   posLineAdd("entry", entry, "#38BDF8", 0, "entry");
   posLineAdd("stop", S.pos.stop, "#F97316", 0, "stop");
   setSignalUI(S.winOpen);
@@ -1205,7 +1345,12 @@ function checkStop(price){
 
 function updatePosUI(){
   const p = S.pos;
-  if(!p){ $("pEntry").textContent = "—"; $("pStop").textContent = "—"; $("pTP").textContent = "—"; $("pFloat").textContent = "—"; return; }
+  if(!p){
+    $("pEntry").textContent = S.limit
+      ? (S.limit.side === "BUY" ? "buy limit " : "sell limit ") + S.limit.px.toFixed(2) : "—";
+    $("pStop").textContent = "—"; $("pTP").textContent = "—"; $("pFloat").textContent = "—";
+    return;
+  }
   $("pEntry").textContent = p.entry.toFixed(2);
   const risk = p.side === "BUY" ? p.entry - p.stop : p.stop - p.entry;
   $("pStop").textContent  = p.stop.toFixed(2) + "  (" + (risk>=0?"−":"+") + Math.abs(risk).toFixed(2) + ")";
@@ -1232,7 +1377,7 @@ function closePos(exit, manual){
   setSignalUI(S.winOpen);
   return pnl;                 // la narration de la demo annonce ce net
 }
-function removeLines(){ posLineDrop("entry"); posLineDrop("stop"); posLineDrop("tp"); }
+function removeLines(){ posLineDrop("entry"); posLineDrop("stop"); posLineDrop("tp"); posLineDrop("lim"); }
 
 function finishSignal(){
   S.winClosed = false;
@@ -1288,6 +1433,11 @@ function predictNextSignalMs(){
   return null;
 }
 
+$("speedSel").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  SPEED = +b.dataset.x;
+  [...$("speedSel").children].forEach(x=>x.classList.toggle("on", x === b));
+});
 $("btnBuy").addEventListener("click",  ()=>openPos("BUY"));
 $("btnSell").addEventListener("click", ()=>openPos("SELL"));
 $("btnClose").addEventListener("click", ()=>{ if(S.pos) closePos(S.price, true); });

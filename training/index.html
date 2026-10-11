@@ -843,6 +843,17 @@ const CHART_PAD_RATIO = 0.18;          // 18 % de la largeur laisse libre a droi
 function rightPad(from, len){
   return Math.max(4, Math.round((len - from) * CHART_PAD_RATIO));
 }
+/* Remet les deux graphiques dans leur etat d'origine : ajustement vertical
+   automatique, largeur de bougie et marge droite par defaut. */
+function resetFraming(){
+  for(const c of [chartT, chartM]){
+    if(!c) continue;
+    try{
+      c.priceScale("right").applyOptions({ autoScale:true });
+      c.timeScale().applyOptions({ rightOffset:16, barSpacing:6 });
+    }catch(e){}
+  }
+}
 function keepRightPad(chart){
   const r = chart.timeScale().getVisibleLogicalRange();
   if(!r) return;
@@ -1062,6 +1073,13 @@ function setupReplay(pack, startMs, endMs){
     timer:null, lastFrame:0
   });
   initCharts();
+  /* Une seance repart toujours d'un cadrage neuf. Des que l'operateur touche
+     l'echelle des prix (molette, glissement de l'axe), lightweight-charts
+     coupe l'ajustement automatique et garde l'echelle telle quelle — y compris
+     pour la seance suivante, dont les prix peuvent etre 500 points plus haut :
+     les bougies tombent alors hors du cadre et il faut un double-clic sur
+     l'axe pour les retrouver. On le remet donc a chaque demarrage. */
+  resetFraming();
   seriesT.setData([]); seriesM.setData([]);
   $("logTable").innerHTML = "";
   $("pTotal").textContent = "0.00";

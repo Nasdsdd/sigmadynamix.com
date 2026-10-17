@@ -386,6 +386,17 @@ h3.sect .sub{text-transform:none;letter-spacing:0;opacity:.6;font-weight:400}
     cursor:pointer;transition:border-color .15s,background .15s}
 .chip.on{border-color:var(--accent-hi);background:var(--accent);color:#FFFFFF;font-weight:600}
 .hint{font-size:12px;color:var(--muted);margin-top:10px;min-height:16px}
+input[type=password]{width:100%;padding:11px 12px;border-radius:var(--r-ctl);
+    background:var(--panel2);border:1px solid var(--strong);color:var(--text);font-size:14px}
+input[type=password]:focus{outline:none;border-color:var(--accent)}
+#demoStep{background:var(--panel2);border:1px solid var(--strong);border-radius:12px;padding:14px}
+#demoStep p{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:12px}
+#demoStep .btn{margin-top:0}
+#demoSeen{display:none;font-size:12px;color:#86EFAC;margin-top:10px}
+#demoStep.done{border-color:rgba(34,197,94,.45)}
+#demoStep.done #demoSeen{display:block}
+#btnDemoQuit{color:var(--red)}
+#btnDemoQuit:hover{border-color:var(--red)!important;background:rgba(239,68,68,.10)!important}
 
 /* ---- training : vitesse, interrupteur des niveaux, tableau de fin ---- */
 #speedBox{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -397,6 +408,9 @@ h3.sect .sub{text-transform:none;letter-spacing:0;opacity:.6;font-weight:400}
 #btnQuit{width:100%;background:transparent;border:1px solid rgba(239,68,68,.45);color:#FCA5A5;
   border-radius:10px;padding:9px 0;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px}
 #btnQuit:hover{background:rgba(239,68,68,.12)}
+.spd button:hover{border-color:var(--accent)}
+#tourSkip{margin-right:auto}
+#tourTip .tnav{display:flex;align-items:center;gap:10px}
 .swrow{display:flex;align-items:center;gap:10px;margin:10px 0 2px}
 .swrow input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
 .swrow label{font-size:13px;color:var(--text);cursor:pointer}
@@ -431,7 +445,7 @@ h3.sect .sub{text-transform:none;letter-spacing:0;opacity:.6;font-weight:400}
 <div class="stage" id="stageLogin">
   <div class="card">
     <h2>Training platform</h2>
-    <p class="lead">Replay the live market on a day of your choice and practise the authorization cycle. At each authorization you pick your own direction — buy or sell. Sessions are not recorded and do not affect your evaluation.</p>
+    <p class="lead">Replay a real market day and practise the key levels. Each level gives you an authorization: you choose your direction, buy or sell, and you manage your stop and your take profits. Nothing is recorded, and nothing here affects your evaluation.</p>
     <label for="fName">Operator name</label>
     <input type="text" id="fName" autocomplete="name" placeholder="Your name">
     <label for="fCode">Access code</label>
@@ -500,6 +514,7 @@ h3.sect .sub{text-transform:none;letter-spacing:0;opacity:.6;font-weight:400}
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
       <button id="btnVoice">🔊 Voice: on</button>
+      <button id="btnDemoQuit">✕ Exit demo</button>
     </div>
   </div>
   <div id="panel">
@@ -578,6 +593,7 @@ h3.sect .sub{text-transform:none;letter-spacing:0;opacity:.6;font-weight:400}
     <div id="tourText"></div>
     <div class="tnav">
       <span id="tourStep"></span>
+      <button class="ghost" id="tourSkip">Skip</button>
       <div>
         <button class="ghost" id="tourPrev">Back</button>
         <button id="tourNext">Next</button>
@@ -592,7 +608,7 @@ h3.sect .sub{text-transform:none;letter-spacing:0;opacity:.6;font-weight:400}
 <div id="pauseOverlay" class="hidden">
   <div class="card">
     <h2>Paused</h2>
-    <p class="lead">The market replay is frozen. Do <b>not</b> close or refresh this page — your attempt would be lost.</p>
+    <p class="lead">The market replay is frozen. Nothing is recorded: you can resume, or end the session from the right-hand panel.</p>
     <button class="btn" id="btnResumeNow">Resume</button>
   </div>
 </div>
@@ -1581,6 +1597,7 @@ document.addEventListener("visibilitychange", ()=>{
 function startDemo(withTour){
   MODE = "demo"; demoPaused = false;
   $("btnDemoPause").textContent = "⏸ Pause";
+  $("demoBar").classList.remove("hidden");
   $("sim").classList.remove("hidden");
   $("hstat").classList.remove("hidden");
   $("hName").textContent = "DEMO";
@@ -1588,7 +1605,7 @@ function startDemo(withTour){
   $("btnPause").disabled = true;
   const d = CONFIG.demo;
   const pack = packs.find(p=>p.id==="demo");
-  $("hSigT").textContent = 2;
+  $("hSigTot").style.display = "none";
   $("siTitle").textContent = "Strategy demo";
   $("siSub").textContent = "MNQ · one buy, one sell";
   setupReplay(pack, 2, nyToUtcMs(d.day, d.startNY));
@@ -1771,7 +1788,7 @@ function endDemo(){
   $("sim").classList.add("hidden");
   $("hstat").classList.add("hidden");
   $("stageSetup").classList.remove("hidden");
-  $("demoSeen").style.display = "block";
+  $("demoStep").classList.add("done");
 }
 
 
@@ -2166,6 +2183,19 @@ $("btnStartDemo").addEventListener("click", () => {
   startDemo(true);
 });
 
+/* Quitter la demo : par le bouton de la barre, par Skip pendant la visite
+   guidee, ou par la touche Echap. On revient a l'ecran de preparation. */
+function quitDemo(){
+  $("tourOverlay").classList.add("hidden");
+  if(MODE === "demo"){ endDemo(); return; }
+  $("sim").classList.add("hidden");
+  $("hstat").classList.add("hidden");
+  $("stageSetup").classList.remove("hidden");
+}
+$("btnDemoQuit").addEventListener("click", quitDemo);
+$("tourSkip").addEventListener("click", quitDemo);
+addEventListener("keydown", e => { if(e.key === "Escape" && MODE === "demo") quitDemo(); });
+
 /* ================================================================
    FIN DE SEANCE
    Arret apres CONFIG.tradesPerSession trades, a court de signaux, ou sur
@@ -2242,7 +2272,6 @@ $("btnReplayDay").addEventListener("click", async () => {
    DEMARRAGE
    ================================================================ */
 $("buildTag").textContent = "· " + BUILD;
-$("demoSeen").style.display = "none";
 applyModeUI();
 
 

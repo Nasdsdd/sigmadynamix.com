@@ -71,6 +71,15 @@ def build_day(day, params, source):
     if "t0" not in window or "t1" not in window:
         raise ValueError(f"{iso} : fenetre de signaux absente")
 
+    # Heure de mise en service d'un niveau pose en cours de seance. Un export
+    # ancien n'en a pas : le niveau vit alors des l'ouverture de la fenetre.
+    debut = str(params.get("start", "09:45"))
+    for l in levels:
+        l.setdefault("from", debut)
+        if "fromMs" not in l:
+            hh, mm = (int(x) for x in str(l["from"]).split(":")[:2])
+            l["fromMs"] = max(window["t0"], ny_ms(iso, hh, mm))
+
     gap_ms = int(round(float(params.get("gapMin", 3)) * 60000))
     orb = day.get("orb") or None
 

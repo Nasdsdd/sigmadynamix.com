@@ -670,7 +670,8 @@ const CONFIG = {
     "SIGMA":       null,          // permanent
     "OCTOBER1":    "2026-10-21",  // ouvert le 06/10/2026, 15 jours
     "ZJ-NQ-4713":  null,          // Zee Joel, permanent, ouvert le 13/10/2026
-    "ZH-NQ-8206":  null           // Zahid, permanent, ouvert le 13/10/2026
+    "ZH-NQ-8206":  null,          // Zahid, permanent, ouvert le 13/10/2026
+    "OCT19-2SEM":  "2026-11-02"   // code 2 semaines, ouvert le 19/10/2026
   },
   packDir:         "daypacks/",   // dossier des daypack_AAAAMMJJ.json, a cote de la page
   calFrom:         "2026-01-01",  // borne basse de navigation du calendrier
@@ -1096,9 +1097,12 @@ function lvlStep(t, p){
   if(t < m.t0){ S.lvPrev = p; return; }
   if(t > m.t1) return;
   for(const l of S.levels){
+    if(t < (l.fromMs || m.t0)) continue;          // niveau pas encore pose
+    /* au tick de naissance, aucune traversee : le niveau n'existait pas avant */
+    const pv = l.init ? S.lvPrev : p;
     if(!l.init){ l.init = true; if(p >= l.lo && p <= l.hi) l.state = "wait"; }
     const inside  = p >= l.lo && p <= l.hi;
-    const crossed = S.lvPrev !== null && ((S.lvPrev < l.lo && p > l.hi) || (S.lvPrev > l.hi && p < l.lo));
+    const crossed = pv !== null && ((pv < l.lo && p > l.hi) || (pv > l.hi && p < l.lo));
     if(l.state === "armed" && (inside || crossed)){
       if(t - S.lvLastSig < m.gapMs){ l.state = "wait"; continue; }
       l.fired++; S.lvLastSig = t;
@@ -1113,6 +1117,7 @@ function renderPartner(){
   const tb = $("ptBody"); if(!tb) return;
   const rows = [];
   for(const l of S.levels || []){
+    if((l.fromMs || 0) > S.marketMs) continue;    // pas encore pose par le desk
     rows.push({ app:"LVL", type: l.state.toUpperCase(), n: l.fired + "/" + l.max, price: l.price,
       cls: l.state === "armed" ? "lv" : "lvw" });
   }
@@ -2075,6 +2080,7 @@ function renderLevelLines(){
   const m = S.lvMeta; if(!m || !S.showLevels) return;
   for(const l of m.levels){
     if(l.on === false) continue;
+    if((l.fromMs || 0) > S.marketMs) continue;    // niveau pas encore pose
     levelLines.push(mkLine(l.price, "#A78BFA", "LVL " + fmtP(l.price), 0));
     levelLines.push(mkLine(l.price + l.zone, "#7C3AED", "", 2));
     levelLines.push(mkLine(l.price - l.zone, "#7C3AED", "", 2));

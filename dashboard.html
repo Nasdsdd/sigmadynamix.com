@@ -216,9 +216,9 @@ tailwind.config = {
               <div class="mt-2.5 text-xs text-muted" id="k-n-sub">—</div>
             </div>
             <div class="p-6 text-center lg:p-7">
-              <div class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-faint">Average trade</div>
+              <div class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-faint">Average points</div>
               <div class="num tight mt-3 text-[28px] font-medium leading-none" id="k-avg">—</div>
-              <div class="mt-2.5 text-xs text-muted">USD net</div>
+              <div class="mt-2.5 text-xs text-muted">Per trade, per contract</div>
             </div>
           </div>
 
@@ -516,6 +516,7 @@ function stats(list){
     wins: wins.length, losses: losses.length,
     winRate: wins.length / n * 100,
     avg: net / n,
+    avgPts: sum(list, t => t.pts) / n,
     avgWin: wins.length ? sum(wins, t => t.net) / wins.length : 0,
     avgLoss: losses.length ? sum(losses, t => t.net) / losses.length : 0,
     pf: lossSum ? sum(wins, t => t.net) / lossSum : Infinity,
@@ -594,7 +595,7 @@ function render(){
   document.getElementById('k-wr-sub').textContent = `${s.wins} winners, ${s.losses} losers`;
   put('k-n', String(s.n), 'text-fg');
   document.getElementById('k-n-sub').textContent = `${nf(s.perDay, 1)} per session`;
-  put('k-avg', money(s.avg), tone(s.avg));
+  put('k-avg', points(s.avgPts), tone(s.avgPts));
 
   document.getElementById('fee-rate').textContent =
     rateLine() ? 'Charged at ' + rateLine() + '.' : '';
@@ -606,14 +607,16 @@ function render(){
     row('Gross P&L', money(s.gross), tone(s.gross)),
     row('Commissions', money(s.fees), 'text-muted'),
     row('Net points', points(s.pts), tone(s.pts)),
+    row('Average points per trade', points(s.avgPts), tone(s.avgPts)),
     row('Winners / losers', `${s.wins} / ${s.losses}`),
     row('Average win', money(s.avgWin), 'text-green'),
     row('Average loss', money(s.avgLoss), 'text-loss'),
-    row('Profit factor', s.pf === Infinity ? '∞' : nf(s.pf, 2), tone(s.pf - 1)),
-    row('Best trade', money(s.best), tone(s.best))
+    row('Average trade', money(s.avg), tone(s.avg)),
+    row('Profit factor', s.pf === Infinity ? '∞' : nf(s.pf, 2), tone(s.pf - 1))
   ].join('');
 
   document.getElementById('stats-b').innerHTML = [
+    row('Best trade', money(s.best), tone(s.best)),
     row('Worst trade', money(s.worst), tone(s.worst)),
     row('Maximum drawdown', money(s.dd), tone(s.dd)),
     row('Longest win streak', String(s.wsMax)),

@@ -250,8 +250,8 @@ tailwind.config = {
         <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Key statistics</p>
         <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl">How the period was traded.</h2>
         <p class="mt-4 text-base leading-relaxed text-muted">
-          Every figure is net of commissions, charged at <span class="num text-fg" id="fee-rate">—</span>
-          per round turn and per lot. A trade whose gross gain is smaller than its fee counts as a loser.
+          Every figure is net of commissions. <span id="fee-rate"></span>
+          A trade whose gross gain is smaller than its fee counts as a loser.
         </p>
       </div>
       <div class="mt-10 grid gap-4 lg:grid-cols-2">
@@ -420,8 +420,13 @@ if(!SESSION){ location.replace('login.html'); throw new Error('no session'); }
 
 const DATA = SESSION.payload;
 const OPERATOR = { name: DATA.name, accounts: DATA.accounts || [], startedOn: DATA.startedOn || '' };
+/* Each contract has its own point value and round-turn fee — NQ and MNQ differ
+   by a factor of ten. The builder prices every trade and ships the result, so
+   these are only a fallback for older payloads. */
+const CONTRACTS = DATA.contracts || {};
 const PV = Number(DATA.pointValue) || 20;
 const FEE = Number(DATA.roundTurnFee) || 5.16;
+const specOf = c => CONTRACTS[c] || {pointValue: PV, roundTurnFee: FEE};
 
 const PAYOUTS = (DATA.payouts || []).map(p => ({
   period: p.period,
@@ -442,8 +447,9 @@ function enrich(t){
   const pts = (t.pts !== undefined && t.pts !== null)
     ? t.pts
     : (t.side === 'B' ? t.close - t.open : t.open - t.close) * t.qty;
-  const gross = pts * PV;
-  const fees = FEE * t.qty;
+  const spec = specOf(t.contract);
+  const gross = (t.gross !== undefined && t.gross !== null) ? t.gross : pts * spec.pointValue;
+  const fees  = (t.fees  !== undefined && t.fees  !== null) ? t.fees  : spec.roundTurnFee * t.qty;
   const o = new Date(t.openDate + 'T' + t.openTime);
   const c = new Date((t.closeDate || t.openDate) + 'T' + t.closeTime);
   return Object.assign({}, t, {
@@ -519,6 +525,16 @@ function stats(list){
   };
 }
 
+/* The contracts traded in the current period, with their terms. */
+function rateLine(){
+  const used = [...new Set(VIEW.map(t => t.contract))].sort();
+  if(!used.length) return '';
+  return used.map(c => {
+    const sp = specOf(c);
+    return `${c} at $${nf(sp.pointValue, 0)} a point, $${nf(sp.roundTurnFee)} per round turn and per lot`;
+  }).join(' · ');
+}
+
 /* ============================================================================
    Render
    ============================================================================ */
@@ -577,6 +593,9 @@ function render(){
   put('k-n', String(s.n), 'text-fg');
   document.getElementById('k-n-sub').textContent = `${nf(s.perDay, 1)} per session`;
   put('k-avg', money(s.avg), tone(s.avg));
+
+  document.getElementById('fee-rate').textContent =
+    rateLine() ? 'Charged at ' + rateLine() + '.' : '';
 
   drawCurve();
 
@@ -688,7 +707,7 @@ function render(){
 
   /* ---- trade log ---- */
   document.getElementById('log-count').textContent =
-    `${s.n} trades · ${holdStr(s.avgHold)} average hold · $${nf(FEE)} per round turn, per lot`;
+    `${s.n} trades · ${holdStr(s.avgHold)} average hold · ${rateLine()}`;
   document.getElementById('t-log').innerHTML = `
     <thead><tr><th>Date</th><th>Account</th><th>Opened</th><th>Held</th><th>Direction</th>
     <th>Entry</th><th>Exit</th><th>Lots</th><th>Points</th><th>Gross</th><th>Fees</th>
@@ -834,7 +853,7 @@ document.getElementById('op-name').textContent = OPERATOR.name;
 document.getElementById('op-accts').textContent = OPERATOR.accounts.join('  ·  ');
 document.title = OPERATOR.name + ' — Sigma Dynamix';
 
-document.getElementById('fee-rate').textContent = `$${nf(FEE)}`;
+
 if(DATA.minimum){
   // months run from the operator's own start on the desk, not the calendar
   const since = DATA.startedOn

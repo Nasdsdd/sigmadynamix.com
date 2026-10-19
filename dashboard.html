@@ -444,11 +444,13 @@ const PAYOUTS = (DATA.payouts || []).map(p => ({
    Trade mechanics
    ============================================================================ */
 function enrich(t){
+  // points are the price move per contract; the lot count multiplies into the money
   const pts = (t.pts !== undefined && t.pts !== null)
     ? t.pts
-    : (t.side === 'B' ? t.close - t.open : t.open - t.close) * t.qty;
+    : (t.side === 'B' ? t.close - t.open : t.open - t.close);
   const spec = specOf(t.contract);
-  const gross = (t.gross !== undefined && t.gross !== null) ? t.gross : pts * spec.pointValue;
+  const gross = (t.gross !== undefined && t.gross !== null)
+    ? t.gross : pts * t.qty * spec.pointValue;
   const fees  = (t.fees  !== undefined && t.fees  !== null) ? t.fees  : spec.roundTurnFee * t.qty;
   const o = new Date(t.openDate + 'T' + t.openTime);
   const c = new Date((t.closeDate || t.openDate) + 'T' + t.closeTime);

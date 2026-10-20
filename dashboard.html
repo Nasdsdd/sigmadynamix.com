@@ -248,7 +248,7 @@ tailwind.config = {
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
       <div class="max-w-2xl">
         <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Key statistics</p>
-        <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl">How the period was traded.</h2>
+        <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl">How the period was traded</h2>
       </div>
       <div class="mt-10 grid gap-4 lg:grid-cols-2">
         <dl class="divide-y divide-line overflow-hidden rounded-card border border-line bg-panel px-6" id="stats-a"></dl>
@@ -264,7 +264,7 @@ tailwind.config = {
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
       <div class="max-w-2xl">
         <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Breakdown</p>
-        <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl" id="bd-title">By session.</h2>
+        <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl" id="bd-title">By session</h2>
       </div>
 
       <div class="mt-10 overflow-hidden rounded-card border border-line bg-panel">
@@ -289,7 +289,7 @@ tailwind.config = {
       <div class="flex flex-wrap items-end justify-between gap-4">
         <div class="max-w-2xl">
           <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Trade log</p>
-          <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl">Every fill, in order.</h2>
+          <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl">Every fill, in order</h2>
         </div>
         <p class="num text-[11.5px] text-faint" id="log-count">—</p>
       </div>
@@ -332,7 +332,7 @@ tailwind.config = {
     <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
       <div class="max-w-2xl">
         <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Payment history</p>
-        <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl">What has been sent, and what is due.</h2>
+        <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl">What has been sent, and what is due</h2>
       </div>
       <div class="mt-10 overflow-hidden rounded-card border border-line bg-panel">
         <div class="scroll-x"><table class="grid-tbl" id="t-pay"></table></div>
@@ -652,7 +652,7 @@ function render(){
   const paired = OPERATOR.accounts.length > 1;
   document.getElementById('acct-card').classList.toggle('hidden', !paired);
   document.getElementById('bd-title').textContent =
-    paired ? 'By direction, account and session.' : 'By direction, then by session.';
+    paired ? 'By direction, account and session' : 'By direction, then by session';
 
   const accts = !paired ? [] : OPERATOR.accounts.map(a => {
     const l = VIEW.filter(t => t.account === a);

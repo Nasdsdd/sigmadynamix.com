@@ -249,10 +249,6 @@ tailwind.config = {
       <div class="max-w-2xl">
         <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Key statistics</p>
         <h2 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl">How the period was traded.</h2>
-        <p class="mt-4 text-base leading-relaxed text-muted">
-          Every figure is net of commissions. <span id="fee-rate"></span>
-          A trade whose gross gain is smaller than its fee counts as a loser.
-        </p>
       </div>
       <div class="mt-10 grid gap-4 lg:grid-cols-2">
         <dl class="divide-y divide-line overflow-hidden rounded-card border border-line bg-panel px-6" id="stats-a"></dl>
@@ -576,7 +572,7 @@ function render(){
   const year = d.length ? d[d.length - 1].slice(0, 4) : '';
 
   document.getElementById('range').textContent = d.length
-    ? `${dmy(d[0])} to ${dmy(d[d.length - 1])} ${year} — ${s.n} trades across ${s.days} session${s.days > 1 ? 's' : ''} on ${CONTRACT}, priced at $${nf(PV, 0)} per point.`
+    ? `${dmy(d[0])} to ${dmy(d[d.length - 1])} ${year} — ${s.n} trades across ${s.days} session${s.days > 1 ? 's' : ''}`
     : 'No trades published for the selected period.';
 
   const blank = s.n === 0;
@@ -596,9 +592,6 @@ function render(){
   put('k-n', String(s.n), 'text-fg');
   document.getElementById('k-n-sub').textContent = `${nf(s.perDay, 1)} per session`;
   put('k-avg', points(s.avgPts), tone(s.avgPts));
-
-  document.getElementById('fee-rate').textContent =
-    rateLine() ? 'Charged at ' + rateLine() + '.' : '';
 
   drawCurve();
 

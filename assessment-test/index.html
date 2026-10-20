@@ -859,7 +859,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v19.1";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v19.2";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + " · TEST";
   const b = document.createElement("div");
@@ -2042,10 +2042,16 @@ function clearTPs(){ if(!S.pos) return; S.pos.tps.filter(t => !t.filled).forEach
 function setSL(price){
   const p = S.pos; if(!p) return false;
   price = rTick(price);
+  /* v19.2 : un stop demandé au-delà du maximum n'est plus refusé, il est posé au maximum */
+  const d = dirOf(p.side), lim = rTick(p.entry - d * maxSlPts());
+  let capped = false;
+  if(d * (price - lim) < -1e-9){ price = lim; capped = true; }
   const err = slCheck(price);
   if(err){ setLine(p.lines.sl, { price: p.sl }); flash(err); return false; }
-  p.sl = price; p.slMoves++;
-  setLine(p.lines.sl, { price, title: "SL " + fmtP(price) }); renderStopTp(); return true;
+  if(price !== p.sl){ p.sl = price; p.slMoves++; }
+  setLine(p.lines.sl, { price, title: "SL " + fmtP(price) }); renderStopTp();
+  if(capped) flash(`The stop cannot be further than ${fmtP(maxSlPts())} pts (${CONFIG.maxSlTicks} ticks) from your entry: placed at the maximum, ${fmtP(price)}`);
+  return true;
 }
 function renderStopTp(){
   const p = S.pos, box = $("stBox"); if(!box) return;

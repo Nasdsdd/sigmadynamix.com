@@ -859,7 +859,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v19";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v19.1";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -2194,12 +2194,12 @@ function cancelSpeech(){
   liveUtterances.clear();              // Safari n'émet pas toujours onend sur cancel
 }
 
-function say(text){
-  if(!voiceOn || !("speechSynthesis" in window)){ showCaption(text); return; }
+function say(text, onStart){
+  if(!voiceOn || !("speechSynthesis" in window)){ showCaption(text); if(onStart) onStart(); return; }
   const u = new SpeechSynthesisUtterance(text);
   if(demoVoice) u.voice = demoVoice;
   u.lang = "en-US"; u.rate = 1.12; u.pitch = 0.92;   // +15 % pour suivre le replay accelere
-  u.onstart = ()=>showCaption(text);   // le sous-titre s'affiche quand la phrase démarre
+  u.onstart = ()=>{ showCaption(text); if(onStart) onStart(); };   // sous-titre (et départ du replay) quand la phrase démarre
   trackUtterance(u);
   speechSynthesis.speak(u);            // file d'attente : ne coupe plus la phrase en cours
 }
@@ -2303,7 +2303,16 @@ function runDemoTrades(){
   const live = () => MODE==="demo" && run===demoRunId;
   const L1 = "Welcome. You are watching a real replay of the NQ futures market. The top chart shows 100-tick candles, the bottom one shows 1-minute candles.";
   const L2 = "Our desk marks key price levels. When the price reaches one of them, you are authorized to trade. An authorization is not an order to enter immediately: it tells you the price is in a zone where you may trade, and you can take a minute or two to pick a good entry. The direction is yours: you buy or you sell. In this demo you will see one of each.";
-  say(L1);
+  /* v19.1 : le replay démarre quand la première phrase commence, pas avant
+     (filet de 2,5 s si le navigateur n'émet jamais le début de phrase) */
+  let started = false;
+  const go = () => {
+    if(started || !live()) return;
+    started = true;
+    if(!demoPaused){ S.lastFrame = performance.now(); runClock(); }
+  };
+  say(L1, go);
+  setTimeout(go, 2500);
   afterSay(L1, ()=>{
     if(!live()) return;
     say(L2);
@@ -2314,7 +2323,6 @@ function runDemoTrades(){
       if(auth1 && S.marketMs < target) fastForwardTo(target);
     });
   });
-  runClock();
 }
 
 /* enchaîne sur la fin de la phrase ; voix coupée : temps de lecture du sous-titre */
@@ -2360,7 +2368,7 @@ function buildDemoScript(d){
     { afterPrevMs: 300, need:"pos", hold:true, run: ()=>{
         S.pos.qtySel = 2; renderStopTp();
         closeQty(2);
-        say("You can also close only part of the position. Choose a quantity in Qty, here two, and click Close: two contracts are closed at the market price, the other three stay open. The same Qty is used when you add a take profit.");
+        say("You can also close only part of the position. Choose a quantity, here two, and click Close: two contracts are closed at the market price, the other three stay open. The same quantity is used when you add a take profit.");
     }},
     { afterPrevMs: 300, need:"pos", hold:true, run: ()=>{
         closePos(true);

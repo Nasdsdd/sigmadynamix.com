@@ -193,7 +193,12 @@
   #charts{display:grid;grid-template-rows:1fr 1fr;gap:12px;min-height:0;position:relative}
   .chartBox{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-card);
     overflow:hidden;position:relative;min-height:0}
-  .chartBox .clabel{position:absolute;top:8px;left:10px;z-index:5;font-family:var(--mono);
+  .chartBox .chead{position:absolute;top:8px;left:10px;z-index:5;display:flex;gap:8px;align-items:center}
+  .chartBox .cco{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;user-select:none;
+    background:rgba(14,23,41,.85);padding:3px 8px;border-radius:6px;border:1px solid var(--border)}
+  .chartBox .cco input{accent-color:#0060F8;margin:0;cursor:pointer}
+  .chartBox .cco:hover{border-color:var(--accent);color:var(--text)}
+  .chartBox .clabel{font-family:var(--mono);
     font-size:11px;color:var(--muted);letter-spacing:.1em;
     background:rgba(14,23,41,.85);padding:3px 8px;border-radius:6px;border:1px solid var(--border)}
   .chartBox .cdiv{width:100%;height:100%}
@@ -550,8 +555,9 @@
       At Sigma Dynamix, operators do <b>not</b> decide <i>when</i> to trade. The desk marks <b>key price levels</b>: when the price reaches one of them, an <b style="color:var(--link)">authorization signal</b> lights up. Your job is to <b>choose the direction</b>, buy or sell, and to <b>manage the trade</b>.<br><br>
       <b style="color:var(--red)">Taking every signal is mandatory.</b> Your evaluation compares you with other operators on the same signals, so a skipped signal cannot be scored and counts against you.<br><br>
       <b>One trade per authorization, 10 MNQ.</b> You have <b>3 minutes</b> to enter with <b style="color:var(--green)">Buy</b> or <b style="color:var(--red)">Sell</b>.<br><br>
+      An authorization is <b>not an order to enter immediately</b>: it tells you the price is in a zone where you may trade. You can wait a minute or two for a better price before opening your position.<br><br>
       A <b style="color:var(--red)">stop loss</b> is placed automatically from your entry. You can bring it closer at any time, never move it further.<br><br>
-      You add your own <b style="color:var(--green)">take profits</b>: choose a quantity, click <b>+TP</b>, then drag the line where you want. You can split the position over several take profits.<br><br>
+      You add your own <b style="color:var(--green)">take profits</b>: choose a quantity, click <b>+TP</b> (placed by default at <b>twice the stop distance</b>), then drag the line where you want. You can split the position over several take profits, and close only part of it: choose a quantity and click <b>Close</b>.<br><br>
       The demo replays a real NQ market moment and shows two examples: <b>one buy, one sell</b>. Watching it in full is required before the tests.
     </p>
     <button class="btn" id="btnStartDemo">▶ Watch the demo</button>
@@ -597,8 +603,8 @@
 <!-- ===== SIMULATOR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div class="chartBox" id="boxTick"><div class="clabel">100-TICK CHART</div><div class="cdiv" id="chartTick"></div></div>
-    <div class="chartBox" id="boxMin"><div class="clabel">1-MINUTE CHART</div><div class="cdiv" id="chartMin"></div></div>
+    <div class="chartBox" id="boxTick"><div class="chead"><div class="clabel">100-TICK CHART</div><label class="cco" title="Draw each candle only once it has closed"><input type="checkbox" id="coT"> Close-only candles</label></div><div class="cdiv" id="chartTick"></div></div>
+    <div class="chartBox" id="boxMin"><div class="chead"><div class="clabel">1-MINUTE CHART</div><label class="cco" title="Draw each candle only once it has closed"><input type="checkbox" id="coM"> Close-only candles</label></div><div class="cdiv" id="chartMin"></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -742,7 +748,7 @@ const CONFIG = {
      à tpDefaultPts de l'entrée pour la quantité choisie, déplaçable ensuite. */
   qty: 10,
   maxSlTicks: 80,
-  tpDefaultPts: 20,
+  tpDefaultPts: 40,                // v18 : TP par défaut = 2 fois le stop (ratio 2:1)
   pointValue: 2,               // MNQ : 2 $ par point et par contrat
   symbol: "MNQ",
   /* ---- COÛTS DE TRADING (tous les chiffres affichés en sont nets) ----
@@ -760,7 +766,7 @@ const CONFIG = {
               { id:"d2", price:29805, zone:2, rearm:10, max:3 },
               { id:"d3", price:29700, zone:2, rearm:10, max:3 },
               { id:"d4", price:29850, zone:2, rearm:10, max:3 } ],
-    buy:  { levelId:"d1", zoneTop:29742, entryPrice:29738, tpQty:5, closeAt:29775 },
+    buy:  { levelId:"d1", zoneTop:29742, entryPrice:29736, tpQty:5 },
     sell: { levelId:"d2", zoneBottom:29803, entryPrice:29806 }
   },
   hideHours: true,
@@ -853,7 +859,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v17.8";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v19";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -1332,11 +1338,11 @@ const FAQ = [
   ["Where do the signals come from?",
    "The desk marks key price levels before the session. When the price reaches one of them, every operator receives the same authorization at the same time. A level can fire several times in a session, but only after the price has moved away from it and come back."],
   ["Once authorized, how much time do I have to enter?",
-   "You have 3 minutes per signal to open your position. There is no need to click in the first second: you can enter straight away, or wait for a better price within that time."],
+   "You have 3 minutes per signal to open your position. An authorization is not an order to enter immediately: it tells you the price is in a zone where you may trade. You can enter straight away, or wait a minute or two for a better price within that time."],
   ["How many points do traders typically target?",
-   "Around 20 NQ points: that is the default distance of a take profit, about $40 per MNQ contract, or $400 on a 10 MNQ position."],
+   "Around 40 NQ points: that is the default distance of a take profit, twice the stop distance (a 2:1 reward to risk). That is about $80 per MNQ contract, or $800 on a 10 MNQ position."],
   ["How do the stop loss and take profits work?",
-   "Your stop loss is placed automatically 20 points (80 ticks) from your entry. You can bring it closer at any time, to break-even or beyond, but never move it further. Take profits are yours: choose a quantity, click +TP and drag the line, or type a price. You can split the position over several take profits."],
+   "Your stop loss is placed automatically 20 points (80 ticks) from your entry. You can bring it closer at any time, to break-even or beyond, but never move it further. Take profits are yours: choose a quantity and click +TP (placed 40 points away by default, twice the stop), then drag the line or type a price. You can split the position over several take profits. To close only part of the position, choose a quantity in Qty and click Close: the same Qty is used by +TP."],
   ["How should I manage my entry?",
    "Always hunt the best price and never chase: if you buy, wait for a slight dip and enter lower; if you sell, wait for a push and enter higher. Your entry price is what makes the difference, so patience on your own entry matters most."],
   ["How is my variable compensation calculated?",
@@ -1418,8 +1424,8 @@ function verifyCharts(tag){
       bad ? "→ RECONSTRUCTION" : "ok");
     if(!bad) return;
     resizeCharts();
-    if(S.barsT.length) seriesT.setData(S.barsT);
-    if(S.barsM.length) seriesM.setData(S.barsM);
+    if(S.barsT.length) seriesT.setData(coData("T"));
+    if(S.barsM.length) seriesM.setData(coData("M"));
     const nowSec = Math.floor((S.marketMs + S.nyOff + (S.dayShift || 0))/1000);
     const fromIdx = (bars, minutes) => {
       const cut = nowSec - minutes*60;
@@ -1465,6 +1471,10 @@ function initCharts(){
   seriesT = chartT.addCandlestickSeries(cs);
   chartM = LightweightCharts.createChart($("chartMin"), opts);
   seriesM = chartM.addCandlestickSeries(cs);
+  /* v19 : ligne pointillée qui suit le prix quand la bougie en cours est masquée */
+  const lp = { price: 0, color: "#60A5FA", lineWidth: 1, lineStyle: 2, lineVisible: false, axisLabelVisible: false, title: "" };
+  livePx.T = seriesT.createPriceLine(lp); livePx.M = seriesM.createPriceLine(lp);
+  ["T", "M"].forEach(w => (w === "T" ? seriesT : seriesM).applyOptions({ lastValueVisible: !CO[w], priceLineVisible: !CO[w] }));
   /* Entre deux sessions le simulateur est masqué : clientWidth et clientHeight
      retombent à 0 et l'observateur appliquait ces dimensions aux graphiques.
      Selon le navigateur il ne se redéclenche pas toujours au réaffichage, et
@@ -1524,8 +1534,9 @@ function fastForwardTo(targetMs){
      la vue sur une DURÉE et non sur un nombre de barres : le débit de ticks
      varie beaucoup entre le pré-marché et l'ouverture, donc un nombre de barres
      fixe ne représente pas la même durée d'une journée à l'autre. */
-  seriesT.setData(S.barsT);
-  seriesM.setData(S.barsM);
+  seriesT.setData(coData("T"));
+  seriesM.setData(coData("M"));
+  updateLivePx();
   const nowSec = Math.floor((targetMs + S.nyOff + (S.dayShift || 0))/1000);
   const fromIdx = (bars, minutes) => {
     const cut = nowSec - minutes*60;
@@ -1629,7 +1640,15 @@ function applyTick(ms, price, bulk){
     newBarM = true;
   }
   bm.high=Math.max(bm.high,price); bm.low=Math.min(bm.low,price); bm.close=price;
-  if(!bulk){ seriesT.update(bt); seriesM.update(bm); }
+  if(!bulk){
+    /* v19 : en mode « bougie à la clôture », la bougie en formation n'est pas
+       dessinée ; on publie la précédente au moment où elle se termine. */
+    if(CO.T){ if(newBarT && S.barsT.length > 1) seriesT.update(S.barsT[S.barsT.length - 2]); }
+    else seriesT.update(bt);
+    if(CO.M){ if(newBarM && S.barsM.length > 1) seriesM.update(S.barsM[S.barsM.length - 2]); }
+    else seriesM.update(bm);
+    if(CO.T || CO.M) updateLivePx();
+  }
   /* La derniere bougie est maintenue a distance du bord droit, sinon les
      etiquettes d'entree et de stop se posent dessus. rightOffset ne vaut que
      pour le defilement automatique : des qu'un cadrage explicite a ete pose,
@@ -1885,6 +1904,43 @@ function closePos(manual){
   const d = dirOf(pos.side), sp = CONFIG.costs.spreadPts;
   fillQty(pos.open, S.price - d * sp, "MANUAL");
 }
+/* v19 : clôture partielle, quantité choisie dans Qty (au prix du marché, mêmes coûts) */
+function closeQty(q){
+  const pos = S.pos; if(!pos) return;
+  q = Math.max(1, Math.min(Math.round(q), pos.open));
+  const d = dirOf(pos.side), px = S.price - d * CONFIG.costs.spreadPts, left = pos.open - q;
+  fillQty(q, px, "MANUAL");
+  if(left > 0 && S.pos) setStatus(`Closed ${q} at ${fmtP(px)} · ${left} still open`);
+}
+function selQty(){ const p = S.pos; if(!p) return 0; return Math.min(p.qtySel || p.open, p.open); }
+function updateCloseLabel(){
+  const p = S.pos, b = $("btnClose"); if(!b) return;
+  if(!p){ b.textContent = "✕ Close"; return; }
+  const q = selQty();
+  b.textContent = q >= p.open ? `✕ Close all (${p.open})` : `✕ Close ${q} of ${p.open}`;
+}
+/* v19 : bougies affichées seulement à leur clôture, case à cocher par graphique */
+const CO = { T: false, M: false };
+const livePx = {};
+function coData(w){ const bars = (w === "T" ? S.barsT : S.barsM) || []; return CO[w] ? bars.slice(0, -1) : bars; }
+function updateLivePx(){
+  for(const w of ["T", "M"]){
+    const l = livePx[w]; if(!l) continue;
+    const on = CO[w] && S.price != null;
+    l.applyOptions(on ? { price: S.price, lineVisible: true, axisLabelVisible: true }
+                      : { lineVisible: false, axisLabelVisible: false });
+  }
+}
+function setCloseOnly(w, on){
+  CO[w] = !!on;
+  const cb = $(w === "T" ? "coT" : "coM"); if(cb) cb.checked = CO[w];
+  const ser = w === "T" ? seriesT : seriesM, ch = w === "T" ? chartT : chartM;
+  if(!ser) return;
+  ser.applyOptions({ lastValueVisible: !CO[w], priceLineVisible: !CO[w] });
+  const bars = w === "T" ? S.barsT : S.barsM;
+  if(bars && bars.length){ ser.setData(coData(w)); keepRightPad(ch); }
+  updateLivePx();
+}
 function closeTrade(kind){
   const pos = S.pos, d = dirOf(pos.side), q = pos.qty;
   const exit = pos.fills.reduce((a, f) => a + f.qty * f.price, 0) / q;
@@ -1962,20 +2018,25 @@ function setSL(price){
 }
 function renderStopTp(){
   const p = S.pos, box = $("stBox"); if(!box) return;
-  if(!p){ box.classList.add("hidden"); return; }
+  if(!p){ box.classList.add("hidden"); updateCloseLabel(); return; }
   box.classList.remove("hidden");
-  const free = freeQty(), sel = $("tpQty"), cur = +sel.value || free;
+  /* v19 : Qty sert à Close (clôture partielle) et à +TP ; par défaut toute la position */
+  const free = freeQty(), sel = $("tpQty"), cur = selQty();
   sel.innerHTML = "";
-  for(let q = 1; q <= Math.max(free, 0); q++) sel.insertAdjacentHTML("beforeend", `<option value="${q}">${q}</option>`);
-  sel.value = Math.min(Math.max(cur, 1), free);
-  sel.disabled = free < 1; $("btnAddTp").disabled = free < 1 || MODE !== "test";
+  for(let q = 1; q <= p.open; q++) sel.insertAdjacentHTML("beforeend", `<option value="${q}">${q}</option>`);
+  sel.value = cur;
+  sel.disabled = p.open < 1; $("btnAddTp").disabled = free < 1 || MODE !== "test";
+  updateCloseLabel();
   const tps = p.tps.filter(t => !t.filled);
   $("stSummary").innerHTML = `SL ${fmtP(p.sl)}` + (tps.length ? " · " + tps.map(t => `TP${t.n} ${t.qty}@${fmtP(t.price)}`).join(" · ") : "")
-    + `<br><span>Drag the SL / TP lines on the chart. Double-click a TP line to remove it.</span>`;
+    + `<br><span>Qty is used by Close and +TP. Drag the SL / TP lines on the chart. Double-click a TP line to remove it.</span>`;
 }
 $("btnBuy").addEventListener("click", () => { if(MODE === "test") openPos("BUY"); });
 $("btnSell").addEventListener("click", () => { if(MODE === "test") openPos("SELL"); });
-$("btnClose").addEventListener("click", () => { if(MODE === "test" && S.pos) closePos(true); });
+$("btnClose").addEventListener("click", () => { if(MODE === "test" && S.pos) closeQty(selQty()); });
+$("tpQty").addEventListener("change", () => { if(S.pos){ S.pos.qtySel = +$("tpQty").value; updateCloseLabel(); } });
+$("coT").addEventListener("change", e => setCloseOnly("T", e.target.checked));
+$("coM").addEventListener("change", e => setCloseOnly("M", e.target.checked));
 $("btnAddTp").addEventListener("click", () => { if(MODE === "test" && S.pos) addTP(+$("tpQty").value); });
 $("btnClearTp").addEventListener("click", () => { if(MODE === "test" && S.pos) clearTPs(); });
 $("btnSlAt").addEventListener("click", () => {
@@ -2241,7 +2302,7 @@ function runDemoTrades(){
   const run = ++demoRunId;
   const live = () => MODE==="demo" && run===demoRunId;
   const L1 = "Welcome. You are watching a real replay of the NQ futures market. The top chart shows 100-tick candles, the bottom one shows 1-minute candles.";
-  const L2 = "Our desk marks key price levels. When the price reaches one of them, you are authorized to trade. The direction is yours: you buy or you sell. In this demo you will see one of each.";
+  const L2 = "Our desk marks key price levels. When the price reaches one of them, you are authorized to trade. An authorization is not an order to enter immediately: it tells you the price is in a zone where you may trade, and you can take a minute or two to pick a good entry. The direction is yours: you buy or you sell. In this demo you will see one of each.";
   say(L1);
   afterSay(L1, ()=>{
     if(!live()) return;
@@ -2281,23 +2342,40 @@ function buildDemoScript(d){
   S.script = [
     { price: b.zoneTop, dir:"down", hold:true, run: ()=>{
         fireSignal({ t: S.marketMs, p: S.price, levelPrice: lvPrice(b.levelId) });
-        say("Authorization! The price has just reached a level marked by the desk, at " + lvPrice(b.levelId) + ". The lamp turns blue and a countdown starts: you have three minutes to act. The direction is your choice. Here the market is falling into the level, so we plan to buy the dip.");
+        say("Authorization! The price has just reached a level marked by the desk, at " + lvPrice(b.levelId) + ". The lamp turns blue and a countdown starts: you have three minutes to act. The direction is your choice. Here the market is falling into the level, so we plan to buy the dip. No need to click straight away: we wait for the price to dip a little below the level.");
     }},
     { price: b.entryPrice, dir:"down", hold:true, run: ()=>{
         openPos("BUY");
         say("We buy ten micro contracts at " + fmtP(pos().entry) + ". The stop loss is placed automatically, twenty points away: the red line. That is the maximum. You can bring it closer at any time, never further.");
     }},
     { afterPrevMs: 300, hold:true, run: ()=>{
+        S.pos.qtySel = b.tpQty; renderStopTp();
         addTP(b.tpQty);
-        say("Now a take profit. Choose the quantity, here five contracts, and click plus T P. It is placed twenty points away, the green line, and you can drag it anywhere on the chart.");
+        say("Now a take profit. Choose the quantity, here five contracts, and click plus T P. By default it is placed forty points away, twice the stop distance: the green line. You can drag it anywhere on the chart.");
     }},
     { cond: () => S.pos && S.pos.open === CONFIG.qty - b.tpQty, hold:true, run: ()=>{
         setSL(pos().entry);
         say("Five contracts are closed at our take profit. We move the stop up to our entry price: this trade can no longer lose.");
     }},
-    { price: b.closeAt, dir:"up", need:"pos", hold:true, run: ()=>{
+    { afterPrevMs: 300, need:"pos", hold:true, run: ()=>{
+        S.pos.qtySel = 2; renderStopTp();
+        closeQty(2);
+        say("You can also close only part of the position. Choose a quantity in Qty, here two, and click Close: two contracts are closed at the market price, the other three stay open. The same Qty is used when you add a take profit.");
+    }},
+    { afterPrevMs: 300, need:"pos", hold:true, run: ()=>{
         closePos(true);
-        say("We close the five remaining contracts by hand. Net result on this trade: " + usd() + ", costs included.");
+        say("We close the last three contracts by hand. Net result on this trade: " + usd() + ", costs included.");
+    }},
+    { afterPrevMs: 2500, run: ()=>{
+        setCloseOnly("M", true);
+        say("One more display option. Each chart has a Close-only candles box. We tick it on the 1-minute chart: the candle that is still forming is hidden, and the dashed blue line keeps following the price. The candle is drawn when the minute closes. Watch the right edge of the chart.");
+        S.coWait = null;
+        waitSpeechThen(() => { S.coWait = S.marketMs; });
+    }},
+    { cond: () => S.coWait != null && Math.floor((S.marketMs + S.nyOff) / 60000) > Math.floor((S.coWait + S.nyOff) / 60000)
+                   && (S.marketMs + S.nyOff) % 60000 >= 1500, hold:true, run: ()=>{
+        say("There: the minute has closed and its candle is drawn. Untick the box to go back to live candles. You can switch it on or off at any time, on either chart.");
+        waitSpeechThen(() => { if(MODE === "demo") setCloseOnly("M", false); });
     }},
     { afterPrevMs: 2500, run: ()=>{
         say("During your tests you will not wait between signals: press the flashing NEXT SIGNAL button to fast-forward the replay to a few seconds before the next authorization. Watch, we press it now.");
@@ -2311,15 +2389,15 @@ function buildDemoScript(d){
     }},
     { price: s.zoneBottom, dir:"up", hold:true, run: ()=>{
         fireSignal({ t: S.marketMs, p: S.price, levelPrice: lvPrice(s.levelId) });
-        say("New authorization: the price is pushing up into another level, at " + lvPrice(s.levelId) + ". This time we sell the push.");
+        say("New authorization: the price is pushing up into another level, at " + lvPrice(s.levelId) + ". This time we sell the push. Again, no rush: we wait for the price to push a little higher into the zone before selling.");
     }},
     { price: s.entryPrice, dir:"up", hold:true, run: ()=>{
         openPos("SELL");
         S.demoTp = addTP(CONFIG.qty);
-        say("We sell ten contracts at " + fmtP(pos().entry) + ", and add one take profit for all ten. It lands twenty points below our entry.");
+        say("We sell ten contracts at " + fmtP(pos().entry) + ", and add one take profit for all ten. It lands forty points below our entry, twice our stop.");
     }},
     { afterPrevMs: 200, hold:true, run: ()=>{
-        say("We leave it there, twenty points away: that is our standard target. You could drag the line closer or further at any time.");
+        say("We leave it there: by default, a take profit is twice the stop distance. You could drag the line closer or further at any time.");
     }},
     { cond: () => !S.pos && S.sigTaken, run: ()=>{
         say("Take profit reached: the ten contracts are closed. Net result: " + usd() + ". That is the whole job: wait for a level, choose your side, protect the trade with your stop, and take your profit.");
@@ -2397,13 +2475,13 @@ const TOUR = [
   { el:"boxTick",   title:"100-tick chart",
     text:"The fast view used for execution. Your position, stop loss and take profits are drawn here as lines: drag the red SL line or a green TP line with the mouse to move it. Double-click a TP line to remove it." },
   { el:"boxMin",    title:"1-minute chart",
-    text:"The same market in 1-minute candles, to keep the broader context in sight. The lines can be dragged here too." },
+    text:"The same market in 1-minute candles, to keep the broader context in sight. The lines can be dragged here too. Tick Close-only candles on either chart to draw each candle only once it has closed: a dashed line keeps showing the live price." },
   { el:"panel",     title:"Right-hand panel",
     text:"All your controls and information sit in this column. On smaller screens it does not fit entirely: scroll it with your mouse wheel or trackpad to reach every block (Performance, Actions, Stop / TP, Partner Trading, Next signal, trade log). A \"Scroll\" marker at the bottom tells you when more is below." },
   { el:"ptBox",     title:"Partner Trading",
     text:"The price levels that can trigger your next signal, nearest first. ARMED: ready to fire. WAIT: has fired, and fires again only after the price has moved away and come back. 1/3: times fired / maximum. TICKS: distance from the current price, in red when very close. ORB: high and low of the first 15 minutes." },
   { el:"signalBox", title:"Actions",
-    text:"When the price reaches a level: AUTHORIZED, with a countdown of 180 seconds. Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit 20 points away, or type a price and use SL @ / TP @. The stop starts at its maximum, 20 points: you can bring it closer, never further." },
+    text:"When the price reaches a level: AUTHORIZED, with a countdown of 180 seconds. Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit 40 points away (twice the stop), or type a price and use SL @ / TP @. The stop starts at its maximum, 20 points: you can bring it closer, never further. Close uses the same Qty: close the whole position or only part of it." },
   { el:"perfBox",   title:"Performance",
     text:"Your net result for the session, in dollars, costs included. The open position is counted at the current price." },
   { el:"log",       title:"Trade log",
@@ -2508,7 +2586,8 @@ function showBrief(){
      ${legLine}
      Entry window: <b>3 minutes</b> per signal. After that, the signal counts as missed.<br>
      Stop loss placed automatically at <b>${(CONFIG.maxSlTicks*0.25).toFixed(2)} points</b> (${CONFIG.maxSlTicks} ticks): you can bring it closer, never further.<br>
-     Take profits: choose a quantity, click <b>+TP</b> (placed ${CONFIG.tpDefaultPts} points away), then drag the line. Manual close available at any time.<br>
+     Take profits: choose a quantity, click <b>+TP</b> (placed ${CONFIG.tpDefaultPts} points away), then drag the line. <b>Close</b> closes the quantity selected in Qty: all of the position, or only part of it.<br>
+     Display option: tick <b>Close-only candles</b> on a chart to draw each candle only once it has closed.<br>
      Real trading costs are applied: 2 ticks of slippage when you enter and when you close manually, plus 1 tick of commission per contract. A stop or a take profit is executed at its own price. Results are shown in dollars, <b>net</b> of these costs.<br>
      "Next signal" fast-forwards the replay to just before the next authorization.<br>
      Pause is allowed between signals only.`;

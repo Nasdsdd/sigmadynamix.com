@@ -575,50 +575,64 @@ tailwind.config = {
 <div id="hiringModal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4"
      role="dialog" aria-modal="true" aria-labelledby="hiringTitle">
   <div id="hiringBackdrop" class="absolute inset-0 bg-void/80 backdrop-blur-sm"></div>
-  <div class="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-card border border-line bg-panel shadow-2xl">
+  <div class="hm-card relative max-h-[92vh] w-full max-w-[540px] overflow-y-auto rounded-card border border-strong bg-panel shadow-2xl">
+    <div class="hm-glow pointer-events-none absolute inset-x-0 top-0 h-40"></div>
     <button id="hiringClose" aria-label="Close"
-            class="absolute right-3 top-3 cursor-pointer rounded-ctl p-2 text-muted transition-colors duration-200 hover:bg-white/5 hover:text-fg">
+            class="absolute right-3 top-3 z-10 cursor-pointer rounded-ctl p-2 text-muted transition-colors duration-200 hover:bg-white/5 hover:text-fg">
       <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
-    <div class="p-8">
-      <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-link">Now hiring · Futures Operator</p>
-      <h2 id="hiringTitle" class="disp tight mt-4 text-[26px] font-semibold leading-tight">
-        We pay you to execute.<br>Not to be right.
+    <div class="relative p-6 sm:p-8">
+      <p class="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-link">
+        <span class="hm-dot"></span>Now hiring · Remote operators
+      </p>
+      <h2 id="hiringTitle" class="disp tight mt-4 text-[24px] font-semibold leading-[1.12] sm:text-[29px]">
+        30 minutes of live trading a day.<br><span class="text-link">A guaranteed income every month.</span>
       </h2>
-      <p class="mt-4 text-[15px] leading-relaxed text-muted">
-        Our systems find the trades. You execute them — one 30-minute session a
-        day, at the US open.
+      <p class="mt-3 text-[15px] leading-relaxed text-muted">
+        Trade our signals from home at the US open. We provide the capital, the tools and the coaching.
       </p>
 
-      <!-- Les trois arguments qui décident, en une ligne chacun -->
-      <dl class="mt-6 divide-y divide-line border-y border-line">
-        <div class="flex items-baseline justify-between gap-4 py-3">
-          <dt class="text-[13.5px] text-muted">Guaranteed minimum</dt>
-          <dd class="font-mono font-semibold text-fg">
-            <span class="text-[22px] leading-none">$2,000</span><span class="text-[15px] text-muted">/mo</span>
-            <span class="ml-1.5 text-[11px] font-normal text-muted">from month 3</span></dd>
+      <!-- Les quatre arguments, chacun dans une tuile -->
+      <div class="mt-6 grid grid-cols-2 gap-3">
+        <div class="hm-tile">
+          <p class="num text-[22px] sm:text-[28px] font-semibold leading-none text-fg">30<span class="text-[15px] text-muted"> min</span></p>
+          <p class="mt-2 text-[13.5px] font-medium text-fg">of live trading a day</p>
+          <p class="mt-1 text-[12px] leading-snug text-muted">One session at the US open, from home</p>
         </div>
-        <div class="flex items-baseline justify-between gap-4 py-3">
-          <dt class="text-[13.5px] text-muted">Profit split</dt>
-          <dd class="font-mono text-[15px] font-semibold text-fg">50%</dd>
+        <div class="hm-tile hm-tile-blue">
+          <p class="num text-[22px] sm:text-[28px] font-semibold leading-none text-fg">$2,000<span class="text-[15px] text-muted">/mo</span></p>
+          <p class="mt-2 text-[13.5px] font-medium text-fg">guaranteed minimum</p>
+          <p class="mt-1 text-[12px] leading-snug text-muted">From month 3 · $1,000 in month 2</p>
         </div>
-        <div class="flex items-baseline justify-between gap-4 py-3">
-          <dt class="text-[13.5px] text-muted">Fees to apply or trade</dt>
-          <dd class="font-mono text-[15px] font-semibold text-link">None</dd>
+        <div class="hm-tile hm-tile-green">
+          <p class="num text-[22px] sm:text-[28px] font-semibold leading-none text-green">$0</p>
+          <p class="mt-2 text-[13.5px] font-medium text-fg">you never pay anything</p>
+          <p class="mt-1 text-[12px] leading-snug text-muted">No fees, no deposit, no subscription, ever</p>
         </div>
-      </dl>
+        <div class="hm-tile">
+          <p class="num text-[22px] sm:text-[28px] font-semibold leading-none text-fg">50<span class="text-[15px] text-muted">%</span></p>
+          <p class="mt-2 text-[13.5px] font-medium text-fg">of the profits you make</p>
+          <p class="mt-1 text-[12px] leading-snug text-muted">Paid every month by bank transfer</p>
+        </div>
+      </div>
 
-      <p class="mt-5 text-[13.5px] leading-relaxed text-muted">
-        We hire on execution, not on paper. Selection is a live market
-        simulation — <span class="text-fg">no CV, no interview</span>. About
-        30 minutes, on desktop.
+      <div class="mt-3 flex items-start gap-3 rounded-ctl border border-line bg-white/[0.03] px-4 py-3">
+        <svg class="mt-0.5 h-5 w-5 flex-none text-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>
+        <p class="text-[13.5px] leading-relaxed text-muted"><span class="font-medium text-fg">You are never on your own.</span>
+          We train you, review your trades and coach you to perform.</p>
+      </div>
+
+      <p class="mt-5 text-[13px] leading-relaxed text-muted">
+        <span class="text-fg">No CV, no interview.</span> Get your link in one minute, then take a
+        30-minute live market simulation on your computer.
       </p>
 
-      <div class="mt-7 flex flex-wrap items-center gap-3">
+      <div class="mt-6 flex flex-wrap items-center gap-3">
         <a href="/assessment/"
-           class="inline-flex cursor-pointer items-center gap-2 rounded-ctl bg-blue px-5 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#1A72FF]">
-          Take the assessment
+           class="hm-cta inline-flex cursor-pointer items-center gap-2 rounded-ctl bg-blue px-5 py-3 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-[#1A72FF]">
+          Get my assessment link
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </a>
@@ -630,6 +644,22 @@ tailwind.config = {
     </div>
   </div>
 </div>
+
+<style>
+  /* ══ Fenêtre de recrutement v2 ══ */
+  .hm-card { box-shadow: 0 30px 80px -20px rgba(0,96,248,.35), 0 0 0 1px rgba(79,140,255,.08); }
+  .hm-glow { background: radial-gradient(60% 100% at 50% 0%, rgba(0,96,248,.22), rgba(0,96,248,0)); }
+  .hm-dot { width: 7px; height: 7px; border-radius: 50%; background: #3ECF8E; box-shadow: 0 0 0 0 rgba(62,207,142,.6);
+            animation: hmPulse 1.8s ease-out infinite; }
+  @keyframes hmPulse { 0% { box-shadow: 0 0 0 0 rgba(62,207,142,.55); } 100% { box-shadow: 0 0 0 9px rgba(62,207,142,0); } }
+  .hm-tile { border: 1px solid rgba(140,163,197,.14); background: rgba(8,12,23,.55); border-radius: 10px; padding: 12px; }
+  @media (min-width: 640px) { .hm-tile { padding: 14px; } }
+  .hm-tile-blue { border-color: rgba(79,140,255,.45); background: linear-gradient(180deg, rgba(0,96,248,.14), rgba(8,12,23,.55)); }
+  .hm-tile-green { border-color: rgba(62,207,142,.35); background: linear-gradient(180deg, rgba(62,207,142,.10), rgba(8,12,23,.55)); }
+  .hm-cta { box-shadow: 0 8px 24px -8px rgba(0,96,248,.7); }
+  #hiringModal.flex .hm-card { animation: hmIn .35s cubic-bezier(.2,.8,.2,1); }
+  @keyframes hmIn { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+</style>
 
 <script>
 /* ══ PÉRIODE DE RECRUTEMENT ═══════════════════════════════════════════

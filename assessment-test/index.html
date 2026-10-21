@@ -452,7 +452,7 @@
       This assessment is a live trading simulation. It needs a large screen and a mouse:
       you will be reading two price charts and placing orders under time pressure.
       <b>It cannot be completed on a phone or a small tablet.</b><br><br>
-      Please open this page again on a desktop or laptop computer:<br>
+      Please open the link from your email, or this page, on a desktop or laptop computer:<br>
       <b style="font-family:var(--mono)">sigmadynamix.com/assessment/</b><br><br>
       Nothing has been recorded — your application starts when you open it on a computer.
     </p>
@@ -500,9 +500,9 @@
 <!-- ===== STAGE 1 : APPLICATION FORM ===== -->
 <div class="stage hidden" id="stage1">
   <div class="card">
-    <h2>Application — Screening</h2>
-    <div class="warnbox">The full assessment has two parts: this <b>questionnaire</b>, then a <b>trading simulation</b>. It takes <b>around <span id="formDuration">30</span> minutes</b> in total. Please start only when you can complete it in one sitting, and do <b>not</b> refresh or close the page — this avoids any issue with your attempt.</div>
-    <p class="lead">Fill in your details, then answer the questions below.</p>
+    <h2>Get your assessment link</h2>
+    <div class="warnbox">Fill in this short form and we will <b>email you your personal link</b> to the trading simulation. The simulation takes <b>around <span id="formDuration">30</span> minutes</b>, in one sitting, on a <b>desktop or laptop computer</b>. If you are ready, you can also start it right away.</div>
+    <p class="lead">Your details, then a few quick questions.</p>
     <label for="fFirst">First name</label><input type="text" id="fFirst" autocomplete="given-name">
     <label for="fLast">Last name</label><input type="text" id="fLast" autocomplete="family-name">
     <label for="fEmail">Email</label><input type="email" id="fEmail" autocomplete="email">
@@ -513,7 +513,7 @@
     </select>
     <div id="questions"></div>
     <div class="err hidden" id="formErr"></div>
-    <button class="btn" id="btnSubmitForm">Submit application</button>
+    <button class="btn" id="btnSubmitForm">Send me the link</button>
   </div>
 </div>
 
@@ -536,6 +536,20 @@
     <p class="lead">We look at consistency across those sessions, not at a single good day.</p>
     <p class="lead"><b>Are you available for that?</b></p>
     <button class="btn" id="btnCommitYes">Yes, I am in</button>
+  </div>
+</div>
+
+<div class="stage hidden" id="stageLinkSent">
+  <div class="card">
+    <h2 id="lsTitle">Check your inbox</h2>
+    <p class="lead" id="lsLead"></p>
+    <div id="lsLinkBox" class="hidden" style="display:flex;gap:8px;margin:4px 0 16px">
+      <input id="lsLink" readonly style="flex:1;min-width:0;font-family:var(--mono);font-size:12px;padding:10px 12px;border-radius:10px;border:1px solid var(--strong);background:var(--panel2);color:var(--text)">
+      <button class="btn" id="btnCopyLink" style="width:auto;margin:0;padding:0 16px">Copy</button>
+    </div>
+    <div class="warnbox">The simulation takes <b>about 30 minutes</b>, in one sitting, on a <b>desktop or laptop computer</b>. Your answers are saved in your link. No email? Check your spam folder.</div>
+    <button class="btn" id="btnStartNow">Start now →</button>
+    <p class="lead hidden" id="lsMobile" style="margin-top:14px">You are on a phone: open the link from your email on a <b>desktop or laptop computer</b> when you are ready.</p>
   </div>
 </div>
 
@@ -830,26 +844,6 @@ const QUESTIONNAIRE = {
         { label: "Very comfortable: execution is a skill in itself", points: 3 },
         { label: "Comfortable, though I would sometimes want to add my view", points: 1 },
         { label: "I prefer trading my own analysis", points: 0 } ]},
-    { text: "When you want to BUY a market, which entry do you naturally prefer?",
-      options: [
-        { label: "Wait for a pullback and buy lower", points: 3 },
-        { label: "Buy the breakout / buy into strength", points: 0 },
-        { label: "It doesn't really matter to me", points: 0 } ]},
-    { text: "A position moves against you, but your stop loss has not been hit yet. What do you usually do?",
-      options: [
-        { label: "Let the stop do its job — it's there for a reason", points: 3 },
-        { label: "I often close early to cut the loss", points: 1 },
-        { label: "I sometimes widen the stop to give the trade room", points: 0 } ]},
-    { text: "Scenario: you have decided to sell, and the price starts accelerating downward before you enter. What do you do?",
-      options: [
-        { label: "Sell the breakdown immediately — don't miss the move", points: 0 },
-        { label: "Wait for a bullish pullback and sell at a higher price", points: 3 },
-        { label: "Stay flat and wait patiently for the next opportunity", points: 1 } ]},
-    { text: "Scenario: you just received authorization and the price is rising fast. What do you do?",
-      options: [
-        { label: "Buy immediately at market before it runs away", points: 0 },
-        { label: "Don't chase — wait for a better price, whichever side I take", points: 3 },
-        { label: "Skip the signal entirely", points: 1 } ]},
     { text: "Which operating system do you use?",
       note: "Our trading software runs on Windows only.",
       options: [
@@ -859,7 +853,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v19.2";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v20";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + " · TEST";
   const b = document.createElement("div");
@@ -1017,7 +1011,10 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   };
   const override = (()=>{ try{ return sessionStorage.getItem("sigma_desktop_ok") === "1"; }
                           catch(e){ return false; } })();
-  if(needsDesktop() && !override){
+  /* v20 : sur mobile, le formulaire reste accessible (on envoie le lien par mail) ;
+     seul un lien personnel ouvert sur mobile mène directement à l'écran « ordinateur requis ». */
+  IS_MOBILE = needsDesktop() && !override;
+  if(IS_MOBILE && RESUME){
     $("stage0").classList.add("hidden");
     $("stageDesktop").classList.remove("hidden");
     /* fenêtre simplement trop étroite sur un vrai ordinateur : on repart seul */
@@ -1093,11 +1090,48 @@ function applyWarnText(){
   if(h && w) w.src = h.src; else if(w) w.remove();
   const m = $("wMinutes"); if(m) m.textContent = CONFIG.estimatedMinutes;
 })();
+/* ---- v20 : lien personnel ?k=… (identité + réponses, encodées dans l'URL) ---- */
+let IS_MOBILE = false;
+function b64urlEncode(str){
+  const bytes = new TextEncoder().encode(str); let bin = "";
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlDecode(s){
+  const p = s.replace(/-/g, "+").replace(/_/g, "/"), bin = atob(p + "===".slice((p.length + 3) % 4));
+  return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)));
+}
+const RESUME = (()=>{
+  try{
+    const k = new URLSearchParams(location.search).get("k"); if(!k) return null;
+    const j = JSON.parse(b64urlDecode(k));
+    return (j && j.e && j.f) ? j : null;
+  }catch(e){ return null; }
+})();
+function applyResume(){
+  const j = RESUME; if(!j) return false;
+  candidate.first = j.f; candidate.last = j.l || ""; candidate.email = String(j.e).toLowerCase();
+  candidate.countryCode = j.cc || ""; candidate.country = j.cn || "";
+  candidate.answers = []; let score = 0, okShape = Array.isArray(j.a) && j.a.length === QUESTIONNAIRE.questions.length;
+  if(okShape) QUESTIONNAIRE.questions.forEach((q, qi) => {
+    const v = j.a[qi];
+    if(q.type === "years"){ candidate.answers.push({ q:q.text, answer:+v }); return; }
+    const opt = q.options[+v]; if(!opt){ okShape = false; return; }
+    score += opt.points; candidate.answers.push({ q:q.text, answer:opt.label, points:opt.points });
+  });
+  if(!okShape){ candidate.answers = []; score = null; }
+  candidate.score = score; candidate.resumed = true;
+  return true;
+}
 /* v16.1 : la vidéo d'introduction est supprimée — tout est dans la démo */
 $("btnVideoNext").addEventListener("click", ()=>{
   $("stageVideo").classList.add("hidden");
+  if(RESUME && applyResume()){                 // v20 : lien personnel, questionnaire déjà rempli
+    $("stageFaq").classList.remove("hidden"); window.scrollTo(0, 0); return;
+  }
   $("stage1").classList.remove("hidden");
 });
+if(RESUME) $("btnVideoNext").textContent = "Continue my application →";
 
 /* ================================================================
    STAGE 1 — Application form + one-attempt lock
@@ -1224,11 +1258,62 @@ $("btnSubmitForm").addEventListener("click", async ()=>{
     return;
   }
 
+  /* v20 : réponses non éliminatoires ; on envoie le lien personnel par mail,
+     puis le candidat choisit de commencer maintenant ou plus tard */
+  const idx = QUESTIONNAIRE.questions.map((q, qi) => q.type === "years"
+    ? +$("years"+qi).value : +document.querySelector(`input[name=q${qi}]:checked`).value);
+  await sendLink(idx);
+});
+
+async function sendLink(idx){
+  const btn = $("btnSubmitForm"), label = btn.textContent;
+  btn.disabled = true; btn.textContent = "Sending…";
+  const k = b64urlEncode(JSON.stringify({ v: idx.length, f: candidate.first, l: candidate.last,
+    e: candidate.email, cc: candidate.countryCode, cn: candidate.country, a: idx }));
+  const q = new URLSearchParams(location.search), t = (q.get("t") || q.get("token") || "").trim();
+  const link = location.origin + location.pathname + "?k=" + k + (t ? "&t=" + encodeURIComponent(t) : "");
+  let sent = false;
+  if(CONFIG.env === "PRODUCTION"){
+    try{
+      const { status, data } = await callBackend("send-link", {
+        name: `${candidate.first} ${candidate.last}`, first: candidate.first, email: candidate.email,
+        country: candidate.country, score: candidate.score, answers: candidate.answers, link }, 15000);
+      sent = status === 200 && !!(data && data.ok);
+    }catch(e){}
+    /* copie de secours du contact, même si l'envoi du mail échoue */
+    try{
+      fetch("https://formsubmit.co/ajax/" + CONFIG.reportEmail, { method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ _subject: `New lead — ${candidate.first} ${candidate.last} (${candidate.country || "?"})`,
+          _template: "box", candidate: `${candidate.first} ${candidate.last} <${candidate.email}>`,
+          country: candidate.country, screening_score: candidate.score, link_email_sent: sent ? "yes" : "NO",
+          link, answers: candidate.answers.map(a => `${a.q} => ${a.answer}`).join(" || ") }) }).catch(()=>{});
+    }catch(e){}
+  }
+  btn.disabled = false; btn.textContent = label;
   $("stage1").classList.add("hidden");
-  /* réponses non éliminatoires : tout le monde passe à la suite ;
-     le score sert au classement côté Sigma Dynamix */
+  $("lsTitle").textContent = sent ? "Check your inbox" : "Your assessment link";
+  $("lsLead").innerHTML = sent
+    ? `We have sent your personal assessment link to <b>${candidate.email.replace(/</g, "&lt;")}</b>.`
+    : (CONFIG.env === "PRODUCTION"
+        ? "We could not send the email right now. Keep this link to come back later:"
+        : "TEST PLATFORM: no email is sent. Your personal link:");
+  $("lsLinkBox").classList.toggle("hidden", sent);
+  $("lsLink").value = link;
+  $("btnStartNow").classList.toggle("hidden", IS_MOBILE);
+  $("lsMobile").classList.toggle("hidden", !IS_MOBILE);
+  $("stageLinkSent").classList.remove("hidden");
+  window.scrollTo(0, 0);
+}
+$("btnStartNow").addEventListener("click", ()=>{
+  $("stageLinkSent").classList.add("hidden");
   $("stageFaq").classList.remove("hidden");
-  window.scrollTo(0, 0);        // la FAQ s'ouvre en haut, pas au bas du questionnaire
+  window.scrollTo(0, 0);        // la FAQ s'ouvre en haut
+});
+$("btnCopyLink").addEventListener("click", ()=>{
+  const i = $("lsLink"); i.select();
+  try{ navigator.clipboard.writeText(i.value); }catch(e){ try{ document.execCommand("copy"); }catch(_){} }
+  $("btnCopyLink").textContent = "Copied";
 });
 
 /* ================================================================

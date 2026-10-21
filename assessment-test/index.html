@@ -547,7 +547,7 @@
       <input id="lsLink" readonly style="flex:1;min-width:0;font-family:var(--mono);font-size:12px;padding:10px 12px;border-radius:10px;border:1px solid var(--strong);background:var(--panel2);color:var(--text)">
       <button class="btn" id="btnCopyLink" style="width:auto;margin:0;padding:0 16px">Copy</button>
     </div>
-    <div class="warnbox">The simulation takes <b>about 30 minutes</b>, in one sitting, on a <b>desktop or laptop computer</b>. When you come back, use the same email address. No email? Check your spam folder.</div>
+    <div class="warnbox">The simulation takes <b>about 30 minutes</b>, in one sitting, on a <b>desktop or laptop computer</b>. Your answers are saved in the link. No email? Check your spam folder.</div>
     <button class="btn hidden" id="btnStartNow">Start now →</button>
     <p class="lead" id="lsMobile" style="margin-top:14px">Open the link from your email on a <b>desktop or laptop computer</b> when you are ready.</p>
   </div>
@@ -853,7 +853,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v20.2";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v20.3";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + " · TEST";
   const b = document.createElement("div");
@@ -1036,6 +1036,8 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   const fd = $("formDuration");
   if(fd) fd.textContent = CONFIG.estimatedMinutes;
   $("stage0").classList.add("hidden");
+  /* v20.3 : lien personnel reçu par mail → directement la FAQ (questionnaire déjà rempli) */
+  if(RESUME && applyResume()){ $("stageFaq").classList.remove("hidden"); return; }
   $("stageVideo").classList.remove("hidden");
 });
 
@@ -1266,48 +1268,47 @@ $("btnSubmitForm").addEventListener("click", async ()=>{
 });
 
 async function sendLink(idx){
-  /* v20.2 : lien commun (sigmadynamix.com/assessment/). Le serveur reconnaît une adresse
-     qui a déjà reçu le mail (known) : le candidat passe alors directement à la suite. */
-  const btn = $("btnSubmitForm"), label = btn.textContent;
-  btn.disabled = true; btn.textContent = "Sending…";
-  const link = "https://sigmadynamix.com/assessment/";
-  let res = "failed";                                   // sent | known | failed
+  /* v20.3 : le lien personnel (?k=…) part UNIQUEMENT par mail ; en l'ouvrant, le candidat
+     arrive directement sur la FAQ puis la démo et le test. Sans mail envoyé, il reste sur le formulaire. */
+  const btn = $("btnSubmitForm"), label = btn.textContent, err = $("formErr");
+  btn.disabled = true; btn.textContent = "Sending…"; err.classList.add("hidden");
+  const k = b64urlEncode(JSON.stringify({ v: idx.length, f: candidate.first, l: candidate.last,
+    e: candidate.email, cc: candidate.countryCode, cn: candidate.country, a: idx }));
+  const q = new URLSearchParams(location.search), t = (q.get("t") || q.get("token") || "").trim();
+  const base = CONFIG.env === "PRODUCTION" ? "https://sigmadynamix.com/assessment/" : location.origin + location.pathname;
+  const link = base + "?k=" + k + (t ? "&t=" + encodeURIComponent(t) : "");
+  let res = "failed";                                   // sent | failed
   if(CONFIG.env === "PRODUCTION"){
     try{
       const { status, data } = await callBackend("send-link", {
         name: `${candidate.first} ${candidate.last}`, first: candidate.first, email: candidate.email,
-        country: candidate.country, score: candidate.score, answers: candidate.answers }, 15000);
-      if(status === 200 && data && data.ok) res = data.known ? "known" : "sent";
+        country: candidate.country, score: candidate.score, answers: candidate.answers, link }, 15000);
+      if(status === 200 && data && data.ok) res = "sent";
     }catch(e){}
-    /* copie de secours du contact (pas pour un candidat qui revient) */
-    if(res !== "known") try{
+    /* copie du contact à support@, même si le mail n'a pas pu partir */
+    try{
       fetch("https://formsubmit.co/ajax/" + CONFIG.reportEmail, { method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({ _subject: `New lead — ${candidate.first} ${candidate.last} (${candidate.country || "?"})`,
           _template: "box", candidate: `${candidate.first} ${candidate.last} <${candidate.email}>`,
           country: candidate.country, screening_score: candidate.score, link_email_sent: res === "sent" ? "yes" : "NO",
-          answers: candidate.answers.map(a => `${a.q} => ${a.answer}`).join(" || ") }) }).catch(()=>{});
+          link, answers: candidate.answers.map(a => `${a.q} => ${a.answer}`).join(" || ") }) }).catch(()=>{});
     }catch(e){}
-  } else {
-    /* version de test : ?sim=sent montre l'écran « Check your inbox », sinon on passe à la suite */
-    res = new URLSearchParams(location.search).get("sim") === "sent" ? "sent" : "known";
-  }
+  } else res = "test";
   btn.disabled = false; btn.textContent = label;
-  $("stage1").classList.add("hidden");
-  const goOn = () => { $("stageFaq").classList.remove("hidden"); window.scrollTo(0, 0); };
-  if(!IS_MOBILE && res !== "sent"){ goOn(); return; }   // revient, ou mail impossible : on ne perd pas le candidat
-  const mail = candidate.email.replace(/</g, "&lt;");
-  $("lsLinkBox").classList.add("hidden");
-  $("btnStartNow").classList.add("hidden");
-  if(res === "sent"){
-    $("lsTitle").textContent = "Check your inbox";
-    $("lsLead").innerHTML = `We have sent the assessment link to <b>${mail}</b>.`;
-    $("lsMobile").innerHTML = "Open it on a <b>desktop or laptop computer</b> and enter the same email address: you will go straight to the simulation.";
-  } else {
-    $("lsTitle").textContent = "Continue on a computer";
-    $("lsLead").innerHTML = "The simulation needs a desktop or laptop computer.";
-    $("lsMobile").innerHTML = `Open <b>sigmadynamix.com/assessment/</b> on your computer and enter the same email address (<b>${mail}</b>).`;
+  if(res === "failed"){
+    err.textContent = "We could not send the email right now. Please try again in a few minutes.";
+    err.classList.remove("hidden"); return;
   }
+  $("stage1").classList.add("hidden");
+  $("btnStartNow").classList.add("hidden");
+  $("lsTitle").textContent = "Check your inbox";
+  $("lsLead").innerHTML = res === "sent"
+    ? `We have sent your assessment link to <b>${candidate.email.replace(/</g, "&lt;")}</b>.`
+    : "TEST PLATFORM: no email is sent. The link the candidate would receive:";
+  $("lsLinkBox").classList.toggle("hidden", res !== "test");   // le lien ne s'affiche qu'en version de test
+  $("lsLink").value = link;
+  $("lsMobile").innerHTML = "Open the link from your email on a <b>desktop or laptop computer</b> when you are ready.";
   $("stageLinkSent").classList.remove("hidden");
   window.scrollTo(0, 0);
 }

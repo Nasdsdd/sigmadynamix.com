@@ -569,106 +569,164 @@ tailwind.config = {
 
 
 <!-- ══ FENÊTRE DE RECRUTEMENT ══════════════════════════════════════════
-     Affichée à l'ouverture pendant une campagne. Refermable, et le refus
-     est mémorisé pour la session : le visiteur ne la revoit pas à chaque
-     page. Placée en fin de body pour ne pas retarder l'affichage.      -->
-<div id="hiringModal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4"
-     role="dialog" aria-modal="true" aria-labelledby="hiringTitle">
-  <div id="hiringBackdrop" class="absolute inset-0 bg-void/80 backdrop-blur-sm"></div>
-  <div class="hm-card relative max-h-[92vh] w-full max-w-[540px] overflow-y-auto rounded-card border border-strong bg-panel shadow-2xl">
-    <div class="hm-glow pointer-events-none absolute inset-x-0 top-0 h-40"></div>
-    <button id="hiringClose" aria-label="Close"
-            class="absolute right-3 top-3 z-10 cursor-pointer rounded-ctl p-2 text-muted transition-colors duration-200 hover:bg-white/5 hover:text-fg">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-    </button>
-    <div class="relative p-6 sm:p-8">
-      <p class="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-link">
-        <span class="hm-dot"></span>Now hiring · Remote operators
-      </p>
-      <h2 id="hiringTitle" class="disp tight mt-4 text-[24px] font-semibold leading-[1.12] sm:text-[29px]">
-        30 minutes of live trading a day.<br><span class="text-link">A guaranteed income every month.</span>
-      </h2>
-      <p class="mt-3 text-[15px] leading-relaxed text-muted">
-        Trade our signals from home at the US open. We provide the capital, the tools and the coaching.
-      </p>
+     Affichée pendant une campagne, après 5 s ou à 30 % de défilement.
+     Refus mémorisé 14 jours (localStorage). Placée en fin de body pour
+     ne pas retarder l'affichage.                                       -->
+<div class="sdp-root" id="sdpRoot" role="dialog" aria-modal="true" aria-labelledby="sdpTitle" hidden>
+  <div class="sdp-scrim" data-sdp-close></div>
 
-      <!-- Les quatre arguments, chacun dans une tuile -->
-      <div class="mt-6 grid grid-cols-2 gap-3">
-        <div class="hm-tile">
-          <p class="num text-[22px] sm:text-[28px] font-semibold leading-none text-fg">30<span class="text-[15px] text-muted"> min</span></p>
-          <p class="mt-2 text-[13.5px] font-medium text-fg">of live trading a day</p>
-          <p class="mt-1 text-[12px] leading-snug text-muted">One session at the US open, from home</p>
+  <div class="sdp-modal" tabindex="-1">
+    <svg class="sdp-arc" viewBox="0 0 420 300" fill="none" aria-hidden="true">
+      <path d="M470 -40C330 40 250 120 250 300" stroke="url(#sdpG)" stroke-width="1.5"/>
+      <path d="M520 -20C360 70 290 160 290 320" stroke="url(#sdpG)" stroke-width="1.5"/>
+      <path d="M560 10C390 110 330 200 330 340" stroke="url(#sdpG)" stroke-width="1.5"/>
+      <defs><linearGradient id="sdpG" x1="300" y1="0" x2="300" y2="320" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#4F8CFF" stop-opacity=".55"/><stop offset="1" stop-color="#4F8CFF" stop-opacity="0"/>
+      </linearGradient></defs>
+    </svg>
+
+    <button class="sdp-x" type="button" aria-label="Close" data-sdp-close>&#10005;</button>
+
+    <div class="sdp-body">
+      <p class="sdp-eb">Now recruiting<span class="sdp-ebx"> <span class="sdp-sep">·</span> Remote operators</span></p>
+
+      <h2 class="sdp-h2" id="sdpTitle">30 minutes of live trading a day.<br><em>Your time. Our capital.</em></h2>
+
+      <p class="sdp-lead">Trade our Nasdaq signals from home at the US open. We provide the capital,
+        the tools and the coaching, and you keep <b>50% of the profits</b>.</p>
+
+      <div class="sdp-months">
+        <div class="sdp-m">
+          <p class="sdp-sm">Month 1</p>
+          <p class="sdp-sv">50%</p>
+          <p class="sdp-ss">Profit split<br>No minimum</p>
         </div>
-        <div class="hm-tile hm-tile-blue">
-          <p class="num text-[22px] sm:text-[28px] font-semibold leading-none text-fg">$2,000<span class="text-[15px] text-muted">/mo</span></p>
-          <p class="mt-2 text-[13.5px] font-medium text-fg">guaranteed minimum</p>
-          <p class="mt-1 text-[12px] leading-snug text-muted">From month 3 · $1,000 in month 2</p>
+        <div class="sdp-m">
+          <p class="sdp-sm">Month 2</p>
+          <p class="sdp-sv">$1,000<span>/mo</span></p>
+          <p class="sdp-ss">Guaranteed<br>minimum</p>
         </div>
-        <div class="hm-tile hm-tile-green">
-          <p class="num text-[22px] sm:text-[28px] font-semibold leading-none text-green">$0</p>
-          <p class="mt-2 text-[13.5px] font-medium text-fg">you never pay anything</p>
-          <p class="mt-1 text-[12px] leading-snug text-muted">No fees, no deposit, no subscription, ever</p>
-        </div>
-        <div class="hm-tile">
-          <p class="num text-[22px] sm:text-[28px] font-semibold leading-none text-fg">50<span class="text-[15px] text-muted">%</span></p>
-          <p class="mt-2 text-[13.5px] font-medium text-fg">of the profits you make</p>
-          <p class="mt-1 text-[12px] leading-snug text-muted">Paid every month by bank transfer</p>
+        <div class="sdp-m sdp-m-hl">
+          <p class="sdp-sm">Month 3+</p>
+          <p class="sdp-sv">$2,000<span>/mo</span></p>
+          <p class="sdp-ss">Guaranteed<br>minimum</p>
         </div>
       </div>
 
-      <div class="mt-3 flex items-start gap-3 rounded-ctl border border-line bg-white/[0.03] px-4 py-3">
-        <svg class="mt-0.5 h-5 w-5 flex-none text-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>
-        <p class="text-[13.5px] leading-relaxed text-muted"><span class="font-medium text-fg">You are never on your own.</span>
-          We train you, review your trades and coach you to perform.</p>
+      <div class="sdp-free">
+        <div>
+          <p class="sdp-ft">You never pay anything</p>
+          <p class="sdp-fs">No fees, no deposit, no subscription, ever.</p>
+        </div>
+        <p class="sdp-f0">$0</p>
       </div>
 
-      <p class="mt-5 text-[13px] leading-relaxed text-muted">
-        <span class="text-fg">No CV, no interview.</span> Get your link in one minute, then take a
-        30-minute live market simulation on your computer.
-      </p>
+      <div class="sdp-coach">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-4 9 4-9 4-9-4z"/><path d="M7 11.5V16c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5"/></svg>
+        <p><b>You are never on your own.</b> We train you, review your trades and coach you to perform.</p>
+      </div>
+    </div>
 
-      <div class="mt-6 flex flex-wrap items-center gap-3">
-        <a href="/assessment/"
-           class="hm-cta inline-flex cursor-pointer items-center gap-2 rounded-ctl bg-blue px-5 py-3 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-[#1A72FF]">
-          Get my assessment link
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-        <button id="hiringLater"
-                class="cursor-pointer rounded-ctl border border-strong px-5 py-3 text-sm font-medium text-muted transition-colors duration-200 hover:border-blue hover:text-fg">
-          Maybe later
-        </button>
+    <div class="sdp-foot">
+      <p class="sdp-fine"><b>No CV, no interview.</b> A few questions, about 2 minutes, then we email
+        your assessment link and how the process works.</p>
+      <div class="sdp-ctas">
+        <a class="sdp-btn" id="sdpCta" href="/assessment/">Start &rarr;</a>
+        <button class="sdp-ghost" type="button" data-sdp-close>Maybe later</button>
       </div>
     </div>
   </div>
 </div>
 
 <style>
-  /* ══ Fenêtre de recrutement v2 ══ */
-  .hm-card { box-shadow: 0 30px 80px -20px rgba(0,96,248,.35), 0 0 0 1px rgba(79,140,255,.08); }
-  .hm-glow { background: radial-gradient(60% 100% at 50% 0%, rgba(0,96,248,.22), rgba(0,96,248,0)); }
-  .hm-dot { width: 7px; height: 7px; border-radius: 50%; background: #3ECF8E; box-shadow: 0 0 0 0 rgba(62,207,142,.6);
-            animation: hmPulse 1.8s ease-out infinite; }
-  @keyframes hmPulse { 0% { box-shadow: 0 0 0 0 rgba(62,207,142,.55); } 100% { box-shadow: 0 0 0 9px rgba(62,207,142,0); } }
-  .hm-tile { border: 1px solid rgba(140,163,197,.14); background: rgba(8,12,23,.55); border-radius: 10px; padding: 12px; }
-  @media (min-width: 640px) { .hm-tile { padding: 14px; } }
-  .hm-tile-blue { border-color: rgba(79,140,255,.45); background: linear-gradient(180deg, rgba(0,96,248,.14), rgba(8,12,23,.55)); }
-  .hm-tile-green { border-color: rgba(62,207,142,.35); background: linear-gradient(180deg, rgba(62,207,142,.10), rgba(8,12,23,.55)); }
-  .hm-cta { box-shadow: 0 8px 24px -8px rgba(0,96,248,.7); }
-  #hiringModal.flex .hm-card { animation: hmIn .35s cubic-bezier(.2,.8,.2,1); }
-  @keyframes hmIn { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+.sdp-root{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:16px}
+.sdp-root[hidden]{display:none}
+.sdp-scrim{position:absolute;inset:0;background:rgba(8,12,23,.82);backdrop-filter:blur(6px)}
+.sdp-modal{position:relative;width:100%;max-width:660px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(480px 300px at 86% -10%,rgba(0,96,248,.18),transparent 70%),linear-gradient(180deg,#0C1526,#0A111F);
+  border:1px solid rgba(79,140,255,.30);border-radius:20px;
+  box-shadow:0 40px 120px rgba(0,0,0,.62),0 0 90px rgba(0,96,248,.12);
+  animation:sdpIn .28s cubic-bezier(.2,.8,.2,1) both}
+.sdp-modal:focus{outline:none}
+@keyframes sdpIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.sdp-modal{animation:none}}
+.sdp-arc{position:absolute;right:0;top:0;width:340px;height:240px;pointer-events:none;opacity:.7}
+.sdp-x{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:9px;cursor:pointer;z-index:2;
+  border:1px solid rgba(140,163,197,.26);background:rgba(8,12,23,.4);color:#93A2BD;font-size:13px;line-height:1}
+.sdp-x:hover{color:#E9EEF8;border-color:rgba(140,163,197,.55)}
+
+.sdp-body{position:relative;padding:30px 34px 10px;overflow-y:auto}
+.sdp-eb{display:flex;align-items:center;gap:9px;margin:0;font-family:'IBM Plex Mono',ui-monospace,monospace;
+  font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:#4F8CFF}
+.sdp-eb::before{content:"";width:8px;height:8px;border-radius:50%;background:#3ECF8E;box-shadow:0 0 10px #3ECF8E}
+.sdp-sep{opacity:.5}
+.sdp-h2{font-family:'Space Grotesk','Segoe UI',sans-serif;font-weight:600;letter-spacing:-.03em;line-height:1.08;
+  font-size:34px;color:#E9EEF8;margin:16px 0 0}
+.sdp-h2 em{font-style:normal;color:#2B7BFF}
+.sdp-lead{font-size:16px;line-height:1.55;color:#93A2BD;margin:16px 0 0}
+.sdp-lead b{color:#E9EEF8;font-weight:600}
+
+.sdp-months{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.sdp-m{border:1px solid rgba(140,163,197,.17);border-radius:14px;padding:16px 16px 18px;background:rgba(10,17,31,.62)}
+.sdp-m-hl{border-color:rgba(0,96,248,.5);box-shadow:0 0 34px rgba(0,96,248,.12)}
+.sdp-sm{margin:0;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:#4F8CFF}
+.sdp-sv{margin:12px 0 0;font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:500;font-size:25px;
+  color:#E9EEF8;white-space:nowrap}
+.sdp-sv span{font-family:Inter,system-ui,sans-serif;font-weight:400;font-size:12.5px;color:#7F8CA6;margin-left:3px}
+.sdp-ss{margin:8px 0 0;font-size:12.5px;line-height:1.4;color:#7F8CA6}
+
+.sdp-free{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:12px;
+  border:1px solid rgba(79,217,168,.42);border-radius:14px;padding:16px 20px;
+  background:linear-gradient(180deg,rgba(79,217,168,.09),rgba(10,17,31,.62))}
+.sdp-ft{margin:0;font-family:'Space Grotesk','Segoe UI',sans-serif;font-weight:600;font-size:16px;color:#E9EEF8}
+.sdp-fs{margin:4px 0 0;font-size:12.5px;color:#7F8CA6}
+.sdp-f0{margin:0;font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:500;font-size:38px;color:#4FD9A8;line-height:1}
+
+.sdp-coach{display:flex;gap:12px;align-items:flex-start;margin-top:12px;
+  border:1px solid rgba(140,163,197,.17);border-radius:14px;padding:14px 16px;background:rgba(10,17,31,.62)}
+.sdp-coach svg{width:21px;height:21px;color:#4F8CFF;flex:none;margin-top:2px}
+.sdp-coach p{margin:0;font-size:14.5px;line-height:1.5;color:#93A2BD}
+.sdp-coach b{color:#E9EEF8;font-weight:600}
+
+.sdp-foot{flex:none;padding:18px 34px 24px;border-top:1px solid rgba(140,163,197,.14);background:rgba(8,12,23,.45)}
+.sdp-fine{font-size:12.5px;color:#6E7B93;margin:0;line-height:1.5}
+.sdp-fine b{color:#93A2BD;font-weight:500}
+.sdp-ctas{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-top:14px}
+.sdp-btn{display:block;text-align:center;background:#0060F8;color:#fff;font-weight:600;font-size:17px;
+  padding:15px;border-radius:12px;text-decoration:none;box-shadow:0 10px 28px rgba(0,96,248,.3)}
+.sdp-btn:hover{background:#0052d6}
+.sdp-ghost{display:block;text-align:center;border:1px solid rgba(140,163,197,.26);background:transparent;
+  color:#93A2BD;font-size:15px;padding:15px;border-radius:12px;cursor:pointer;font-family:inherit}
+.sdp-ghost:hover{color:#E9EEF8;border-color:rgba(140,163,197,.5)}
+
+@media (max-width:620px){
+  .sdp-body{padding:26px 20px 8px}
+  .sdp-foot{padding:16px 20px 20px}
+  .sdp-arc{width:230px;height:170px;opacity:.6}
+  .sdp-ebx{display:none}
+  .sdp-eb{font-size:11px;letter-spacing:.16em}
+  .sdp-h2{font-size:27px;margin-top:14px}
+  .sdp-lead{font-size:15px;margin-top:14px}
+  .sdp-months{grid-template-columns:1fr;gap:8px;margin-top:18px}
+  .sdp-m{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}
+  .sdp-sm{font-size:10px;white-space:nowrap}
+  .sdp-sv{margin:0;font-size:21px}
+  .sdp-sv span{font-size:11px}
+  .sdp-ss{margin:0;font-size:11.5px;text-align:right}
+  .sdp-f0{font-size:32px}
+  .sdp-coach p{font-size:13.5px}
+  .sdp-ctas{grid-template-columns:1fr;gap:9px}
+}
 </style>
 
 <script>
 /* ══ PÉRIODE DE RECRUTEMENT ═══════════════════════════════════════════
    Mettre à true pendant une campagne, false le reste du temps.
-   true  → fenêtre affichée à l'ouverture, bouton de nav vers l'assessment
+   true  → fenêtre d'intake affichée, bouton de nav vers l'assessment
    false → pas de fenêtre, badge « Closed », bouton Careers en mailto
    Une seule ligne à changer pour ouvrir ou fermer la campagne.       */
 const HIRING_OPEN = true;
-const HIRING_DELAY_MS = 1200;      // laisse la page s'afficher avant d'ouvrir
 const HIRING_CONTACT = "support@sigmadynamix.com";
 
 /* ── Recrutement fermé : la carte Careers reste visible mais renvoie
@@ -697,38 +755,79 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 });
 
+/* ── Recrutement ouvert : le bouton de navigation mène au test. ───── */
 document.addEventListener("DOMContentLoaded", function(){
   if(!HIRING_OPEN) return;
-
   var cta = document.getElementById("navCta");
   if(cta){ cta.href = "/assessment/"; cta.textContent = "Take the assessment"; }
-
-  /* Aucune mémorisation : la fenêtre se réaffiche à chaque chargement de
-     page, y compris après une simple actualisation. Choix assumé pendant
-     une campagne de recrutement. */
-
-  var modal = document.getElementById("hiringModal");
-  if(!modal) return;
-
-  function open(){
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-    document.body.style.overflow = "hidden";
-  }
-  function close(){
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-    document.body.style.overflow = "";
-  }
-
-  setTimeout(open, HIRING_DELAY_MS);
-  document.getElementById("hiringClose").addEventListener("click", close);
-  document.getElementById("hiringLater").addEventListener("click", close);
-  document.getElementById("hiringBackdrop").addEventListener("click", close);
-  document.addEventListener("keydown", function(e){
-    if(e.key === "Escape" && !modal.classList.contains("hidden")) close();
-  });
 });
+
+/* ── Fenêtre d'intake ─────────────────────────────────────────────── */
+(function () {
+  if (!HIRING_OPEN) return;
+
+  var SDP_CONFIG = {
+    assessmentUrl: "/assessment/",
+    delayMs: 5000,              // affichée après 5 s …
+    scrollPct: 0.30,            // … ou à 30 % de défilement, au premier des deux
+    storageKey: "sdp_intake_v2",
+    hideForDays: 14             // refus mémorisé pendant 14 jours
+  };
+
+  var root = document.getElementById("sdpRoot");
+  if (!root) return;
+  document.getElementById("sdpCta").setAttribute("href", SDP_CONFIG.assessmentUrl);
+
+  function seen() {
+    try {
+      var v = localStorage.getItem(SDP_CONFIG.storageKey);
+      return v && Date.now() - Number(v) < SDP_CONFIG.hideForDays * 864e5;
+    } catch (e) { return false; }
+  }
+  function remember() {
+    try { localStorage.setItem(SDP_CONFIG.storageKey, String(Date.now())); } catch (e) {}
+  }
+
+  var opened = false, lastFocus = null;
+  function open() {
+    if (opened || seen()) return;
+    opened = true;
+    lastFocus = document.activeElement;
+    root.hidden = false;
+    document.body.style.overflow = "hidden";
+    (root.querySelector(".sdp-modal") || root).focus({ preventScroll: true });
+  }
+  function close() {
+    if (!opened) return;
+    opened = false;
+    root.hidden = true;
+    document.body.style.overflow = "";
+    remember();
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  if (!seen()) {
+    var timer = setTimeout(open, SDP_CONFIG.delayMs);
+    window.addEventListener("scroll", function () {
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      if (h > 0 && window.scrollY / h >= SDP_CONFIG.scrollPct) { clearTimeout(timer); open(); }
+    }, { passive: true });
+  }
+
+  root.addEventListener("click", function (e) {
+    if (e.target.closest("[data-sdp-close]")) { e.preventDefault(); close(); }
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+
+  /* tout élément data-sdp-open la rouvre (un lien de nav, par exemple) */
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("[data-sdp-open]")) {
+      e.preventDefault();
+      try { localStorage.removeItem(SDP_CONFIG.storageKey); } catch (err) {}
+      opened = false; open();
+    }
+  });
+})();
 </script>
 
 </body>

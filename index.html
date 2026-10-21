@@ -771,7 +771,7 @@ document.addEventListener("DOMContentLoaded", function(){
     delayMs: 600,               // affichée après 0,6 s …
     scrollPct: 0.30,            // … ou à 30 % de défilement, au premier des deux
     storageKey: "sdp_intake_v2",
-    hideForDays: 0              // 0 = réaffichée à chaque chargement ; n = masquée n jours après un refus
+    hideForDays: 0              // 0 = refus valable pour la visite en cours ; n = masquée n jours
   };
 
   var root = document.getElementById("sdpRoot");
@@ -780,17 +780,23 @@ document.addEventListener("DOMContentLoaded", function(){
 
   function seen() {
     try {
-      var v = localStorage.getItem(SDP_CONFIG.storageKey);
-      return v && Date.now() - Number(v) < SDP_CONFIG.hideForDays * 864e5;
+      if (SDP_CONFIG.hideForDays > 0) {
+        var v = localStorage.getItem(SDP_CONFIG.storageKey);
+        return !!v && Date.now() - Number(v) < SDP_CONFIG.hideForDays * 864e5;
+      }
+      return sessionStorage.getItem(SDP_CONFIG.storageKey) === "1";
     } catch (e) { return false; }
   }
   function remember() {
-    try { localStorage.setItem(SDP_CONFIG.storageKey, String(Date.now())); } catch (e) {}
+    try {
+      if (SDP_CONFIG.hideForDays > 0) localStorage.setItem(SDP_CONFIG.storageKey, String(Date.now()));
+      else sessionStorage.setItem(SDP_CONFIG.storageKey, "1");
+    } catch (e) {}
   }
 
-  var opened = false, lastFocus = null;
+  var opened = false, dismissed = false, lastFocus = null;
   function open() {
-    if (opened || seen()) return;
+    if (opened || dismissed || seen()) return;
     opened = true;
     lastFocus = document.activeElement;
     root.hidden = false;
@@ -800,18 +806,22 @@ document.addEventListener("DOMContentLoaded", function(){
   function close() {
     if (!opened) return;
     opened = false;
+    dismissed = true;
+    window.removeEventListener("scroll", onScroll);
     root.hidden = true;
     document.body.style.overflow = "";
     remember();
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
+  var timer = null;
+  function onScroll() {
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    if (h > 0 && window.scrollY / h >= SDP_CONFIG.scrollPct) { clearTimeout(timer); open(); }
+  }
   if (!seen()) {
-    var timer = setTimeout(open, SDP_CONFIG.delayMs);
-    window.addEventListener("scroll", function () {
-      var h = document.documentElement.scrollHeight - window.innerHeight;
-      if (h > 0 && window.scrollY / h >= SDP_CONFIG.scrollPct) { clearTimeout(timer); open(); }
-    }, { passive: true });
+    timer = setTimeout(open, SDP_CONFIG.delayMs);
+    window.addEventListener("scroll", onScroll, { passive: true });
   }
 
   root.addEventListener("click", function (e) {
@@ -823,8 +833,11 @@ document.addEventListener("DOMContentLoaded", function(){
   document.addEventListener("click", function (e) {
     if (e.target.closest("[data-sdp-open]")) {
       e.preventDefault();
-      try { localStorage.removeItem(SDP_CONFIG.storageKey); } catch (err) {}
-      opened = false; open();
+      try {
+        localStorage.removeItem(SDP_CONFIG.storageKey);
+        sessionStorage.removeItem(SDP_CONFIG.storageKey);
+      } catch (err) {}
+      opened = false; dismissed = false; open();
     }
   });
 })();

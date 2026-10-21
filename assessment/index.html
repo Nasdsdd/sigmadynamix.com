@@ -110,6 +110,11 @@
   header h1{font-size:15px;font-weight:600}
   header .sub{font-size:12px;color:var(--muted)}
   .hstat{margin-left:auto;display:flex;gap:16px;font-size:13px;align-items:center}
+  header{position:relative;z-index:95}       /* v21 : le bouton Skip reste cliquable pendant la visite guidée */
+  #btnSkipDemo{margin-left:16px;background:transparent;border:1px solid var(--strong);color:var(--text);border-radius:10px;
+    padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;position:relative;z-index:95;white-space:nowrap;
+    transition:border-color .2s,background-color .2s}
+  #btnSkipDemo:hover{border-color:var(--accent);background:rgba(0,96,248,.12)}
   .hstat div{white-space:nowrap}
   .hstat div > span{display:block;color:var(--muted);font-size:11px}
 
@@ -413,6 +418,7 @@
     <div><span>Trades</span><b class="num"><span id="hSig">0</span>/<span id="hSigT">5</span></b></div>
     <div><span>Market time (NY)</span><b class="num" id="hClock">—</b></div>
   </div>
+  <button id="btnSkipDemo" class="hidden">Skip the demo →</button>
 </header>
 
 
@@ -572,7 +578,7 @@
       An authorization is <b>not an order to enter immediately</b>: it tells you the price is in a zone where you may trade. You can wait a minute or two for a better price before opening your position.<br><br>
       A <b style="color:var(--red)">stop loss</b> is placed automatically from your entry. You can bring it closer at any time, never move it further.<br><br>
       You add your own <b style="color:var(--green)">take profits</b>: choose a quantity, click <b>+TP</b> (placed by default at <b>twice the stop distance</b>), then drag the line where you want. You can split the position over several take profits, and close only part of it: choose a quantity and click <b>Close</b>.<br><br>
-      The demo replays a real NQ market moment and shows two examples: <b>one buy, one sell</b>. Watching it in full is required before the tests.
+      The demo replays a real NQ market moment and shows two examples: <b>one buy, one sell</b>. We recommend watching it in full. If you already know how to trade, you can skip it at any time with the button at the top of the screen.
     </p>
     <button class="btn" id="btnStartDemo">▶ Watch the demo</button>
   </div>
@@ -853,7 +859,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v20.3";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v21";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -2348,6 +2354,18 @@ $("btnRewatch").addEventListener("click", ()=>{
   $("stageDemoConfirm").classList.add("hidden");
   startDemo(false);          // revoir la démo sans repasser le tutoriel
 });
+/* v21 : passer la démo (bouton en haut de l'écran, visible pendant la démo et la visite guidée) */
+$("btnSkipDemo").addEventListener("click", ()=>{
+  if(MODE !== "demo") return;
+  window.__demoSkipped = true;
+  demoRunId++;                                   // neutralise les rappels de la démo en cours
+  $("tourOverlay").classList.add("hidden");
+  endDemo();
+  $("stageDemoConfirm").classList.add("hidden");
+  applyWarnText();
+  $("stageWarn").classList.remove("hidden");
+  window.scrollTo(0, 0);
+});
 $("btnDemoOk").addEventListener("click", ()=>{
   $("stageDemoConfirm").classList.add("hidden");
   applyWarnText();
@@ -2356,6 +2374,7 @@ $("btnDemoOk").addEventListener("click", ()=>{
 
 function startDemo(withTour){
   MODE = "demo"; demoPaused = false;
+  $("btnSkipDemo").classList.remove("hidden");
   $("btnDemoPause").textContent = "⏸ Pause";
   $("stagePres").classList.add("hidden");
   $("sim").classList.remove("hidden");
@@ -2568,6 +2587,7 @@ function endDemo(){
   cancelSpeech();
   $("caption").classList.add("hidden");
   $("demoBar").classList.add("hidden");
+  $("btnSkipDemo").classList.add("hidden");
   MODE = "test";
   $("sim").classList.add("hidden");
   $("hstat").classList.add("hidden");
@@ -2855,6 +2875,7 @@ function showFinal(){
     environment: CONFIG.env,
     token: SESSION.token,
     retakeCode: window.__retakeCode || null,
+    demoSkipped: !!window.__demoSkipped,     /* v21 : démo passée par le candidat */
     generatedUtc: new Date().toISOString(),
     strategy: { kind: "levels", qty: CONFIG.qty, symbol: CONFIG.symbol, maxSlTicks: CONFIG.maxSlTicks,
                 tpDefaultPts: CONFIG.tpDefaultPts, windowSec: CONFIG.signalWindowSec, pointValue: CONFIG.pointValue },

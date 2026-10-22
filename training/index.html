@@ -513,10 +513,10 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 
     <h3 class="sect">2 &middot; Training aid</h3>
     <div class="swrow">
-      <input type="checkbox" id="setLevels">
+      <input type="checkbox" id="setLevels" checked>
       <label for="setLevels">Show the levels and their zones on the charts</label>
     </div>
-    <p class="swnote">Off by default. The assessment never shows them: leave it off once you are comfortable.</p>
+    <p class="swnote">On by default, to see what triggers a signal. The assessment never shows them: turn it off once you are comfortable.</p>
 
     <p class="err hidden" id="setupErr"></p>
     <button class="btn" id="btnStart" disabled>Load day &amp; start</button>
@@ -589,7 +589,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     <div class="pbox" id="pauseBox">
       <button id="btnSkip" style="width:100%;background:var(--panel2);border:1px solid var(--strong);color:var(--text);border-radius:10px;padding:10px 0;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px">⏭ Next signal</button>
       <button id="btnPause">⏸ Pause</button>
-      <label id="lvToggle"><input type="checkbox" id="lvShow"> Show levels on the charts</label>
+      <label id="lvToggle"><input type="checkbox" id="lvShow" checked> Show levels on the charts</label>
       <button id="btnQuit">■ End session</button>
     </div>
     <div class="pbox" id="log">

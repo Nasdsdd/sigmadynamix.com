@@ -138,13 +138,31 @@
 
   /* ---- Simulator ---- */
   #sim{display:grid;grid-template-columns:1fr 290px;gap:12px;padding:12px;height:calc(100vh - 61px)}
-  #charts{display:grid;grid-template-rows:1fr 1fr;gap:12px;min-height:0;position:relative}
+  #charts{display:grid;grid-template-rows:1fr;gap:12px;min-height:0;position:relative}
   .chartBox{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-card);
     overflow:hidden;position:relative;min-height:0}
   .chartBox .clabel{position:absolute;top:8px;left:10px;z-index:5;font-family:var(--mono);
     font-size:11px;color:var(--muted);letter-spacing:.1em;
     background:rgba(14,23,41,.85);padding:3px 8px;border-radius:6px;border:1px solid var(--border)}
   .chartBox .cdiv{width:100%;height:100%}
+  /* ---- Choix de l'unite de temps, un menu par graphique ---- */
+  .chartBox .tfsel{position:absolute;top:8px;left:10px;z-index:6;font-family:var(--mono);
+    font-size:11px;color:var(--text);letter-spacing:.06em;cursor:pointer;
+    background-color:rgba(14,23,41,.92);padding:3px 22px 3px 9px;border-radius:6px;
+    border:1px solid var(--border);appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'><path d='M1 1l4 4 4-4' fill='none' stroke='%2393A2BD' stroke-width='1.6' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 7px center}
+  .chartBox .tfsel:hover{border-color:var(--accent)}
+  .chartBox .tfsel:focus{outline:none;border-color:var(--accent)}
+  /* ---- Nombre de graphiques ---- */
+  #layBar{position:absolute;top:8px;right:12px;z-index:19;display:flex;align-items:center;gap:3px;
+    background:rgba(14,23,41,.88);border:1px solid var(--border);border-radius:999px;padding:3px 7px}
+  #layBar span{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.12em;padding:0 4px}
+  #layBar button{width:24px;height:22px;border-radius:6px;border:1px solid transparent;
+    background:transparent;color:var(--muted);font:700 11px var(--mono);cursor:pointer}
+  #layBar button:hover{color:var(--text);border-color:var(--border)}
+  #layBar button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  #charts.demoOn #layBar{top:48px}
   #panel{display:flex;flex-direction:column;gap:10px;min-height:0;overflow-y:auto}
   .pbox{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-card);
     padding:14px;flex-shrink:0}
@@ -284,7 +302,9 @@
 
   @media(max-width:860px){
     #sim{grid-template-columns:1fr;height:auto}
-    #charts{grid-template-rows:36vh 28vh}
+    /* petit ecran : chaque graphique garde une hauteur lisible, quel que soit
+       leur nombre — la disposition posee en ligne est neutralisee */
+    #charts{grid-template-rows:none!important;grid-auto-rows:34vh}
     .hstat{gap:10px;font-size:12px}
   }
   /* FAQ */
@@ -508,8 +528,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div class="chartBox" id="boxTick"><div class="clabel">100-TICK CHART</div><div class="cdiv" id="chartTick"></div></div>
-    <div class="chartBox" id="boxMin"><div class="clabel">1-MINUTE CHART</div><div class="cdiv" id="chartMin"></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -531,7 +550,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <div class="phead">TERMINAL CONFIG</div>
       <div class="cfg">
         <div><span>ROLE</span><b>BUY/SELL</b></div><div><span>Symbol</span><b id="cfgSym">MNQ</b></div>
-        <div><span>Qty</span><b class="num" id="cfgQty">10</b></div><div><span>Max SL</span><b class="num" id="cfgSl">70</b></div>
+        <div><span>Qty</span><b class="num" id="cfgQty">10</b></div><div><span>Max SL</span><b class="num" id="cfgSl">80</b></div>
       </div>
     </div>
     <div class="pbox" id="signalBox">
@@ -651,7 +670,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    SIGMA DYNAMIX — PLATEFORME DE TRAINING v6
    Strategie des niveaux cles et de l'ORB, reprise telle quelle de la
    plateforme d'evaluation v17.2 : memes signaux (table figee de la journee),
-   meme position (10 MNQ), meme stop fixe de 17,50 pts resserrable, memes
+   meme position (10 MNQ), meme stop fixe de 20,00 pts resserrable, memes
    take profits partiels, meme panneau de droite.
    Ce qui est propre au training : connexion par code, choix de la journee
    dans un calendrier, demarrage automatique avant le premier signal,
@@ -690,11 +709,11 @@ const CONFIG = {
   leadInSec:       20,            // secondes de marche jouees avant le 1er signal
 
   /* ---- POSITION (identique a l'evaluation v17.2) ----
-     10 MNQ par trade. Stop loss pose a l'entree a maxSlTicks (70 ticks = 17,50 pts) :
+     10 MNQ par trade. Stop loss pose a l'entree a maxSlTicks (80 ticks = 20,00 pts) :
      l'operateur peut le rapprocher, jamais l'eloigner au-dela. +TP place un take
      profit a tpDefaultPts de l'entree pour la quantite choisie, deplacable ensuite. */
   qty:             10,
-  maxSlTicks:      70,
+  maxSlTicks:      80,
   tpDefaultPts:    20,
   pointValue:      2,             // MNQ : 2 $ par point et par contrat
   symbol:          "MNQ",
@@ -727,16 +746,14 @@ let SPEED = 1;
    VISITE GUIDEE — huit etapes, reprises de la v17.2
    ================================================================ */
 const TOUR = [
-  { el:"boxTick",   title:"100-tick chart",
-    text:"The fast view used for execution. Your position, stop loss and take profits are drawn here as lines: drag the red SL line or a green TP line with the mouse to move it. Double-click a TP line to remove it." },
-  { el:"boxMin",    title:"1-minute chart",
-    text:"The same market in 1-minute candles, to keep the broader context in sight. The lines can be dragged here too." },
+  { el:"charts",    title:"The charts",
+    text:"One 1-minute chart to start with. Choose how many you want with 1, 2 or 3 at the top right, and set the time frame of each one with the menu in its top-left corner: 100 or 500 ticks for execution, 1 to 15 minutes for context. Your position, stop loss and take profits are drawn on every chart: drag the red SL line or a green TP line with the mouse to move it, double-click a TP line to remove it." },
   { el:"panel",     title:"Right-hand panel",
     text:"All your controls and information sit in this column. On smaller screens it does not fit entirely: scroll it with your mouse wheel or trackpad to reach every block (Performance, Actions, Stop / TP, Partner Trading, Replay speed, Next signal, trade log). A \"Scroll\" marker at the bottom tells you when more is below." },
   { el:"ptBox",     title:"Partner Trading",
     text:"The price levels that can trigger your next signal, nearest first. ARMED: ready to fire. WAIT: has fired, and fires again only after the price has moved away and come back. 1/3: times fired / maximum. TICKS: distance from the current price, in red when very close. ORB: high and low of the first 15 minutes." },
   { el:"signalBox", title:"Actions",
-    text:"When the price reaches a level: AUTHORIZED, with a countdown of 180 seconds. Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit 20 points away, or type a price and use SL @ / TP @. The stop starts at its maximum, 17.50 points: you can bring it closer, never further." },
+    text:"When the price reaches a level: AUTHORIZED, with a countdown of 180 seconds. Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit 20 points away, or type a price and use SL @ / TP @. The stop starts at its maximum, 20.00 points: you can bring it closer, never further." },
   { el:"perfBox",   title:"Performance",
     text:"Your net result for the session, in dollars, costs included. The open position is counted at the current price." },
   { el:"log",       title:"Trade log",
@@ -810,7 +827,33 @@ const packs = EMBEDDED_PACKS.map(decodePack);
 const SIGNAL_TABLE = {};
 const LEVELS_TABLE = {};
 
-let chartT, seriesT, chartM, seriesM;
+/* ================================================================
+   GRAPHIQUES — disposition libre
+   Un a trois graphiques affiches ensemble, chacun avec son unite de temps.
+   Le choix est garde d'une session a l'autre. Les lignes de prix (entree,
+   stop, take profits, niveaux) sont decrites une fois et reposees sur tous
+   les graphiques affiches a chaque changement de disposition.
+   ================================================================ */
+const TFS = [
+  { k:"100t", lab:"100 ticks",  ticks:100, hist:10  },
+  { k:"500t", lab:"500 ticks",  ticks:500, hist:30  },
+  { k:"1m",   lab:"1 minute",   sec:60,    hist:60  },
+  { k:"2m",   lab:"2 minutes",  sec:120,   hist:90  },
+  { k:"3m",   lab:"3 minutes",  sec:180,   hist:120 },
+  { k:"5m",   lab:"5 minutes",  sec:300,   hist:180 },
+  { k:"15m",  lab:"15 minutes", sec:900,   hist:360 }
+];
+const tfOf = k => TFS.find(x => x.k === k) || TFS[2];
+/* par defaut : un seul graphique, en 1 minute */
+const LAY = { n:1, tf:["1m","100t","5m"] };
+try{
+  const sv = JSON.parse(localStorage.getItem("sd_train_layout") || "{}");
+  if(sv.n >= 1 && sv.n <= 3) LAY.n = sv.n;
+  if(Array.isArray(sv.tf)) sv.tf.forEach((k, i) => { if(i < 3 && TFS.some(x => x.k === k)) LAY.tf[i] = k; });
+}catch(e){}
+const laySave = () => { try{ localStorage.setItem("sd_train_layout", JSON.stringify(LAY)); }catch(e){} };
+let PANES = [];        // [{k, box, div, sel, chart, series, bars, inBar}]
+
 const S = {};          // état du replay courant
 let MODE = "test";     // "demo" | "test"
 
@@ -824,90 +867,161 @@ let MODE = "test";     // "demo" | "test"
    nouveau signalement. */
 function verifyCharts(tag){
   try{
-    if(!chartT || !chartM || !S.pack) return;
-    const t = $("chartTick"), m = $("chartMin");
-    const bad = t.clientWidth === 0 || t.clientHeight === 0
-             || m.clientWidth === 0 || m.clientHeight === 0
-             || !S.barsT.length || !S.barsM.length;
+    if(!PANES.length || !S.pack) return;
+    const bad = PANES.some(p => p.div.clientWidth === 0 || p.div.clientHeight === 0 || !p.bars.length);
     console.log("[charts]", tag,
-      "tick", t.clientWidth + "x" + t.clientHeight, S.barsT.length + " bars",
-      "| min", m.clientWidth + "x" + m.clientHeight, S.barsM.length + " bars",
+      PANES.map(p => p.k + " " + p.div.clientWidth + "x" + p.div.clientHeight + " " + p.bars.length + " bars").join(" | "),
       bad ? "→ RECONSTRUCTION" : "ok");
     if(!bad) return;
     resizeCharts();
-    if(S.barsT.length) seriesT.setData(S.barsT);
-    if(S.barsM.length) seriesM.setData(S.barsM);
-    const nowSec = Math.floor((S.marketMs + S.nyOff + (S.dayShift || 0))/1000);
-    const fromIdx = (bars, minutes) => {
-      const cut = nowSec - minutes*60;
-      const i = bars.findIndex(b => b.time >= cut);
-      return i < 0 ? 0 : i;
-    };
-    if(S.barsT.length){
-      const f = fromIdx(S.barsT, CONFIG.historyTickMin || 10);
-      chartT.timeScale().setVisibleLogicalRange(
-        { from: f, to: S.barsT.length + rightPad(f, S.barsT.length) });
-    }
-    if(S.barsM.length){
-      const f = fromIdx(S.barsM, CONFIG.historyMin || 60);
-      chartM.timeScale().setVisibleLogicalRange(
-        { from: f, to: S.barsM.length + rightPad(f, S.barsM.length) });
+    for(const p of PANES){
+      if(!p.bars.length) rebuildBars(p);
+      p.series.setData(p.bars);
+      framePane(p);
     }
   }catch(e){ console.warn("[charts] verify failed", e); }
 }
 
-function resizeCharts(){
-  if(!chartT || !chartM) return;
-  const t = $("chartTick"), m = $("chartMin");
-  if(t.clientWidth > 0 && t.clientHeight > 0)
-    chartT.applyOptions({ width:t.clientWidth, height:t.clientHeight });
-  if(m.clientWidth > 0 && m.clientHeight > 0)
-    chartM.applyOptions({ width:m.clientWidth, height:m.clientHeight });
+function resizePane(p){
+  if(p.div.clientWidth > 0 && p.div.clientHeight > 0)
+    p.chart.applyOptions({ width:p.div.clientWidth, height:p.div.clientHeight });
+}
+function resizeCharts(){ PANES.forEach(resizePane); }
+
+const CHART_OPTS = {
+  layout:{ background:{color:"#0E1729"}, textColor:"#93A2BD" },
+  grid:{ vertLines:{color:"rgba(148,163,184,0.10)"}, horzLines:{color:"rgba(148,163,184,0.10)"} },
+  timeScale:{ timeVisible:true, secondsVisible:true, borderColor:"rgba(148,163,184,0.16)",
+    rightOffset:32, tickMarkFormatter:(t)=>fmtAxis(t) },
+  rightPriceScale:{ borderColor:"rgba(148,163,184,0.16)" },
+  localization:{ timeFormatter:(t)=>fmtAxis(t), locale:"en-US" },
+  crosshair:{ mode:0 }
+};
+const CANDLE_OPTS = { upColor:"#22C55E", downColor:"#EF4444",
+  wickUpColor:"#22C55E", wickDownColor:"#EF4444", borderVisible:false };
+
+/* Construit — ou reconstruit — les graphiques affiches. Appelee au premier
+   affichage et a chaque changement du nombre de graphiques. */
+function buildPanes(){
+  const host = $("charts");
+  for(const p of PANES){ try{ p.chart.remove(); }catch(e){} p.box.remove(); }
+  PANES = [];
+  host.style.gridTemplateRows = Array(LAY.n).fill("1fr").join(" ");
+  for(let i = 0; i < LAY.n; i++){
+    const box = document.createElement("div");
+    box.className = "chartBox";
+    const sel = document.createElement("select");
+    sel.className = "tfsel";
+    sel.title = "Time frame of this chart";
+    sel.innerHTML = TFS.map(t => `<option value="${t.k}">${t.lab}</option>`).join("");
+    sel.value = LAY.tf[i];
+    sel.addEventListener("change", () => { LAY.tf[i] = sel.value; laySave(); setPaneTf(i); });
+    const div = document.createElement("div");
+    div.className = "cdiv";
+    box.appendChild(sel); box.appendChild(div);
+    host.insertBefore(box, $("caption"));
+    const chart = LightweightCharts.createChart(div, CHART_OPTS);
+    const series = chart.addCandlestickSeries(CANDLE_OPTS);
+    const p = { k:LAY.tf[i], box, div, sel, chart, series, bars:[], inBar:0 };
+    PANES.push(p);
+    paneDrag(p);
+    /* Entre deux sessions le simulateur est masqué : clientWidth et clientHeight
+       retombent à 0 et l'observateur appliquait ces dimensions aux graphiques.
+       Selon le navigateur il ne se redéclenche pas toujours au réaffichage, et
+       les graphiques restaient alors invisibles à partir de la session 2. */
+    new ResizeObserver(()=>resizePane(p)).observe(div);
+  }
+  [...$("layBar").querySelectorAll("button")].forEach(b => b.classList.toggle("on", +b.dataset.n === LAY.n));
+  repaintLines();
+  if(S.pack) for(const p of PANES){ rebuildBars(p); p.series.setData(p.bars); framePane(p); }
+  resizeCharts();
+}
+/* Changement d'unite de temps d'un seul graphique : ses bougies sont
+   reconstruites depuis le debut de la journee, les autres ne bougent pas. */
+function setPaneTf(i){
+  const p = PANES[i]; if(!p) return;
+  p.k = LAY.tf[i];
+  if(!S.pack) return;
+  rebuildBars(p);
+  p.series.setData(p.bars);
+  framePane(p);
+}
+$("layBar").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  LAY.n = +b.dataset.n;
+  laySave();
+  buildPanes();
+});
+
+/* Ajoute un tick a la bougie courante d'un graphique, en ouvre une si besoin.
+   Rend vrai quand une nouvelle bougie vient de s'ouvrir. */
+function paneTick(p, nyMs, price){
+  const tf = tfOf(p.k);
+  let nb = false;
+  if(tf.ticks){
+    if(p.inBar === 0){
+      p.bars.push({ time:Math.floor(nyMs/1000), open:price, high:price, low:price, close:price });
+      const n = p.bars.length;
+      if(n > 1 && p.bars[n-1].time <= p.bars[n-2].time) p.bars[n-1].time = p.bars[n-2].time + 1;
+      nb = true;
+    }
+    p.inBar = (p.inBar + 1) % tf.ticks;
+  } else {
+    const t = Math.floor(nyMs/(tf.sec*1000)) * tf.sec;
+    const last = p.bars[p.bars.length-1];
+    if(!last || last.time !== t){
+      p.bars.push({ time:t, open:price, high:price, low:price, close:price });
+      nb = true;
+    }
+  }
+  const b = p.bars[p.bars.length-1];
+  b.high = Math.max(b.high, price); b.low = Math.min(b.low, price); b.close = price;
+  return nb;
+}
+/* Rejoue tous les ticks deja passes pour reconstruire les bougies d'un
+   graphique dans sa nouvelle unite de temps. */
+function rebuildBars(p){
+  p.bars = []; p.inBar = 0;
+  if(!S.pack) return;
+  const T = S.pack.ticks, off = S.nyOff + (S.dayShift || 0);
+  for(let i = 0; i < S.tickIdx && i < T.length; i++) paneTick(p, T[i][0] + off, T[i][1]);
+}
+/* Cadrage sur une DUREE et non sur un nombre de bougies : le debit de ticks
+   varie beaucoup entre le pre-marche et l'ouverture, donc un nombre de
+   bougies fixe ne representerait pas la meme duree d'une journee a l'autre. */
+const histMin = k => k === "100t" ? (CONFIG.historyTickMin || 10)
+                   : k === "1m"   ? (CONFIG.historyMin || 60)
+                   : tfOf(k).hist;
+function framePane(p){
+  if(!p.bars.length) return;
+  const nowSec = Math.floor((S.marketMs + S.nyOff + (S.dayShift || 0))/1000);
+  const cut = nowSec - histMin(p.k) * 60;
+  let f = p.bars.findIndex(b => b.time >= cut);
+  if(f < 0) f = 0;
+  p.chart.timeScale().setVisibleLogicalRange({ from:f, to:p.bars.length + rightPad(f, p.bars.length) });
 }
 
 function initCharts(){
-  if(chartT) return;
-  const opts = {
-    layout:{ background:{color:"#0E1729"}, textColor:"#93A2BD" },
-    grid:{ vertLines:{color:"rgba(148,163,184,0.10)"}, horzLines:{color:"rgba(148,163,184,0.10)"} },
-    timeScale:{ timeVisible:true, secondsVisible:true, borderColor:"rgba(148,163,184,0.16)",
-      rightOffset:32, tickMarkFormatter:(t)=>fmtAxis(t) },
-    rightPriceScale:{ borderColor:"rgba(148,163,184,0.16)" },
-    localization:{ timeFormatter:(t)=>fmtAxis(t), locale:"en-US" },
-    crosshair:{ mode:0 }
-  };
-  const cs = { upColor:"#22C55E", downColor:"#EF4444",
-    wickUpColor:"#22C55E", wickDownColor:"#EF4444", borderVisible:false };
-  chartT = LightweightCharts.createChart($("chartTick"), opts);
-  seriesT = chartT.addCandlestickSeries(cs);
-  chartM = LightweightCharts.createChart($("chartMin"), opts);
-  seriesM = chartM.addCandlestickSeries(cs);
-  /* Entre deux sessions le simulateur est masqué : clientWidth et clientHeight
-     retombent à 0 et l'observateur appliquait ces dimensions aux graphiques.
-     Selon le navigateur il ne se redéclenche pas toujours au réaffichage, et
-     les graphiques restaient alors invisibles à partir de la session 2. */
-  const ro = new ResizeObserver(()=>resizeCharts());
-  ro.observe($("chartTick")); ro.observe($("chartMin"));
+  if(!PANES.length) buildPanes();
   setupDrag();          // v17 : SL et TP déplaçables à la souris
 }
 
 function setupReplay(pack, maxSignals, startMs){
   /* restes de la session précédente : position, lignes de sortie */
   if(S.pos){ rmLine(S.pos.lines.pos); rmLine(S.pos.lines.sl); S.pos.tps.forEach(t => rmLine(t.line)); }
-  if(seriesT) clearExitLines();
+  if(PANES.length) clearExitLines();
   Object.assign(S, {
     pack, maxSignals,
     sigTable: SIGNAL_TABLE[pack.id] || null,   // signaux figés (null en démo)
     sigIdx: 0, tabIdx: 0, skipped: [], records: [],
     tickIdx: 0, marketMs: 0,
-    barsT: [], barsM: [], tickInBar: 0,
     price: null, pos: null, sig: null, sigTaken: false, sigRecord: null,
     sessUsd: 0, tpSeq: 0, exitLines: [], demoHold: false, ptT: 0, winClosed: false,
     winOpen:false, winStartMs:0, winEndMs:0,
     timer:null, lastFrame:0, autopilotT:null, introT:null
   });
   initCharts();
-  seriesT.setData([]); seriesM.setData([]);
+  for(const p of PANES){ p.bars = []; p.inBar = 0; p.series.setData([]); }
   lvlSetup(pack);
   $("logTable").innerHTML = "";
   S.nyOff = tzOffsetMs(startMs, "America/New_York");   // les barres sont horodatées en heure NY
@@ -937,24 +1051,9 @@ function fastForwardTo(targetMs){
     S.tickIdx++;
   }
   S.marketMs = targetMs;
-  /* On pousse tout l'historique disponible dans les deux séries, puis on cadre
-     la vue sur une DURÉE et non sur un nombre de barres : le débit de ticks
-     varie beaucoup entre le pré-marché et l'ouverture, donc un nombre de barres
-     fixe ne représente pas la même durée d'une journée à l'autre. */
-  seriesT.setData(S.barsT);
-  seriesM.setData(S.barsM);
-  const nowSec = Math.floor((targetMs + S.nyOff + (S.dayShift || 0))/1000);
-  const fromIdx = (bars, minutes) => {
-    const cut = nowSec - minutes*60;
-    let i = bars.findIndex(b => b.time >= cut);
-    return i < 0 ? 0 : i;                      // pack plus court que demandé
-  };
-  const fT = fromIdx(S.barsT, CONFIG.historyTickMin || 10);
-  const fM = fromIdx(S.barsM, CONFIG.historyMin || 60);
-  chartT.timeScale().setVisibleLogicalRange({
-    from: fT, to: S.barsT.length + rightPad(fT, S.barsT.length)});
-  chartM.timeScale().setVisibleLogicalRange({
-    from: fM, to: S.barsM.length + rightPad(fM, S.barsM.length)});
+  /* Tout l'historique disponible est pousse dans chaque serie, puis chaque
+     graphique est cadre sur la duree propre a son unite de temps. */
+  for(const p of PANES){ p.series.setData(p.bars); framePane(p); }
   renderPartner(); updatePerf();
 }
 
@@ -1028,33 +1127,19 @@ function keepRightPad(chart){
 function applyTick(ms, price, bulk){
   S.price = price;
   const nyMs = ms + S.nyOff + (S.dayShift || 0);   // heure NY, ramenée sur la journée virtuelle
-  const tSec = Math.floor(nyMs/1000);
-  let newBarT = false, newBarM = false;
-  if(S.tickInBar === 0){
-    S.barsT.push({time:tSec, open:price, high:price, low:price, close:price});
-    newBarT = true;
-    const n = S.barsT.length;
-    if(n>1 && S.barsT[n-1].time <= S.barsT[n-2].time) S.barsT[n-1].time = S.barsT[n-2].time+1;
-  }
-  const bt = S.barsT[S.barsT.length-1];
-  bt.high=Math.max(bt.high,price); bt.low=Math.min(bt.low,price); bt.close=price;
-  S.tickInBar = (S.tickInBar+1) % 100;
-  const mSec = Math.floor(nyMs/60000)*60;
-  let bm = S.barsM[S.barsM.length-1];
-  if(!bm || bm.time !== mSec){
-    bm = {time:mSec, open:price, high:price, low:price, close:price};
-    S.barsM.push(bm);
-    newBarM = true;
-  }
-  bm.high=Math.max(bm.high,price); bm.low=Math.min(bm.low,price); bm.close=price;
-  if(!bulk){ seriesT.update(bt); seriesM.update(bm); }
-  /* La derniere bougie est maintenue a distance du bord droit, sinon les
+  /* Chaque graphique agrege le meme tick dans SON unite de temps.
+     La derniere bougie est maintenue a distance du bord droit, sinon les
      etiquettes d'entree et de stop se posent dessus. rightOffset ne vaut que
      pour le defilement automatique : des qu'un cadrage explicite a ete pose,
      l'ecart se referme bougie apres bougie. On le reaffirme donc ici, a chaque
      nouvelle bougie seulement (scrollToPosition compte en bougies). */
-  if(!bulk && newBarT) keepRightPad(chartT);
-  if(!bulk && newBarM) keepRightPad(chartM);
+  for(const p of PANES){
+    const nb = paneTick(p, nyMs, price);
+    if(!bulk){
+      p.series.update(p.bars[p.bars.length-1]);
+      if(nb) keepRightPad(p.chart);
+    }
+  }
   lvlStep(ms, price);                 // états des niveaux (Partner Trading)
   if(S.pos) checkFills(price);        // stop et take profits
   /* déclenchement sur la table figée : identique pour tous les candidats.
@@ -1134,14 +1219,31 @@ function renderPartner(){
     <td class="num">${fmtP(r.price)}</td><td class="num ${Math.abs(r.ticks) <= 5 && r.cls === "lv" ? "near" : ""}">${r.ticks > 0 ? "+" : ""}${r.ticks}</td></tr>`).join("");
 }
 
-/* ---------------- lignes de prix (sur les deux graphiques) ---------------- */
+/* ---------------- lignes de prix (sur tous les graphiques) ----------------
+   Une ligne est decrite une fois et portee par autant de poignees qu'il y a
+   de graphiques affiches. Changer la disposition les repose toutes. */
+let LINES = new Set();
 function mkLine(price, color, title, style){
-  const o = { price, color, lineWidth: 1, lineStyle: style || 0, axisLabelVisible: true, title };
-  return { price, t: seriesT.createPriceLine(o), m: seriesM.createPriceLine(o) };
+  const l = { price, o:{ price, color, lineWidth:1, lineStyle:style || 0, axisLabelVisible:true, title }, h:[] };
+  LINES.add(l);
+  l.h = PANES.map(p => p.series.createPriceLine(l.o));
+  return l;
 }
-function setLine(l, opts){ if(!l) return; if(opts.price !== undefined) l.price = opts.price;
-  l.t.applyOptions(opts); l.m.applyOptions(opts); }
-function rmLine(l){ if(!l) return; try{ seriesT.removePriceLine(l.t); seriesM.removePriceLine(l.m); }catch(e){} }
+function setLine(l, opts){
+  if(!l) return;
+  Object.assign(l.o, opts);
+  if(opts.price !== undefined) l.price = opts.price;
+  l.h.forEach(h => h.applyOptions(opts));
+}
+function rmLine(l){
+  if(!l) return;
+  l.h.forEach((h, i) => { try{ PANES[i].series.removePriceLine(h); }catch(e){} });
+  l.h = [];
+  LINES.delete(l);
+}
+function repaintLines(){
+  for(const l of LINES) l.h = PANES.map(p => p.series.createPriceLine(l.o));
+}
 function clearExitLines(){ (S.exitLines || []).forEach(rmLine); S.exitLines = []; }
 
 /* ---------------- statut ---------------- */
@@ -1419,28 +1521,35 @@ function lineAt(series, y){
   }
   return best;
 }
-function setupDrag(){
-  [[ "chartTick", () => chartT, () => seriesT ], [ "chartMin", () => chartM, () => seriesM ]].forEach(([id, gc, gs]) => {
-    const box = $(id);
-    const yOf = e => e.clientY - box.getBoundingClientRect().top;
-    box.addEventListener("mousedown", e => {
-      if(MODE !== "test" || !S.pos || e.button !== 0) return;
-      const hit = lineAt(gs(), yOf(e)); if(!hit) return;
-      e.preventDefault(); e.stopPropagation();
-      DRAG = { ...hit, chart: gc(), series: gs(), box, yOf, start: hit.price };
-      DRAG.chart.applyOptions({ handleScroll: false, handleScale: false });
-      document.body.style.cursor = "ns-resize";
-    }, true);
-    box.addEventListener("mousemove", e => {
-      if(DRAG || MODE !== "test" || !S.pos) return;
-      box.style.cursor = lineAt(gs(), yOf(e)) ? "ns-resize" : "";
-    });
-    box.addEventListener("dblclick", e => {
-      if(MODE !== "test" || !S.pos) return;
-      const hit = lineAt(gs(), yOf(e));
-      if(hit && hit.kind === "tp"){ e.preventDefault(); e.stopPropagation(); removeTP(hit.tp); }
-    }, true);
+/* Pose sur un graphique les gestes de deplacement du stop et des take
+   profits. Appele a la creation de chaque graphique. */
+function paneDrag(p){
+  const box = p.div;
+  const yOf = e => e.clientY - box.getBoundingClientRect().top;
+  box.addEventListener("mousedown", e => {
+    if(MODE !== "test" || !S.pos || e.button !== 0) return;
+    const hit = lineAt(p.series, yOf(e)); if(!hit) return;
+    e.preventDefault(); e.stopPropagation();
+    DRAG = { ...hit, chart:p.chart, series:p.series, box, yOf, start:hit.price };
+    DRAG.chart.applyOptions({ handleScroll:false, handleScale:false });
+    document.body.style.cursor = "ns-resize";
+  }, true);
+  box.addEventListener("mousemove", e => {
+    if(DRAG || MODE !== "test" || !S.pos) return;
+    box.style.cursor = lineAt(p.series, yOf(e)) ? "ns-resize" : "";
   });
+  box.addEventListener("dblclick", e => {
+    if(MODE !== "test" || !S.pos) return;
+    const hit = lineAt(p.series, yOf(e));
+    if(hit && hit.kind === "tp"){ e.preventDefault(); e.stopPropagation(); removeTP(hit.tp); }
+  }, true);
+}
+/* Les gestes suivis hors des graphiques (deplacement en cours, relachement)
+   ne sont poses qu'une fois pour toute la page. */
+let dragReady = false;
+function setupDrag(){
+  if(dragReady) return;
+  dragReady = true;
   window.addEventListener("mousemove", e => {
     if(!DRAG || !S.pos) return;
     const pr = DRAG.series.coordinateToPrice(DRAG.yOf(e)); if(pr == null) return;
@@ -1603,6 +1712,7 @@ function startDemo(withTour){
   MODE = "demo"; demoPaused = false;
   $("btnDemoPause").textContent = "⏸ Pause";
   $("demoBar").classList.remove("hidden");
+  $("charts").classList.add("demoOn");   // la barre des graphiques descend sous celle de la demo
   $("sim").classList.remove("hidden");
   $("hstat").classList.remove("hidden");
   $("hName").textContent = "DEMO";
@@ -1630,6 +1740,7 @@ function startDemo(withTour){
 let speechKeepAlive = null;
 function runDemoTrades(){
   $("demoBar").classList.remove("hidden");
+  $("charts").classList.add("demoOn");   // la barre des graphiques descend sous celle de la demo
   /* contournement du bug Chrome qui coupe les phrases longues (~15 s) */
   clearInterval(speechKeepAlive);
   if("speechSynthesis" in window)
@@ -1644,7 +1755,7 @@ function runDemoTrades(){
      précédente si le candidat clique « Rewatch » tout de suite. */
   const run = ++demoRunId;
   const live = () => MODE==="demo" && run===demoRunId;
-  const L1 = "Welcome. You are watching a real replay of the NQ futures market. The top chart shows 100-tick candles, the bottom one shows 1-minute candles.";
+  const L1 = "Welcome. You are watching a real replay of the NQ futures market. You choose how many charts you want and the time frame of each one, from 100 ticks to 15 minutes.";
   const L2 = "Our desk marks key price levels. When the price reaches one of them, you are authorized to trade. The direction is yours: you buy or you sell. In this demo you will see one of each.";
   say(L1);
   afterSay(L1, ()=>{
@@ -1789,6 +1900,7 @@ function endDemo(){
   cancelSpeech();
   $("caption").classList.add("hidden");
   $("demoBar").classList.add("hidden");
+  $("charts").classList.remove("demoOn");
   MODE = "test";
   $("sim").classList.add("hidden");
   $("hstat").classList.add("hidden");

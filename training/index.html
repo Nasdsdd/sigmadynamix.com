@@ -146,7 +146,11 @@
     background:rgba(14,23,41,.85);padding:3px 8px;border-radius:6px;border:1px solid var(--border)}
   .chartBox .cdiv{width:100%;height:100%}
   /* ---- Choix de l'unite de temps, un menu par graphique ---- */
+  /* width:auto annule la regle generale select{width:100%}, qui etirait le
+     menu sur toute la largeur du graphique, par-dessus le choix de la
+     disposition. */
   .chartBox .tfsel{position:absolute;top:8px;left:10px;z-index:6;font-family:var(--mono);
+    width:auto;max-width:150px;
     font-size:11px;color:var(--text);letter-spacing:.06em;cursor:pointer;
     background-color:rgba(14,23,41,.92);padding:3px 22px 3px 9px;border-radius:6px;
     border:1px solid var(--border);appearance:none;-webkit-appearance:none;
@@ -568,6 +572,9 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
           <button class="tbtn" id="btnBuy" disabled>↑ Buy</button>
           <button class="tbtn" id="btnSell" disabled>↓ Sell</button>
         </div>
+        <div class="strow hidden" id="closeRow"><label for="closeQty">Close</label>
+          <select id="closeQty"></select>
+          <button class="mini" id="btnCloseHalf">Half</button><button class="mini" id="btnCloseAll">All</button></div>
         <button id="btnClose" disabled>✕ Close</button>
       </div>
       <div id="stBox" class="hidden">
@@ -1335,7 +1342,7 @@ function setSignalUI(on){
   $("btnPause").disabled = on || !!S.pos || MODE === "demo";
   $("btnSkip").disabled  = on || !!S.pos || S.winClosed || MODE !== "test";
   $("stBox").classList.toggle("hidden", !S.pos);
-  renderStopTp();
+  renderStopTp(); renderCloseQty();
 }
 /* conservé pour les appels existants (démo, sessions) */
 function applyModeUI(){
@@ -1412,13 +1419,36 @@ function fillQty(q, price, kind){
     room -= tp.qty; setLine(tp.line, { title: tpTitle(tp) });
   }
   if(kind === "TP") setStatus(`Take profit filled: ${q} at ${fmtP(price)} · ${pos.open} still open`);
+  if(kind === "MANUAL") setStatus(`Closed ${q} at ${fmtP(price)} by hand · ${pos.open} still open`);
   setLine(pos.lines.pos, { title: posTitle(pos) });
-  renderStopTp(); updatePerf();
+  renderStopTp(); renderCloseQty(); updatePerf();
 }
-function closePos(manual){
+/* Cloture au marche, de tout ou partie de la position. `qty` absent ou plus
+   grand que la position : on solde tout. Le reste de la position continue de
+   vivre avec son stop et ses take profits ; le trade n'est enregistre qu'au
+   dernier contrat sorti, prix de sortie moyen des remplissages. */
+function closePos(manual, qty){
   const pos = S.pos; if(!pos) return;
   const d = dirOf(pos.side), sp = CONFIG.costs.spreadPts;
-  fillQty(pos.open, S.price - d * sp, "MANUAL");
+  const q = Math.min(Math.max(1, Math.round(qty || pos.open)), pos.open);
+  fillQty(q, S.price - d * sp, "MANUAL");
+}
+
+/* Quantite proposee a la cloture : de 1 au nombre de contrats encore ouverts.
+   Le choix precedent est garde tant qu'il reste possible. */
+function renderCloseQty(){
+  const p = S.pos, row = $("closeRow"), sel = $("closeQty"), btn = $("btnClose");
+  row.classList.toggle("hidden", !p);
+  /* position soldee : la liste repart a zero, pour qu'un nouveau trade
+     propose « tout » et non la quantite partielle du precedent */
+  if(!p){ sel.innerHTML = ""; btn.textContent = "✕ Close"; return; }
+  const cur = Math.min(+sel.value || p.open, p.open);
+  sel.innerHTML = "";
+  for(let q = 1; q <= p.open; q++)
+    sel.insertAdjacentHTML("beforeend", `<option value="${q}">${q}</option>`);
+  sel.value = cur || p.open;
+  sel.disabled = p.open <= 1;
+  btn.textContent = (+sel.value >= p.open) ? `✕ Close all (${p.open})` : `✕ Close ${sel.value}`;
 }
 function closeTrade(kind){
   const pos = S.pos, d = dirOf(pos.side), q = pos.qty;
@@ -1510,7 +1540,21 @@ function renderStopTp(){
 }
 $("btnBuy").addEventListener("click", () => { if(MODE === "test") openPos("BUY"); });
 $("btnSell").addEventListener("click", () => { if(MODE === "test") openPos("SELL"); });
-$("btnClose").addEventListener("click", () => { if(MODE === "test" && S.pos) closePos(true); });
+$("btnClose").addEventListener("click", () => {
+  if(MODE === "test" && S.pos) closePos(true, +$("closeQty").value || S.pos.open);
+});
+$("closeQty").addEventListener("change", renderCloseQty);
+/* deux raccourcis : la moitie, ou tout */
+$("btnCloseHalf").addEventListener("click", () => {
+  const p = S.pos; if(!p) return;
+  $("closeQty").value = Math.max(1, Math.floor(p.open / 2));
+  renderCloseQty();
+});
+$("btnCloseAll").addEventListener("click", () => {
+  const p = S.pos; if(!p) return;
+  $("closeQty").value = p.open;
+  renderCloseQty();
+});
 $("btnAddTp").addEventListener("click", () => { if(MODE === "test" && S.pos) addTP(+$("tpQty").value); });
 $("btnClearTp").addEventListener("click", () => { if(MODE === "test" && S.pos) clearTPs(); });
 $("btnSlAt").addEventListener("click", () => {

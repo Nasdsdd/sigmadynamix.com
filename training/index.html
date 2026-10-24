@@ -511,7 +511,11 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     </div>
     <button class="ghostb" id="btnRandDay">&#127922; Random available day</button>
 
-    <h3 class="sect">2 &middot; Training aid</h3>
+    <h3 class="sect">2 &middot; Start <span class="sub">New York time</span></h3>
+    <div class="choice" id="startChoice"></div>
+    <p class="swnote" id="startNote"></p>
+
+    <h3 class="sect">3 &middot; Training aid</h3>
     <div class="swrow">
       <input type="checkbox" id="setLevels" checked>
       <label for="setLevels">Show the levels and their zones on the charts</label>
@@ -708,6 +712,14 @@ const CONFIG = {
   historyMin:      60,            // minutes de bougies 1-min visibles avant le depart
   historyTickMin:  10,            // minutes de bougies tick visibles avant le depart
   leadInSec:       20,            // secondes de marche jouees avant le 1er signal
+  /* ---- DEPART DE LA SEANCE ----
+     Deux horaires au choix, en heure de New York. Le replay commence a
+     l'heure retenue : les autorisations tombees avant n'existent pas pour
+     l'operateur, elles ne comptent ni comme prises ni comme manquees. */
+  startTimes: [
+    { t:"09:45", lab:"US open · 09:45 NY",   note:"The session starts at the cash open, like the assessment." },
+    { t:"10:05", lab:"Post open · 10:05 NY", note:"The session starts after the opening drive: the authorizations before 10:05 are left out." }
+  ],
 
   /* ---- POSITION (identique a l'evaluation v17.2) ----
      10 MNQ par trade. Stop loss pose a l'entree a maxSlTicks (80 ticks = 20,00 pts) :
@@ -1040,6 +1052,10 @@ function setupReplay(pack, maxSignals, startMs){
   /* training : les dates et les heures sont affichees en clair, aucune
      journee virtuelle a appliquer (l'evaluation, elle, masque la date). */
   S.dayShift = 0;
+  /* Depart differe : les autorisations tombees avant l'heure choisie n'ont pas
+     existe pour l'operateur. Le curseur est place apres elles, sinon l'avance
+     rapide les declencherait une a une et les compterait manquees. */
+  if(S.sigTable) while(S.tabIdx < S.sigTable.length && S.sigTable[S.tabIdx].t < startMs) S.tabIdx++;
   fastForwardTo(Math.max(startMs, pack.ticks[0][0]));
   /* les signaux sont lus dans SIGNAL_TABLE : strictement identiques pour
      tous les candidats sur une même journée. */
@@ -2048,10 +2064,30 @@ function doLogin(){
   $("stageLogin").classList.add("hidden");
   $("stageSetup").classList.remove("hidden");
   $("setupHello").textContent = "Welcome " + name
-    + ". Pick a trading day: the session starts by itself, "
-    + CONFIG.leadInSec + " seconds before the first authorization of that day.";
+    + ". Pick a trading day and the time you step in: the session starts by itself at that time.";
   renderCalendar();
 }
+/* ---- horaire de depart ----
+   Le choix est garde d'une ouverture de la page a l'autre. */
+S.startPick = CONFIG.startTimes[0].t;
+try{
+  const sv = localStorage.getItem("sd_train_start");
+  if(CONFIG.startTimes.some(x => x.t === sv)) S.startPick = sv;
+}catch(e){}
+function renderStartChoice(){
+  $("startChoice").innerHTML = CONFIG.startTimes.map(x =>
+    `<button class="chip${x.t === S.startPick ? " on" : ""}" data-start="${x.t}">${x.lab}</button>`).join("");
+  const cur = CONFIG.startTimes.find(x => x.t === S.startPick) || CONFIG.startTimes[0];
+  $("startNote").textContent = cur.note;
+}
+$("startChoice").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if(!b) return;
+  S.startPick = b.dataset.start;
+  try{ localStorage.setItem("sd_train_start", S.startPick); }catch(err){}
+  renderStartChoice();
+});
+renderStartChoice();
+
 $("btnLogin").addEventListener("click", doLogin);
 $("fCode").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); });
 
@@ -2231,6 +2267,15 @@ $("btnStart").addEventListener("click", async () => {
   try{
     const pack = await loadDay(S.day);
     $("loadStatus").textContent = "";
+    /* Depart tardif sur une journee dont tous les signaux sont deja passes :
+       on le dit plutot que d'ouvrir une seance sans rien a prendre. */
+    const sigs = SIGNAL_TABLE[pack.id] || [];
+    if(sigs.length && !sigs.some(x => x.t >= startMsOf(pack))){
+      setupFlash("No authorization after " + S.startPick + " NY on " + pack.day
+        + ". Pick " + CONFIG.startTimes[0].t + " or another day.");
+      $("btnStart").disabled = false;
+      return;
+    }
     $("stageSetup").classList.add("hidden");
     startSession(pack);
   }catch(err){
@@ -2239,6 +2284,12 @@ $("btnStart").addEventListener("click", async () => {
     $("btnStart").disabled = false;
   }
 });
+
+/* Heure de depart retenue, en horodatage, pour la journee du pack. */
+function startMsOf(pack){
+  const t = (CONFIG.startTimes.some(x => x.t === S.startPick) ? S.startPick : CONFIG.startTimes[0].t);
+  return nyToUtcMs(pack.day, t + ":00");
+}
 
 function startSession(pack){
   MODE = "test";
@@ -2251,12 +2302,20 @@ function startSession(pack){
   $("hSigTot").style.display = CONFIG.tradesPerSession ? "" : "none";
   $("hSigT").textContent = CONFIG.tradesPerSession || "";
   $("siTitle").textContent = pack.day + " · " + (pack.symbol || CONFIG.symbol);
-  $("siSub").textContent = CONFIG.symbol + " · live replay · " + sigs.length + " signals this day";
-  /* on demarre leadInSec avant le premier signal : tout ce qui precede est
-     charge d'un bloc par fastForwardTo, ce qui peuple le graphique 1-min de
-     son historique sans faire attendre l'operateur. */
-  const startMs = sigs.length ? sigs[0].t - CONFIG.leadInSec * 1000 : pack.ticks[0][0];
-  setupReplay(pack, sigs.length, startMs);
+  /* La seance commence a l'heure choisie. Tout ce qui precede est charge d'un
+     bloc par fastForwardTo, ce qui peuple les graphiques de leur historique
+     sans faire attendre l'operateur.
+     Filet : si la journee n'a aucun signal apres cette heure — cas impossible
+     en principe, verifie avant de demarrer — on retombe sur leadInSec avant
+     le premier, pour ne jamais ouvrir une seance vide. */
+  const wanted = startMsOf(pack);
+  const jouables = sigs.filter(x => x.t >= wanted);
+  const startMs = jouables.length ? wanted
+                : (sigs.length ? sigs[0].t - CONFIG.leadInSec * 1000 : pack.ticks[0][0]);
+  const nb = jouables.length || sigs.length;
+  $("siSub").textContent = CONFIG.symbol + " · live replay · start " + S.startPick
+    + " NY · " + nb + " signal" + (nb > 1 ? "s" : "") + " from there";
+  setupReplay(pack, nb, startMs);
   applyModeUI();
   setStatus("Direct signals · waiting for an authorization…");
   setShowLevels($("setLevels").checked);

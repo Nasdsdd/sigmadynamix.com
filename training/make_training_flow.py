@@ -156,7 +156,7 @@ def big_orders(trades_path, prof, tick, keep_from):
         if count >= BO_MIN_SAMPLES:
             mean = s1 / count
             sd = math.sqrt(max(0.0, s2 / count - mean * mean))
-            if size > max(BO["minLots"], mean + BO["sigma"] * sd):
+            if size >= max(BO["minLots"], mean + BO["sigma"] * sd):   # meme regle que le Terminal (>=)
                 found.append([ms, px, size, side])
         if count == BO_WINDOW:
             old = sizes[nxt]; s1 -= old; s2 -= old * old

@@ -902,6 +902,11 @@ let MODE = "test";     // "demo" | "test"
 function verifyCharts(tag){
   try{
     if(!PANES.length || !S.pack) return;
+    /* prix courant hors de l'ecran : echelle automatique remise */
+    for(const p of PANES){
+      const y = S.price != null ? p.series.priceToCoordinate(S.price) : null;
+      if(y !== null && (y < 0 || y > p.div.clientHeight)) try{ p.series.priceScale().applyOptions({ autoScale:true }); }catch(e){}
+    }
     const bad = PANES.some(p => p.div.clientWidth === 0 || p.div.clientHeight === 0 || !p.bars.length);
     console.log("[charts]", tag,
       PANES.map(p => p.k + " " + p.div.clientWidth + "x" + p.div.clientHeight + " " + p.bars.length + " bars").join(" | "),
@@ -978,6 +983,7 @@ function setPaneTf(i){
   const p = PANES[i]; if(!p) return;
   p.k = LAY.tf[i];
   if(!S.pack) return;
+  try{ p.series.priceScale().applyOptions({ autoScale:true }); }catch(e){}
   rebuildBars(p);
   p.series.setData(p.bars);
   framePane(p);
@@ -1038,6 +1044,13 @@ function framePane(p){
   p.chart.timeScale().setVisibleLogicalRange({ from:f, to:p.bars.length + rightPad(f, p.bars.length) });
 }
 
+/* v6.1.1 -- Echelle des prix remise en automatique. Un etirement a la souris coupe
+   l'echelle automatique de la librairie ; elle restait coupee a la seance suivante,
+   et les prix d'une autre journee tombaient hors de l'ecran (graphique vide tant
+   qu'on ne double-cliquait pas sur l'echelle). */
+function resetPriceScales(){
+  for(const p of PANES){ try{ p.series.priceScale().applyOptions({ autoScale:true }); }catch(e){} }
+}
 function initCharts(){
   if(!PANES.length) buildPanes();
   setupDrag();          // v17 : SL et TP déplaçables à la souris
@@ -1059,6 +1072,7 @@ function setupReplay(pack, maxSignals, startMs){
   });
   initCharts();
   for(const p of PANES){ p.bars = []; p.inBar = 0; p.series.setData([]); }
+  resetPriceScales();
   lvlSetup(pack);
   $("logTable").innerHTML = "";
   S.nyOff = tzOffsetMs(startMs, "America/New_York");   // les barres sont horodatées en heure NY

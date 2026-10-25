@@ -739,7 +739,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.3";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.3.1";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -3087,17 +3087,26 @@ function renderSlotBar(){
   const bar = $("slotBar"); if(!bar) return;
   bar.classList.toggle("hidden", !multiOn());
   if(!multiOn()){ bar.innerHTML = ""; return; }
-  bar.innerHTML = SLOTS.map((x, i) => {
+  /* v6.3.1 -- les boutons sont crees une seule fois puis mis a jour sur place :
+     avant, la barre etait reconstruite 4 fois par seconde et le clic se perdait */
+  if(bar.children.length !== SLOTS.length){
+    bar.innerHTML = SLOTS.map((x, i) => `<button type="button" data-i="${i}">P${i + 1}<span class="st"></span></button>`).join("");
+  }
+  SLOTS.forEach((x, i) => {
     let st, cls = "";
     if(x.pos){
       const pts = dirOf(x.pos.side) * ((S.price != null ? S.price : x.pos.entry) - x.pos.entry);
       st = `${x.pos.side} ${x.pos.open} · ${pts >= 0 ? "+" : ""}${pts.toFixed(2)}`; cls = x.pos.side === "BUY" ? "b" : "s";
     } else if(S.winOpen && !x.sigTaken){ st = "authorized"; cls = "a"; }
     else st = x.sigTaken ? "done" : "flat";
-    return `<button type="button" data-i="${i}" class="${i === SLOT ? "on" : ""}">P${i + 1}<span class="st ${cls}">${st}</span></button>`;
-  }).join("");
+    const btn = bar.children[i], sp = btn.querySelector(".st");
+    btn.classList.toggle("on", i === SLOT);
+    if(sp.textContent !== st) sp.textContent = st;
+    const c = "st " + cls; if(sp.className !== c) sp.className = c;
+  });
 }
-$("slotBar").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if(b) selectSlot(+b.dataset.i); });
+/* choix au pointerdown : immediat, meme si le replay tourne */
+$("slotBar").addEventListener("pointerdown", e => { const b = e.target.closest("button[data-i]"); if(b){ e.preventDefault(); selectSlot(+b.dataset.i); } });
 
 /* --- Next signal : la table est figee, le prochain signal est connu --- */
 function predictNextSignalMs(){

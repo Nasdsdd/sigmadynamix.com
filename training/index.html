@@ -167,6 +167,19 @@
   #layBar button:hover{color:var(--text);border-color:var(--border)}
   #layBar button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
   #charts.demoOn #layBar{top:48px}
+  #closeRow{margin-top:12px}       /* v6.1.1 : la cloture partielle ne colle plus aux boutons Buy / Sell */
+  /* ---- v6.1 : order flow ---- */
+  #layBar .sep{width:1px;height:16px;background:var(--border);margin:0 4px;padding:0}
+  #flowBar{display:flex;align-items:center;gap:3px}
+  #layBar #flowBar button{width:auto;padding:0 7px}
+  #layBar #flowBar button:disabled{opacity:.35;cursor:not-allowed}
+  #flowBar.off span{opacity:.45}
+  #boMin{width:auto;font:600 10px var(--mono);color:var(--muted);background:transparent;border:1px solid var(--border);
+    border-radius:6px;padding:2px 3px;cursor:pointer}
+  #boMin:disabled{opacity:.35;cursor:not-allowed}
+  #flowHelp{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;
+    border:1px solid var(--border);color:var(--muted);font:700 11px var(--mono);text-decoration:none;margin-left:2px}
+  #flowHelp:hover{color:var(--text);border-color:var(--link)}
   #panel{display:flex;flex-direction:column;gap:10px;min-height:0;overflow-y:auto}
   .pbox{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-card);
     padding:14px;flex-shrink:0}
@@ -536,7 +549,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="order_flow_guide.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -586,6 +599,12 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
         <div id="stSummary"></div>
       </div>
     </div>
+    <div class="pbox" id="pauseBox">
+      <button id="btnSkip" style="width:100%;background:var(--panel2);border:1px solid var(--strong);color:var(--text);border-radius:10px;padding:10px 0;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px">⏭ Next signal</button>
+      <button id="btnPause">⏸ Pause</button>
+      <label id="lvToggle"><input type="checkbox" id="lvShow" checked> Show levels on the charts</label>
+      <button id="btnQuit">■ End session</button>
+    </div>
     <div class="pbox tight" id="ptBox">
       <div class="phead">PARTNER TRADING</div>
       <table id="ptTable"><thead><tr><th>APP</th><th>TYPE</th><th>PRICE</th><th>TICKS</th></tr></thead>
@@ -596,12 +615,6 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <div class="spd" id="speedSel">
         <button class="on" data-x="1">x1</button><button data-x="5">x5</button>
       </div>
-    </div>
-    <div class="pbox" id="pauseBox">
-      <button id="btnSkip" style="width:100%;background:var(--panel2);border:1px solid var(--strong);color:var(--text);border-radius:10px;padding:10px 0;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px">⏭ Next signal</button>
-      <button id="btnPause">⏸ Pause</button>
-      <label id="lvToggle"><input type="checkbox" id="lvShow" checked> Show levels on the charts</label>
-      <button id="btnQuit">■ End session</button>
     </div>
     <div class="pbox" id="log">
       <table>
@@ -689,7 +702,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.0";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.1.1";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -705,7 +718,8 @@ const CONFIG = {
     "OCTOBER4":    "2026-11-05"   // code 2 semaines, ouvert le 22/10/2026
   },
   packDir:         "daypacks/",   // dossier des daypack_AAAAMMJJ.json, a cote de la page
-  calFrom:         "2026-01-01",  // borne basse de navigation du calendrier
+  calFrom:         "2026-10-19",  // premiere journee proposee (v6.1.1 : on repart de la semaine du 19/10)
+  requireFlow:     true,          // une journee n'est proposee que si son flow_AAAAMMJJ.json (volumes) existe
 
   /* ---- SEANCE ----
      La journee est rejouee a partir de leadInSec avant son premier signal :
@@ -951,9 +965,11 @@ function buildPanes(){
        les graphiques restaient alors invisibles à partir de la session 2. */
     new ResizeObserver(()=>resizePane(p)).observe(div);
   }
-  [...$("layBar").querySelectorAll("button")].forEach(b => b.classList.toggle("on", +b.dataset.n === LAY.n));
+  [...$("layBar").querySelectorAll("button[data-n]")].forEach(b => b.classList.toggle("on", +b.dataset.n === LAY.n));
+  flowAttachPanes();
   repaintLines();
   if(S.pack) for(const p of PANES){ rebuildBars(p); p.series.setData(p.bars); framePane(p); }
+  if(S.pack) flowRefresh(true);
   resizeCharts();
 }
 /* Changement d'unite de temps d'un seul graphique : ses bougies sont
@@ -965,9 +981,10 @@ function setPaneTf(i){
   rebuildBars(p);
   p.series.setData(p.bars);
   framePane(p);
+  flowRefresh(true);
 }
 $("layBar").addEventListener("click", e => {
-  const b = e.target.closest("button"); if(!b) return;
+  const b = e.target.closest("button[data-n]"); if(!b) return;
   LAY.n = +b.dataset.n;
   laySave();
   buildPanes();
@@ -1078,6 +1095,7 @@ function fastForwardTo(targetMs){
   /* Tout l'historique disponible est pousse dans chaque serie, puis chaque
      graphique est cadre sur la duree propre a son unite de temps. */
   for(const p of PANES){ p.series.setData(p.bars); framePane(p); }
+  flowRefresh(true);
   renderPartner(); updatePerf();
 }
 
@@ -1115,6 +1133,7 @@ function advance(dtMs){
     if(S.demoHold){ S.marketMs = T[S.tickIdx - 1][0]; break; }
   }
   $("hClock").textContent = fmtClock(S.marketMs);
+  flowRefresh(false);
   if(S.showLevels) renderLevelLines();
   demoScriptTick();
   updateWindow();
@@ -1771,6 +1790,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 function startDemo(withTour){
   MODE = "demo"; demoPaused = false;
+  flowUI();   // v6.1 : pas de volumes en demo
   $("btnDemoPause").textContent = "⏸ Pause";
   $("demoBar").classList.remove("hidden");
   $("charts").classList.add("demoOn");   // la barre des graphiques descend sous celle de la demo
@@ -2136,6 +2156,422 @@ $("btnLogin").addEventListener("click", doLogin);
 $("fCode").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); });
 
 /* ================================================================
+   ORDER FLOW (v6.1) — volumes Rithmic de la journee (flow_AAAAMMJJ.json)
+   Fabrique par make_training_flow.py depuis les fichiers de SigmaTradeHistory.
+   - VP    : volume profile de la seance 09:30-16:00 NY, construit minute par
+             minute (une minute compte quand elle est CLOSE), POC / VAH / VAL
+             (70 %, lignes d'un tick : regle du Terminal)
+   - PREV  : profil et POC / VAH / VAL de la seance precedente
+   - CVD   : delta par bougie et delta cumule, remis a 0 a 09:30 ; pointilles :
+             plus haut / plus bas du CVD pendant l'ORB (09:30-09:45)
+   - BIG   : gros ordres (taille >= seuil choisi). Pale tant que les 30 s
+             d'observation ne sont pas ecoulees ; plein = l'ordre a pousse le
+             prix ; creux = absorbe.
+   Aucune donnee du futur : tout est revele a l'heure du replay.
+   Une journee sans flow_ : boutons grises, le reste de la page inchange.
+   ================================================================ */
+const FLOW = {
+  on: { vp:true, prev:true, cvd:true, bo:true },
+  boMin: 50,
+  cache: {}
+};
+try{
+  const sv = JSON.parse(localStorage.getItem("sd_train_flow") || "{}");
+  if(sv.on) for(const k of Object.keys(FLOW.on)) if(typeof sv.on[k] === "boolean") FLOW.on[k] = sv.on[k];
+  if([20,30,50,100].includes(sv.boMin)) FLOW.boMin = sv.boMin;
+}catch(e){}
+const flowSave = () => { try{ localStorage.setItem("sd_train_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin })); }catch(e){} };
+const flowUrl = dayIso => CONFIG.packDir + "flow_" + dayIso.replace(/-/g, "") + ".json";
+
+/* Charge le flow_ d'une journee ; null s'il n'existe pas (journee sans volumes). */
+async function loadFlow(dayIso){
+  if(dayIso in FLOW.cache) return FLOW.cache[dayIso];
+  let f = null;
+  try{
+    const r = await fetch(flowUrl(dayIso), { cache:"no-cache" });   // toujours la derniere version (revalidee)
+    if(r.ok){ const raw = await r.json(); if(raw && raw.format === "sigma-flow-v1") f = prepFlow(raw); }
+  }catch(e){ f = null; }
+  FLOW.cache[dayIso] = f;
+  return f;
+}
+
+/* Tableaux derives, calcules une fois par journee. */
+function prepFlow(raw){
+  const N = raw.mb.length, off = new Int32Array(N + 1), cvd = new Float64Array(N + 1);
+  for(let i = 0; i < N; i++){
+    off[i+1] = off[i] + raw.pc[i];
+    cvd[i+1] = cvd[i] + raw.mb[i] - raw.ms[i];
+  }
+  let span = 0;
+  for(const x of raw.pp) if(x + 1 > span) span = x + 1;
+  /* CVD de l'ORB : extremes des minutes 09:30-09:45 */
+  const orbN = Math.min(N, 15);
+  let oHi = null, oLo = null;
+  for(let i = 1; i <= orbN; i++){ oHi = oHi === null ? cvd[i] : Math.max(oHi, cvd[i]); oLo = oLo === null ? cvd[i] : Math.min(oLo, cvd[i]); }
+  const bo = raw.bo && Array.isArray(raw.bo.list) ? raw.bo.list : [];
+  return { raw, N, off, cvd, span, tick: raw.tickSize || 0.25, orbN, oHi, oLo, bo, boSec: (raw.bo && raw.bo.params && raw.bo.params.seconds) || 30 };
+}
+
+/* ---- etat de la seance ---- */
+let flowLines = [];
+function flowClearLines(){ flowLines.forEach(rmLine); flowLines = []; S.flowL = null; }
+function flowActive(){ return MODE !== "demo" && !!S.flow; }
+
+/* Debut de seance : remet le profil a zero. Appelee avant setupReplay. */
+function flowStart(f){
+  flowClearLines();
+  S.flow = f || null;
+  S.flowN = -1;
+  if(f){
+    S.fVol = new Float64Array(f.span); S.fBuy = new Float64Array(f.span); S.fSell = new Float64Array(f.span);
+    S.dVol = new Float64Array(f.span); S.dBuy = new Float64Array(f.span); S.dSell = new Float64Array(f.span);
+    S.fVA = null; S.dVA = null; S.fRangeMin = -1; S.fLiveT = 0;
+  }
+  flowUI();
+}
+
+/* Minutes de seance closes a l'instant du replay. */
+function flowDoneMinutes(){
+  const f = S.flow; if(!f) return 0;
+  return Math.max(0, Math.min(f.N, Math.floor((S.marketMs - f.raw.m0) / 60000)));
+}
+
+/* Ajoute au profil les minutes closes depuis le dernier appel. */
+function flowAdvanceProfile(n){
+  const f = S.flow, r = f.raw;
+  if(n < S.flowN || S.flowN < 0){ S.fVol.fill(0); S.fBuy.fill(0); S.fSell.fill(0); S.flowN = 0; }
+  for(let i = S.flowN; i < n; i++){
+    for(let j = f.off[i]; j < f.off[i+1]; j++){
+      const k = r.pp[j], b = r.pb[j], s = r.ps[j], x = r.pn[j] || 0;
+      S.fBuy[k] += b; S.fSell[k] += s; S.fVol[k] += b + s + x;
+    }
+  }
+  S.flowN = n;
+  S.fVA = flowValueArea(S.fVol);
+}
+
+/* v6.1.1 -- profil VIVANT : minutes closes + minute en cours. Pour la minute en
+   cours, seuls les prix DEJA traites par le replay dans cette minute sont ajoutes,
+   au prorata du temps ecoule (aucun prix futur n'apparait). */
+function flowLive(n){
+  const f = S.flow, r = f.raw, T = S.pack.ticks;
+  const mStart = r.m0 + n * 60000;
+  if(S.fRangeMin !== n){
+    S.fRangeMin = n; S.fLo = Infinity; S.fHi = -Infinity;
+    let lo = 0, hi = T.length;
+    while(lo < hi){ const m = (lo + hi) >> 1; if(T[m][0] < mStart) lo = m + 1; else hi = m; }
+    S.fScan = lo;
+  }
+  for(; S.fScan < S.tickIdx && S.fScan < T.length; S.fScan++){
+    const t = T[S.fScan];
+    if(t[0] < mStart) continue;
+    const k = Math.round(t[1] / f.tick) - r.base;
+    if(k < S.fLo) S.fLo = k;
+    if(k > S.fHi) S.fHi = k;
+  }
+  S.dVol.set(S.fVol); S.dBuy.set(S.fBuy); S.dSell.set(S.fSell);
+  if(n < f.N && S.marketMs > mStart && S.fLo <= S.fHi){
+    const frac = Math.min(1, (S.marketMs - mStart) / 60000);
+    for(let j = f.off[n]; j < f.off[n+1]; j++){
+      const k = r.pp[j];
+      if(k < S.fLo || k > S.fHi) continue;
+      const b = r.pb[j] * frac, sl = r.ps[j] * frac, x = (r.pn[j] || 0) * frac;
+      S.dBuy[k] += b; S.dSell[k] += sl; S.dVol[k] += b + sl + x;
+    }
+  }
+  S.dVA = flowValueArea(S.dVol);
+}
+
+/* POC / VAH / VAL (index de tick), regle du VolumeProfileStore du Terminal. */
+function flowValueArea(v){
+  let lo = -1, hi = -1, total = 0;
+  for(let i = 0; i < v.length; i++) if(v[i] > 0){ if(lo < 0) lo = i; hi = i; total += v[i]; }
+  if(lo < 0) return null;
+  const n = hi - lo + 1, mid = (n - 1) / 2;
+  let poc = 0;
+  for(let i = 1; i < n; i++){
+    const t = v[lo+i], b = v[lo+poc];
+    if(t > b || (t === b && Math.abs(i - mid) < Math.abs(poc - mid))) poc = i;
+  }
+  const target = Math.ceil(total * 0.70);
+  let vah = poc, val = poc, acc = v[lo+poc];
+  while(acc < target && (vah < n - 1 || val > 0)){
+    const up = vah < n - 1 ? v[lo+vah+1] : -1, down = val > 0 ? v[lo+val-1] : -1;
+    if(up >= down){ vah++; acc += up; } else { val--; acc += down; }
+  }
+  return { poc: lo + poc, vah: lo + vah, val: lo + val, total };
+}
+const flowPx = k => (S.flow.raw.base + k) * S.flow.tick;
+
+/* Lignes de prix : POC / VAH / VAL de la seance et de la veille (sur tous les graphiques). */
+function flowSyncLines(){
+  const f = S.flow;
+  const want = [];
+  const va = S.dVA || S.fVA;
+  if(flowActive() && FLOW.on.vp && va){
+    want.push(["poc", flowPx(va.poc), "#FACC15", "POC", 0]);
+    want.push(["vah", flowPx(va.vah), "#38BDF8", "VAH", 1]);
+    want.push(["val", flowPx(va.val), "#38BDF8", "VAL", 1]);
+  }
+  if(flowActive() && FLOW.on.prev && f.raw.prev){
+    const p = f.raw.prev;
+    want.push(["ppoc", p.poc, "#F472B6", "pPOC", 2]);
+    want.push(["pvah", p.vah, "#F9A8D4", "pVAH", 2]);
+    want.push(["pval", p.val, "#F9A8D4", "pVAL", 2]);
+  }
+  const key = want.map(w => w[0]).join(",");
+  if(!S.flowL || S.flowL.key !== key){
+    flowLines.forEach(rmLine); flowLines = [];
+    S.flowL = { key, by:{} };
+    for(const w of want){
+      const l = mkLine(w[1], w[2], w[3], w[4]);
+      if(w[0] === "poc" || w[0][0] === "p") setLine(l, { lineWidth:2 });   // POC et niveaux de la veille bien visibles
+      flowLines.push(l); S.flowL.by[w[0]] = l;
+    }
+  } else {
+    for(const w of want){ const l = S.flowL.by[w[0]]; if(l && l.price !== w[1]) setLine(l, { price:w[1] }); }
+  }
+}
+
+/* ---- graphiques : series et dessins propres au flow ---- */
+const FLOW_OFF_MARGINS = { top:0.1, bottom:0.1 }, FLOW_CVD_MARGINS = { top:0.06, bottom:0.30 };
+function flowAttachPanes(){
+  for(const p of PANES){
+    if(p.flowAttached) continue;
+    p.flowAttached = true;
+    const band = { scaleMargins:{ top:0.74, bottom:0.02 }, visible:false };
+    p.fDelta = p.chart.addHistogramSeries({ priceScaleId:"fdelta", priceLineVisible:false, lastValueVisible:false });
+    p.fCvd   = p.chart.addLineSeries({ priceScaleId:"fcvd", color:"#4D8CFF", lineWidth:2, priceLineVisible:false, lastValueVisible:false });
+    p.fHi    = p.chart.addLineSeries({ priceScaleId:"fcvd", color:"rgba(77,140,255,.55)", lineWidth:1, lineStyle:2, priceLineVisible:false, lastValueVisible:false });
+    p.fLo    = p.chart.addLineSeries({ priceScaleId:"fcvd", color:"rgba(77,140,255,.55)", lineWidth:1, lineStyle:2, priceLineVisible:false, lastValueVisible:false });
+    p.chart.priceScale("fdelta").applyOptions(band);
+    p.chart.priceScale("fcvd").applyOptions(band);
+    p.fPrim = new FlowPrimitive(p);
+    p.series.attachPrimitive(p.fPrim);
+    p.flowLen = 0;
+  }
+}
+
+/* Valeur du CVD (minutes closes) a l'instant ms, null avant 09:30. */
+function flowCvdAt(ms, n){
+  const f = S.flow;
+  if(ms < f.raw.m0) return null;
+  const k = Math.max(0, Math.min(n, Math.floor((ms - f.raw.m0) / 60000)));
+  return f.cvd[k];
+}
+
+/* Reconstruit le panneau CVD d'un graphique. */
+function flowPaneData(p, n){
+  const f = S.flow, show = flowActive() && FLOW.on.cvd;
+  p.series.priceScale().applyOptions({ scaleMargins: show ? FLOW_CVD_MARGINS : FLOW_OFF_MARGINS });
+  if(!show){ p.fDelta.setData([]); p.fCvd.setData([]); p.fHi.setData([]); p.fLo.setData([]); p.flowLen = p.bars.length; return; }
+  const off = S.nyOff + (S.dayShift || 0), tf = tfOf(p.k), nowMs = S.marketMs;
+  const orbEndSec = Math.floor((f.raw.m0 + 15 * 60000 + off) / 1000);
+  const dl = [], cv = [], hi = [], lo = [];
+  for(let i = 0; i < p.bars.length; i++){
+    const b = p.bars[i];
+    const startMs = b.time * 1000 - off;
+    const endMs = tf.sec ? Math.min(startMs + tf.sec * 1000, nowMs)
+                         : Math.min(i + 1 < p.bars.length ? p.bars[i+1].time * 1000 - off : nowMs, nowMs);
+    const c = flowCvdAt(endMs, n);
+    if(c === null) continue;
+    cv.push({ time:b.time, value:c });
+    if(tf.sec){
+      /* delta de la bougie = minutes CLOSES de la bougie ; rien tant qu'aucune ne l'est */
+      const m0 = f.raw.m0;
+      const kS = startMs <= m0 ? 0 : Math.min(n, Math.floor((startMs - m0) / 60000));
+      const kE = Math.max(0, Math.min(n, Math.floor((endMs - m0) / 60000)));
+      if(kE > kS){
+        const d = f.cvd[kE] - f.cvd[kS];
+        dl.push({ time:b.time, value:d, color: d >= 0 ? "rgba(34,197,94,.55)" : "rgba(239,68,68,.55)" });
+      }
+    }
+    if(n >= f.orbN && f.oHi !== null && b.time >= orbEndSec){
+      hi.push({ time:b.time, value:f.oHi }); lo.push({ time:b.time, value:f.oLo });
+    }
+  }
+  p.fDelta.setData(dl); p.fCvd.setData(cv); p.fHi.setData(hi); p.fLo.setData(lo);
+  p.flowLen = p.bars.length;
+}
+
+/* Appelee a chaque image (force = apres un rechargement des bougies). */
+function flowRefresh(force){
+  if(!PANES.length) return;
+  if(!flowActive()){
+    if(force || S.flowShown){ for(const p of PANES){ if(p.fCvd) flowPaneData(p, 0); p.fPrim && p.fPrim.touch(); } flowSyncLines(); S.flowShown = false; }
+    return;
+  }
+  S.flowShown = true;
+  const n = flowDoneMinutes();
+  const minuteChanged = n !== S.flowN;
+  if(minuteChanged) flowAdvanceProfile(n);
+  const nowT = performance.now();
+  const live = force || minuteChanged || nowT - S.fLiveT > 200;
+  if(live){ S.fLiveT = nowT; flowLive(n); }
+  for(const p of PANES){
+    if(!p.fCvd) continue;
+    if(force || minuteChanged) flowPaneData(p, n);
+    else if(FLOW.on.cvd && p.bars.length > p.flowLen){
+      /* nouvelle bougie dans la minute : la ligne du CVD est prolongee */
+      const c = flowCvdAt(S.marketMs, n);
+      for(let i = p.flowLen; i < p.bars.length; i++) if(c !== null) p.fCvd.update({ time:p.bars[i].time, value:c });
+      p.flowLen = p.bars.length;
+    }
+    p.fPrim.touch();
+  }
+  if(live) flowSyncLines();
+}
+
+/* ---- dessin : profils (droite = seance, gauche = veille) et gros ordres ---- */
+class FlowPrimitive {
+  constructor(p){ this.p = p; this.req = null; const self = this;
+    this.view = { renderer(){ return { draw(target){ self.draw(target); } }; }, zOrder(){ return "top"; } }; }
+  attached(param){ this.req = param.requestUpdate; }
+  detached(){ this.req = null; }
+  paneViews(){ return [this.view]; }
+  updateAllViews(){}
+  touch(){ if(this.req) this.req(); }
+  draw(target){
+    if(!flowActive()) return;
+    const p = this.p, f = S.flow, series = p.series, ts = p.chart.timeScale();
+    target.useBitmapCoordinateSpace(sc => {
+      const ctx = sc.context, hr = sc.horizontalPixelRatio, vr = sc.verticalPixelRatio;
+      const W = sc.bitmapSize.width;
+      const y = price => { const c = series.priceToCoordinate(price); return c === null ? null : c * vr; };
+      const y0 = y(flowPx(0)), y1 = y(flowPx(1));
+      if(y0 === null || y1 === null) return;
+      const pxTick = Math.abs(y0 - y1);
+      const group = Math.max(1, Math.ceil(3 * vr / Math.max(pxTick, 1e-6)));
+      const histo = (vol, buy, sell, baseTick, side, maxW, alpha, va) => {
+        let max = 0;
+        const rows = [];
+        for(let k = 0; k < vol.length; k += group){
+          let v = 0, b = 0, s = 0;
+          for(let j = k; j < Math.min(vol.length, k + group); j++){ v += vol[j]; if(buy){ b += buy[j]; s += sell[j]; } }
+          if(v > 0){ rows.push([k, v, b, s]); if(v > max) max = v; }
+        }
+        if(!max) return;
+        for(const [k, v, b, s] of rows){
+          const top = y((baseTick + k + group) * f.tick - f.tick / 2), bot = y((baseTick + k) * f.tick - f.tick / 2);
+          if(top === null || bot === null) continue;
+          const h = Math.max(1, Math.abs(bot - top) - 1 * vr), yy = Math.min(top, bot);
+          const w = v / max * maxW;
+          const inVA = va && (k + group - 1) >= va.val && k <= va.vah;
+          const isPoc = va && va.poc >= k && va.poc < k + group;
+          const pocCol = side < 0 ? "244,114,182" : "250,204,21";
+          const x0 = side > 0 ? W - w : 0;
+          if(buy && (b + s) > 0){
+            const wb = w * b / v;
+            ctx.fillStyle = isPoc ? `rgba(250,204,21,${alpha + .25})` : `rgba(34,197,94,${inVA ? alpha + .15 : alpha})`;
+            ctx.fillRect(x0, yy, wb, h);
+            ctx.fillStyle = isPoc ? `rgba(250,204,21,${alpha + .25})` : `rgba(239,68,68,${inVA ? alpha + .15 : alpha})`;
+            ctx.fillRect(x0 + wb, yy, w - wb, h);
+          } else {
+            ctx.fillStyle = isPoc ? `rgba(${pocCol},${alpha + .3})` : `rgba(244,114,182,${inVA ? alpha + .12 : alpha})`;
+            ctx.fillRect(x0, yy, w, h);
+          }
+        }
+      };
+      /* etiquette du panneau Delta / CVD */
+      if(FLOW.on.cvd){
+        const H = sc.bitmapSize.height;
+        ctx.fillStyle = "rgba(147,162,189,.75)";
+        ctx.font = `${Math.round(10 * hr)}px IBM Plex Mono, monospace`;
+        ctx.textAlign = "left"; ctx.textBaseline = "top";
+        ctx.fillText("DELTA / CVD", 8 * hr, H * 0.74 - 2 * vr);
+      }
+      /* la colonne des prix n'est pas dans cette zone : W est la largeur du trace */
+      if(FLOW.on.vp && S.dVol) histo(S.dVol, S.dBuy, S.dSell, f.raw.base, +1, W * 0.20, .28, S.dVA);
+      if(FLOW.on.prev && f.raw.prev){
+        const pr = f.raw.prev;
+        if(!pr._vol){ let span = 0; for(const x of pr.pp) span = Math.max(span, x + 1); pr._vol = new Float64Array(span); pr.pp.forEach((x, i) => pr._vol[x] = pr.pv[i]); }
+        const pva = { poc: Math.round(pr.poc / f.tick) - pr.base, vah: Math.round(pr.vah / f.tick) - pr.base, val: Math.round(pr.val / f.tick) - pr.base };
+        histo(pr._vol, null, null, pr.base, -1, W * 0.12, .14, pva);
+        /* niveaux de la veille hors de l'ecran : etiquette au bord, avec une fleche */
+        const H = sc.bitmapSize.height, bottomEdge = FLOW.on.cvd ? H * 0.70 : H - 4 * vr;
+        const up = [], down = [];
+        for(const [lab, px] of [["pPOC", pr.poc], ["pVAH", pr.vah], ["pVAL", pr.val]]){
+          const yy = y(px); if(yy === null) continue;
+          if(yy < 0) up.push(`${lab} ${px.toFixed(2)} ▲`);
+          else if(yy > bottomEdge) down.push(`${lab} ${px.toFixed(2)} ▼`);
+        }
+        ctx.font = `600 ${Math.round(10 * hr)}px IBM Plex Mono, monospace`;
+        ctx.textAlign = "right"; ctx.textBaseline = "middle";
+        const tag = (txt, yy) => {
+          const w = ctx.measureText(txt).width + 10 * hr, x1 = W - 6 * hr;
+          ctx.fillStyle = "rgba(14,23,41,.9)"; ctx.fillRect(x1 - w, yy - 8 * vr, w, 16 * vr);
+          ctx.strokeStyle = "rgba(244,114,182,.8)"; ctx.lineWidth = 1 * hr; ctx.strokeRect(x1 - w, yy - 8 * vr, w, 16 * vr);
+          ctx.fillStyle = "#F9A8D4"; ctx.fillText(txt, x1 - 5 * hr, yy);
+        };
+        up.forEach((t, i) => tag(t, (54 + i * 20) * vr));   // sous la barre CHARTS / FLOW
+        down.forEach((t, i) => tag(t, bottomEdge - (14 + i * 20) * vr));
+      }
+      if(FLOW.on.bo && f.bo.length){
+        const off = S.nyOff + (S.dayShift || 0), tf = tfOf(p.k), now = S.marketMs;
+        const vr0 = ts.getVisibleRange();
+        if(!vr0) return;
+        for(const o of f.bo){
+          const t = o[0];
+          if(t > now) break;
+          if(o[2] < FLOW.boMin) continue;
+          const sec = Math.floor((t + off) / 1000);
+          if(sec < vr0.from - 60 || sec > vr0.to + 60) continue;
+          let bt;
+          if(tf.sec) bt = Math.floor(sec / tf.sec) * tf.sec;
+          else {
+            let lo = 0, hi = p.bars.length - 1, r = -1;
+            while(lo <= hi){ const m = (lo + hi) >> 1; if(p.bars[m].time <= sec){ r = m; lo = m + 1; } else hi = m - 1; }
+            if(r < 0) continue;
+            bt = p.bars[r].time;
+          }
+          const xc = ts.timeToCoordinate(bt), yc = y(o[1]);
+          if(xc === null || yc === null) continue;
+          const rad = Math.min(14, 3 + Math.sqrt(o[2] / FLOW.boMin) * 4) * hr;
+          const pending = t + f.boSec * 1000 > now;
+          const col = o[3] > 0 ? "34,197,94" : "239,68,68";
+          ctx.beginPath(); ctx.arc(xc * hr, yc, rad, 0, Math.PI * 2);
+          if(pending){ ctx.fillStyle = `rgba(${col},.18)`; ctx.fill(); ctx.strokeStyle = `rgba(${col},.45)`; ctx.lineWidth = 1 * hr; ctx.stroke(); }
+          else if(o[4] === 2){ ctx.fillStyle = `rgba(${col},.75)`; ctx.fill(); }
+          else { ctx.strokeStyle = `rgba(${col},.95)`; ctx.lineWidth = 2 * hr; ctx.stroke(); }
+          if(rad > 7 * hr){
+            ctx.fillStyle = pending || o[4] !== 2 ? `rgba(${col},1)` : "#0E1729";
+            ctx.font = `${Math.round(9 * hr)}px IBM Plex Mono, monospace`;
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillText(String(o[2]), xc * hr, yc);
+          }
+        }
+      }
+    });
+  }
+}
+
+/* ---- barre FLOW (boutons a cote du choix du nombre de graphiques) ---- */
+function flowUI(){
+  const has = MODE !== "demo" && !!S.flow;
+  const bar = $("flowBar"); if(!bar) return;
+  bar.classList.toggle("off", !has);
+  bar.title = has ? "Order flow from the Rithmic volumes of this day"
+                  : "No volume data for this day";
+  bar.querySelectorAll("button[data-f]").forEach(b => {
+    b.classList.toggle("on", has && FLOW.on[b.dataset.f]);
+    if(b.dataset.tip === undefined) b.dataset.tip = b.title;
+    b.title = b.dataset.tip;
+    b.disabled = !has || (b.dataset.f === "prev" && !S.flow.raw.prev) || (b.dataset.f === "bo" && !S.flow.bo.length);
+    if(b.disabled && has) b.classList.remove("on");
+    if(has && b.disabled) b.title = b.dataset.f === "prev"
+      ? "No volume data for the previous session of this day"
+      : "No big-order data for this day (needs the trades_ file of SigmaTradeHistory)";
+  });
+  const sel = $("boMin"); if(sel){ sel.value = String(FLOW.boMin); sel.disabled = !has || !S.flow.bo.length; }
+}
+$("flowBar").addEventListener("click", e => {
+  const b = e.target.closest("button[data-f]"); if(!b || b.disabled) return;
+  FLOW.on[b.dataset.f] = !FLOW.on[b.dataset.f];
+  flowSave(); flowUI(); flowRefresh(true);
+});
+$("boMin").addEventListener("change", e => { FLOW.boMin = +e.target.value; flowSave(); flowRefresh(true); });
+
+/* ================================================================
    JOURNEES : sondage du dossier daypacks/ et chargement
    Un daypack porte desormais, en plus des ticks, les niveaux, l'ORB, la
    fenetre et la table des signaux. Un ancien fichier (ticks seuls) est
@@ -2147,8 +2583,12 @@ const availCache = {};
 
 async function packExists(dayIso){
   try{
-    const r = await fetch(packUrl(dayIso), { method:"HEAD", cache:"force-cache" });
-    return r.ok;
+    const r = await fetch(packUrl(dayIso), { method:"HEAD", cache:"no-cache" });
+    if(!r.ok) return false;
+    if(!CONFIG.requireFlow) return true;
+    /* v6.1.1 : seulement les journees qui ont leurs volumes (VP, CVD, gros ordres) */
+    const f = await fetch(flowUrl(dayIso), { method:"HEAD", cache:"no-cache" });
+    return f.ok;
   }catch(e){ return false; }
 }
 
@@ -2158,7 +2598,7 @@ const OLD_FORMAT_MSG = "This day is not available in the new format";
    Renvoie le pack decode, pret pour setupReplay. */
 async function loadDay(dayIso){
   if(packCache[dayIso]) return packCache[dayIso];
-  const r = await fetch(packUrl(dayIso), { cache:"force-cache" });
+  const r = await fetch(packUrl(dayIso), { cache:"no-cache" });
   if(!r.ok) throw new Error("Day pack not found on the server.");
   let raw;
   try{ raw = await r.json(); }
@@ -2221,6 +2661,7 @@ async function renderCalendar(){
       const dt = new Date(y, m, d);
       if(dt.getDay() === 0 || dt.getDay() === 6) continue;
       if(iso(dt) > today) continue;                       // pas de journee future
+      if(CONFIG.calFrom && iso(dt) < CONFIG.calFrom) continue;   // avant la premiere journee proposee
       targets.push(iso(dt));
     }
     const res = await Promise.all(targets.map(packExists));
@@ -2310,6 +2751,7 @@ $("btnStart").addEventListener("click", async () => {
   $("loadStatus").textContent = "Loading day pack…";
   try{
     const pack = await loadDay(S.day);
+    await loadFlow(S.day);   // v6.1 : volumes de la journee, facultatifs (flow_AAAAMMJJ.json)
     $("loadStatus").textContent = "";
     /* Depart tardif sur une journee dont tous les signaux sont deja passes :
        on le dit plutot que d'ouvrir une seance sans rien a prendre. */
@@ -2359,8 +2801,10 @@ function startSession(pack){
   const nb = jouables.length || sigs.length;
   $("siSub").textContent = CONFIG.symbol + " · live replay · start " + S.startPick
     + " NY · " + nb + " signal" + (nb > 1 ? "s" : "") + " from there";
+  flowStart(FLOW.cache[pack.id] || null);
   setupReplay(pack, nb, startMs);
   applyModeUI();
+  flowUI();
   setStatus("Direct signals · waiting for an authorization…");
   setShowLevels($("setLevels").checked);
   resizeCharts();

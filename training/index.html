@@ -766,14 +766,15 @@ const CONFIG = {
   costs: { spreadPts: 0.50, commissionPts: 0.25, spreadOnStop: false },
 
   /* ---- DEMO (reprise de la v17.2, journee du 14/07 embarquee) ---- */
-  demoSpeed: 1.38,                // demo rejouee 38 % plus vite
+  demoSpeed: 1.38,                // demo rejouee 38 % plus vite pendant que la voix parle
+  demoFastSpeed: 8,               // v6.2 : en silence, en attendant l'action suivante, x8
   /* ---- DEMO v6.2 : trois trades reels, order flow allume ----
      Donnees : daypacks/demo_AAAAMMJJ.json (extrait du daypack) et
      daypacks/demo_flow_AAAAMMJJ.json (volumes). Noms differents des journees :
      le calendrier ne les propose pas. */
   demo: {
     parts: [
-      { day:"2026-10-22", startNY:"10:01:30", label:"Thursday 22 October" },
+      { day:"2026-10-22", startNY:"10:02:40", label:"Thursday 22 October" },
       { day:"2026-10-19", startNY:"10:29:40", label:"Monday 19 October" }
     ]
   },
@@ -1148,7 +1149,7 @@ function advance(dtMs){
   const T = S.pack.ticks;
   /* la démo est rejouée accélérée ; les tests restent strictement en temps réel,
      sans quoi les temps de réaction ne seraient plus comparables. */
-  S.marketMs += (MODE==="demo") ? dtMs * (CONFIG.demoSpeed || 1) : dtMs * SPEED;
+  S.marketMs += (MODE==="demo") ? dtMs * demoRate() : dtMs * SPEED;
   while(S.tickIdx < T.length && T[S.tickIdx][0] <= S.marketMs){
     applyTick(T[S.tickIdx][0], T[S.tickIdx][1], false);
     S.tickIdx++;
@@ -1760,6 +1761,7 @@ function cancelSpeech(){
 }
 
 function say(text){
+  S.demoTalkUntil = performance.now() + Math.max(3000, text.length * 55);   // voix coupee : temps de lecture
   if(!voiceOn || !("speechSynthesis" in window)){ showCaption(text); return; }
   const u = new SpeechSynthesisUtterance(text);
   if(demoVoice) u.voice = demoVoice;
@@ -1814,7 +1816,7 @@ document.addEventListener("visibilitychange", ()=>{
 /* ================================================================
    DEMO v6.2 -- trois trades reels de la semaine du 19/10, order flow allume.
    1) 22/10 : divergence de CVD + gros achat au sommet, autorisation sur 29 560,
-      vente, TP partiel 29 500, stop au point d'entree, sortie sur 29 465.
+      vente, TP partiel 29 513 (juste au-dessus du POC 29 510), stop au point d'entree, sortie sur 29 465.
    2) 19/10 : autorisation dans un creux du profil, on attend le POC, achat,
       TP +20.
    3) 19/10 : retour sur le POC, rebond, achat, stop au point d'entree, sortie
@@ -1933,6 +1935,28 @@ function runDemoTrades(){
   });
 }
 
+/* v6.2 -- vitesse de la demo : normale pendant que la voix parle et juste avant
+   l'action suivante (~1 s avant son heure, ou prix a moins de 2 points) ;
+   x8 en silence, pendant l'attente. Les actions elles-memes figent le replay. */
+function demoTalking(){
+  if(voiceOn && "speechSynthesis" in window) return liveUtterances.size > 0;
+  return performance.now() < (S.demoTalkUntil || 0);
+}
+function demoRate(){
+  const slow = CONFIG.demoSpeed || 1, fast = CONFIG.demoFastSpeed || slow;
+  if(demoTalking()) return slow;
+  const ev = S.script && S.script[S.scriptIdx];
+  if(ev){
+    /* ralentit ~1 s (reelle) avant l'action suivante */
+    if(ev.at !== undefined){
+      const t = typeof ev.at === "function" ? ev.at() : ev.at;
+      if(t - S.marketMs < 1000 * slow) return slow;
+    }
+    if(ev.price !== undefined && S.price != null && Math.abs(S.price - ev.price) <= 2) return slow;
+  }
+  return fast;
+}
+
 /* enchaine sur la fin de la phrase ; voix coupee : temps de lecture du sous-titre */
 let demoRunId = 0;
 function afterSay(text, fn){
@@ -1957,18 +1981,20 @@ function buildDemoScript(){
     }},
     { afterPrevMs: 300, hold:true, run: ()=>{
         openPos("SELL");
-        addTP(5, 29500);
-        say("We sell ten contracts at " + fmtP(pos().entry) + ". The stop loss is placed automatically, twenty points above: the red line. We add a take profit for five contracts at 29 500, near the point of control of the day.");
+        addTP(5, 29513);
+        say("We sell ten contracts. The stop loss is placed automatically, twenty points above: the red line. We add a take profit for five contracts just above the point of control of the day, where buyers may defend.");
     }},
-    { cond: () => S.pos && S.pos.open === CONFIG.qty - 5, hold:true,
-      jumpTo: () => at(0, "10:14:15"),
-      run: ()=>{
+    { price: 29540, dir:"down", need:"pos", hold:true, run: ()=>{
         setSL(pos().entry);
-        say("Five contracts are closed at our take profit. We move the stop to our entry price: this trade can no longer lose. Now we let the market work.");
+        say("The price accelerates down. We move the stop to our entry price: this trade can no longer lose.");
     }},
-    { price: 29465, dir:"down", need:"pos", hold:true, run: ()=>{
+    { cond: () => S.pos && S.pos.open === CONFIG.qty - 5, hold:true, run: ()=>{
+        setSL(29530);
+        say("Five contracts are closed at our take profit. The price keeps accelerating, so we lower the stop of the last five contracts, to lock in a gain.");
+    }},
+    { price: 29485, dir:"down", need:"pos", hold:true, run: ()=>{
         closePos(true);
-        say("Price reaches the level at 29 465 and the bottom of the value area. We close the last five contracts. Net result on this trade: " + usd() + ", costs included.");
+        say("Price reaches the zone where buyers stepped in earlier in the session. We close the last five contracts there. Net result on this trade: " + usd() + ", costs included.");
     }},
     /* ---------- passage au 19/10 ---------- */
     { afterPrevMs: 400, hold:true, run: ()=>{
@@ -1979,12 +2005,12 @@ function buildDemoScript(){
     /* ---------- 2) 19/10 : creux du profil, achat sur le POC, TP +20 ---------- */
     { at: () => at(1, "10:31:00"), hold:true, run: ()=>{
         sig(29807);
-        say("Authorization on the level at 29 807. But price sits in a thin part of the profile, a gap: it can accelerate. We do not rush. We wait for the zone of the point of control, just below, around " + pocTxt() + ", where the volume is heavy.");
+        say("Authorization on the level at 29 807. But price sits in a thin part of the profile, a gap: it can accelerate. We do not rush. We wait for the zone of the point of control, just below, where the volume is heavy.");
     }},
     { price: 29769, dir:"down", hold:true, run: ()=>{
         openPos("BUY");
         addTP(CONFIG.qty);
-        say("Price accelerates down into the zone of the point of control and slows down. We buy ten contracts at " + fmtP(pos().entry) + ". After such a fast drop we keep it simple: one take profit for all ten, twenty points higher.");
+        say("Price accelerates down into the zone of the point of control and slows down. The move before was up, and we are back on a big volume zone where many buyers stepped in: we try a bounce. We buy. After such a fast drop we keep it simple: one take profit for all ten contracts, twenty points higher.");
     }},
     { cond: () => !S.pos && S.sigTaken, hold:true,
       jumpTo: () => at(1, "10:36:22"),
@@ -1992,27 +2018,31 @@ function buildDemoScript(){
         $("btnSkip").classList.add("blink");
         say("Take profit reached. Net result: " + usd() + ". In your sessions you do not wait between signals: the flashing NEXT SIGNAL button fast-forwards the replay to the next authorization.");
     }},
-    /* ---------- 3) 19/10 : retour sur le POC, rebond, achat ---------- */
+    /* ---------- 19/10 10:36 : lecture libre, on attend ---------- */
     { at: () => at(1, "10:36:28"), hold:true,
-      jumpTo: () => at(1, "10:39:00"),
+      jumpTo: () => at(1, "10:38:58"),
       run: ()=>{
         $("btnSkip").classList.remove("blink");
         sig(29807);
-        say("New authorization on the same level. Price is above the point of control. If it comes back there, we watch how it reacts.");
+        say("New authorization on the same level. Price comes back to the top of the value area, the VAH, and is rejected: sellers are coming back. Some traders would sell here. We decide to wait. The same information can be read in different ways: the decision is always yours.");
     }},
-    { at: () => at(1, "10:39:18"), hold:true, run: ()=>{
+    /* ---------- 3) 19/10 : les acheteurs reprennent la main ---------- */
+    { cond: () => S.marketMs >= at(1, "10:39:15") && S.price >= 29776, hold:true, run: ()=>{
         openPos("BUY");
-        say("Price comes back to the point of control, holds and bounces. We buy the bounce at " + fmtP(pos().entry) + ".");
+        addTP(5, 29805);
+        say("Price comes back to the point of control, holds, and the buyers take control again: the price pushes up. Now we buy, on the push, not in anticipation. Take profit on half of the position where the sellers were just before. The other half runs, to see how the market moves.");
     }},
-    { price: 29800, dir:"up", need:"pos", hold:true, run: ()=>{
-        setSL(pos().entry);
-        say("The price accelerates. We move the stop to our entry: no more risk on this trade.");
+    { cond: () => S.pos && S.pos.open === CONFIG.qty - 5, hold:true, run: ()=>{
+        say("Half of the position is closed at our take profit. The rest keeps running.");
     }},
-    { price: 29822, dir:"up", need:"pos", hold:true, run: ()=>{
-        closePos(true);
-        say("We take our profit. Net result: " + usd() + ".");
+    { price: 29820, dir:"up", need:"pos", hold:true, run: ()=>{
+        setSL(29810);
+        say("Price reaches 29 820. We raise the stop of the last five contracts just below, to lock in the gain. Be careful: we are right at the top of yesterday's value area, the previous V A H. That is the risk here: sellers may defend it.");
     }},
-    { afterPrevMs: 500, run: ()=>{
+    { cond: () => !S.pos && S.sigTaken, hold:true, run: ()=>{
+        say("The market comes back and our stop is hit. The top of the value area held, as we feared, but the trade is closed with a gain. Net result: " + usd() + ".");
+    }},
+    { afterPrevMs: 300, run: ()=>{
         say("That is the method. The key level authorizes. The order flow gives the context. The price gives the answer. And you decide. The order flow guide, on the setup screen, explains each tool.");
         S.winEndMs = S.marketMs;
         waitSpeechThen(endDemo);

@@ -167,7 +167,22 @@
   #layBar button:hover{color:var(--text);border-color:var(--border)}
   #layBar button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
   #charts.demoOn #layBar{top:48px}
-  #closeRow{margin-top:12px}       /* v6.1.1 : la cloture partielle ne colle plus aux boutons Buy / Sell */
+  #closeRow{margin-top:12px}
+  /* v6.3 -- mode Multi : une case par position, celle choisie recoit les ordres */
+  #slotBar{display:flex;gap:6px;margin:4px 0 10px}
+  #slotBar button{flex:1;border:1px solid var(--strong);background:var(--panel2);color:var(--muted);border-radius:9px;
+    padding:7px 4px;font:600 11.5px var(--mono);cursor:pointer;line-height:1.35}
+  #slotBar button.on{border-color:var(--accent);color:var(--text);box-shadow:0 0 0 1px var(--accent) inset}
+  #slotBar button .st{display:block;font-weight:500;font-size:10.5px}
+  #slotBar button .st.b{color:var(--green)} #slotBar button .st.s{color:var(--red)} #slotBar button .st.a{color:var(--link)}
+  #adminBox{border:1px solid rgba(245,158,11,.45);background:rgba(245,158,11,.06);border-radius:12px;padding:14px;margin-top:6px}
+  #adminBox .arow{display:flex;align-items:center;gap:10px;margin:8px 0;flex-wrap:wrap}
+  #adminBox .arow > span{min-width:96px;font-size:12.5px;color:var(--muted)}
+  #adminBox .seg{display:inline-flex;border:1px solid var(--strong);border-radius:9px;overflow:hidden}
+  #adminBox .seg button{background:transparent;border:none;color:var(--muted);padding:7px 12px;font:600 12px var(--mono);cursor:pointer}
+  #adminBox .seg button.on{background:var(--accent);color:#fff}
+  #adminBox input{width:80px;background:var(--panel2);border:1px solid var(--strong);color:var(--text);border-radius:8px;padding:6px 8px;font:13px var(--mono)}
+  #adminBox .swnote{margin-top:6px}       /* v6.1.1 : la cloture partielle ne colle plus aux boutons Buy / Sell */
   /* ---- v6.1 : order flow ---- */
   #layBar .sep{width:1px;height:16px;background:var(--border);margin:0 4px;padding:0}
   #flowBar{display:flex;align-items:center;gap:3px}
@@ -547,6 +562,19 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     </div>
     <p class="swnote">On by default, to see what triggers a signal. The assessment never shows them: turn it off once you are comfortable.</p>
 
+    <div id="adminWrap" class="hidden">
+      <h3 class="sect">4 &middot; Admin <span class="sub">session settings</span></h3>
+      <div id="adminBox">
+        <div class="arow"><span>Profile</span>
+          <div class="seg" id="admMode"><button type="button" data-v="single">Single</button><button type="button" data-v="multi">Multi 2</button></div></div>
+        <div class="arow"><span>Stop loss</span>
+          <div class="seg" id="admStop"><button type="button" data-v="fixed">Fixed</button><button type="button" data-v="trail">Trailing</button></div></div>
+        <div class="arow"><span>Stop distance</span>
+          <input type="number" id="admPts" min="1" max="100" step="0.25"> <span style="min-width:0">pts from entry</span></div>
+        <p class="swnote" id="admNote"></p>
+      </div>
+    </div>
+
     <p class="err hidden" id="setupErr"></p>
     <button class="btn" id="btnStart" disabled>Load day &amp; start</button>
     <p class="hint" id="loadStatus"></p>
@@ -589,6 +617,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <div id="signalCount"></div>
       <div id="aStatus">Direct signals · waiting for an authorization…</div>
       <div id="orderBox">
+        <div id="slotBar" class="hidden"></div>
         <div class="btnrow">
           <button class="tbtn" id="btnBuy" disabled>↑ Buy</button>
           <button class="tbtn" id="btnSell" disabled>↓ Sell</button>
@@ -710,7 +739,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.2.1";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.3";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -724,6 +753,11 @@ const CONFIG = {
     "ZH-NQ-8206":  null,          // Zahid, permanent, ouvert le 13/10/2026
     "OCT19-2SEM":  "2026-11-02",  // code 2 semaines, ouvert le 19/10/2026
     "OCTOBER4":    "2026-11-05"   // code 2 semaines, ouvert le 22/10/2026
+  },
+  /* v6.3 -- codes ADMIN : memes regles que les codes ci-dessus, et ils ouvrent en plus le
+     panneau « Admin » de l'ecran de preparation (mode Multi, type et distance du stop). */
+  adminCodes: {
+    "SD-ADMIN-7Q4K": null         // Nicolas, permanent, ouvert le 25/10/2026
   },
   packDir:         "daypacks/",   // dossier des daypack_AAAAMMJJ.json, a cote de la page
   calFrom:         "2026-10-13",  // premiere journee proposee (13/10 ajoute le 25/10 ; avant : 19/10)
@@ -899,6 +933,30 @@ const laySave = () => { try{ localStorage.setItem("sd_train_layout", JSON.string
 let PANES = [];        // [{k, box, div, sel, chart, series, bars, inBar}]
 
 const S = {};          // état du replay courant
+/* v6.3 -- MODE MULTI (admin) : N positions par autorisation, gerees separement.
+   S.pos, S.sigTaken et S.sigRecord designent la position ACTIVE (SLOT) : tout le code
+   existant (ouverture, stop, take profits, cloture, glisser des lignes) agit sur elle ;
+   les autres positions attendent dans SLOTS. En mode simple, une seule case. */
+let SLOTS = [{ pos:null, sigTaken:false, sigRecord:null }], SLOT = 0;
+["pos", "sigTaken", "sigRecord"].forEach(k => Object.defineProperty(S, k, {
+  get(){ return SLOTS[SLOT][k]; }, set(v){ SLOTS[SLOT][k] = v; }, enumerable:true, configurable:true }));
+function resetSlots(n){ SLOTS = Array.from({ length:n }, () => ({ pos:null, sigTaken:false, sigRecord:null })); SLOT = 0; }
+function forEachSlot(fn){ const keep = SLOT; try{ for(let i = 0; i < SLOTS.length; i++){ SLOT = i; fn(i); } } finally { SLOT = keep; } }
+const anyPos = () => SLOTS.some(x => x.pos);
+const allTaken = () => SLOTS.every(x => x.sigTaken);
+const multiOn = () => SLOTS.length > 1;
+const slotTag = p => (multiOn() && p && p.slot != null) ? `P${p.slot + 1} ` : "";
+/* reglages de la seance (admin) : stop fixe ou suiveur, distance du stop */
+const DEFAULT_SL_TICKS = 80;
+const ADMIN = { multi:false, stopMode:"fixed", stopPts:20 };
+try{
+  const sv = JSON.parse(localStorage.getItem("sd_train_admin") || "{}");
+  if(typeof sv.multi === "boolean") ADMIN.multi = sv.multi;
+  if(sv.stopMode === "fixed" || sv.stopMode === "trail") ADMIN.stopMode = sv.stopMode;
+  if(+sv.stopPts >= 1 && +sv.stopPts <= 100) ADMIN.stopPts = +sv.stopPts;
+}catch(e){}
+const adminSave = () => { try{ localStorage.setItem("sd_train_admin", JSON.stringify(ADMIN)); }catch(e){} };
+const trailOn = () => MODE === "test" && S.sessTrail === true;
 let MODE = "test";     // "demo" | "test"
 
 /* Applique les dimensions courantes, en ignorant les valeurs nulles d'un
@@ -1068,7 +1126,8 @@ function initCharts(){
 
 function setupReplay(pack, maxSignals, startMs){
   /* restes de la session précédente : position, lignes de sortie */
-  if(S.pos){ rmLine(S.pos.lines.pos); rmLine(S.pos.lines.sl); S.pos.tps.forEach(t => rmLine(t.line)); }
+  forEachSlot(() => { if(S.pos){ rmLine(S.pos.lines.pos); rmLine(S.pos.lines.sl); S.pos.tps.forEach(t => rmLine(t.line)); } });
+  resetSlots(MODE === "test" && S.sessSlots > 1 ? S.sessSlots : 1);
   if(PANES.length) clearExitLines();
   Object.assign(S, {
     pack, maxSignals,
@@ -1161,8 +1220,11 @@ function advance(dtMs){
   if(S.showLevels) renderLevelLines();
   demoScriptTick();
   updateWindow();
-  if(S.pos) updatePosUI(); else updatePerf();
-  if((S.ptT += dtMs) > 250){ S.ptT = 0; renderPartner(); }
+  forEachSlot(() => { if(S.pos) updatePosUI(); });
+  updatePerf();
+  if(S.uiDirty){ S.uiDirty = false; setSignalUI(S.winOpen); }
+  else if(S.stDirty){ S.stDirty = false; renderStopTp(); }
+  if((S.ptT += dtMs) > 250){ S.ptT = 0; renderPartner(); if(multiOn()) renderSlotBar(); }
   /* v16 : en démo, la fin du pack ne coupe plus la voix off de conclusion —
      une fois le script achevé, c'est waitSpeechThen(endDemo) qui termine. */
   if(S.tickIdx >= T.length){
@@ -1208,14 +1270,14 @@ function applyTick(ms, price, bulk){
     }
   }
   lvlStep(ms, price);                 // états des niveaux (Partner Trading)
-  if(S.pos) checkFills(price);        // stop et take profits
+  forEachSlot(() => { if(S.pos){ trailStep(price); checkFills(price); } });   // stop (suiveur) et take profits
   /* déclenchement sur la table figée : identique pour tous les candidats.
      v17.1 : un signal qui tombe pendant un trade (ou une fenêtre ouverte) est
      sauté, le candidat prendra le suivant. */
   if(MODE!=="demo" && S.sigTable){
     while(S.tabIdx < S.sigTable.length && ms >= S.sigTable[S.tabIdx].t){
       const nxt = S.sigTable[S.tabIdx++];
-      if(!S.winOpen && !S.winClosed && !S.pos){ fireSignal(nxt); break; }
+      if(!S.winOpen && !S.winClosed && !anyPos()){ fireSignal(nxt); break; }
       S.skipped.push({ i: nxt.i, t: nxt.t, level: nxt.level });
     }
   }
@@ -1335,18 +1397,19 @@ function fireSignal(sig){
   S.winOpen = true; S.winClosed = false;
   S.winStartMs = sig.t; S.winStartPrice = sig.p;
   S.winEndMs = sig.t + CONFIG.signalWindowSec * 1000;
-  S.sig = sig; S.sigTaken = false; S.sigRecord = null;
+  S.sig = sig;
+  forEachSlot(() => { S.sigTaken = false; S.sigRecord = null; });
   clearExitLines();
   const lv = sig.level && S.lvMeta ? S.lvMeta.levels.find(l => l.id === sig.level) : null;
   const lvTxt = lv ? ` · level ${fmtP(lv.price)}` : (sig.levelPrice ? ` · level ${fmtP(sig.levelPrice)}` : "");
-  setStatus(`AUTHORIZED · Buy / Sell ${CONFIG.symbol} x${CONFIG.qty}${lvTxt}`);
+  setStatus(`AUTHORIZED · Buy / Sell ${CONFIG.symbol} x${CONFIG.qty}${multiOn() ? ` · ${SLOTS.length} positions` : ""}${lvTxt}`);
   setSignalUI(true);
 }
 
 /* fenêtre d'entrée : CONFIG.signalWindowSec, compte à rebours en secondes */
 function updateWindow(){
   if(S.winOpen){
-    if(S.sigTaken && !S.pos){                 // trade déjà pris ET clôturé : signal terminé
+    if(allTaken() && !anyPos()){             // trade(s) pris ET clôturé(s) : signal terminé
       S.winOpen = false; S.winClosed = true;
       $("signalCount").textContent = "";
       setSignalUI(false);
@@ -1354,20 +1417,24 @@ function updateWindow(){
       return;
     }
     const left = Math.max(0, Math.ceil((S.winEndMs - S.marketMs) / 1000));
-    $("signalCount").textContent = S.sigTaken ? "" : left + " s";
+    $("signalCount").textContent = allTaken() ? "" : left + " s";
     if(S.marketMs >= S.winEndMs){
       S.winOpen = false; S.winClosed = true;
-      if(!S.sigTaken){
-        S.sigRecord = { result:"missed", side:null, tSignal:S.winStartMs, signalPrice:S.winStartPrice,
-                        level: S.sig && S.sig.level, tExpired:S.winEndMs };
-        setStatus("Authorization expired · waiting for the next one");
-      }
+      let missed = 0;
+      forEachSlot(() => {
+        if(!S.sigTaken){
+          missed++;
+          S.sigRecord = { result:"missed", side:null, tSignal:S.winStartMs, signalPrice:S.winStartPrice,
+                          level: S.sig && S.sig.level, tExpired:S.winEndMs };
+        }
+      });
+      if(missed && !anyPos()) setStatus("Authorization expired · waiting for the next one");
       setSignalUI(false);
     }
   } else {
     $("signalCount").textContent = "";
   }
-  if(S.winClosed && !S.pos) finishSignal();
+  if(S.winClosed && !anyPos()) finishSignal();
 }
 
 function setSignalUI(on){
@@ -1375,23 +1442,24 @@ function setSignalUI(on){
   const auth = on && !S.sigTaken;
   $("signalLamp").classList.toggle("go", auth);
   const more = S.sigTable ? S.tabIdx < S.sigTable.length : S.sigIdx < (S.maxSignals || 0);
-  $("lampWrap").classList.toggle("calc", !on && !S.pos && more);
+  $("lampWrap").classList.toggle("calc", !on && !anyPos() && more);
   $("signalTxt").textContent = auth ? "AUTHORIZED" : (S.pos ? "IN POSITION" : "STANDBY");
   $("signalTxt").classList.toggle("go", auth);
   $("signalCount").classList.toggle("go", auth);
   $("btnBuy").disabled  = !(auth && live);
   $("btnSell").disabled = !(auth && live);
   $("btnClose").disabled = !(live && S.pos);
-  $("btnPause").disabled = on || !!S.pos || MODE === "demo";
-  $("btnSkip").disabled  = on || !!S.pos || S.winClosed || MODE !== "test";
+  $("btnPause").disabled = on || anyPos() || MODE === "demo";
+  $("btnSkip").disabled  = on || anyPos() || S.winClosed || MODE !== "test";
+  renderSlotBar();
   $("stBox").classList.toggle("hidden", !S.pos);
   renderStopTp(); renderCloseQty();
 }
 /* conservé pour les appels existants (démo, sessions) */
 function applyModeUI(){
   $("logHead").innerHTML = `<th>SIG</th><th>SIDE</th><th>NET</th>`;
-  $("cfgQty").textContent = CONFIG.qty;
-  $("cfgSl").textContent = CONFIG.maxSlTicks;
+  $("cfgQty").textContent = multiOn() ? `${SLOTS.length} × ${CONFIG.qty}` : CONFIG.qty;
+  $("cfgSl").textContent = (trailOn() ? "Trail " : "") + CONFIG.maxSlTicks;
   $("cfgSym").textContent = CONFIG.symbol;
   updatePerf();
 }
@@ -1404,16 +1472,29 @@ function openPos(side){
   const pos = { side, qty: CONFIG.qty, open: CONFIG.qty, entry, sl: rTick(entry - d * maxSlPts()),
     tps: [], fills: [], tSignal: S.winStartMs, signalPrice: S.winStartPrice,
     level: S.sig && S.sig.level, tEntry: S.marketMs, reaction: (S.marketMs - S.winStartMs) / 1000,
-    slMoves: 0, tpAdded: 0, tpMoves: 0, lines: {} };
+    slMoves: 0, tpAdded: 0, tpMoves: 0, lines: {}, slot: SLOT, best: entry,
+    trail: trailOn() };
   pos.lines.pos = mkLine(entry, COL.pos, posTitle(pos), 0);
-  pos.lines.sl  = mkLine(pos.sl, COL.sl, "SL " + fmtP(pos.sl), 0);
-  S.pos = pos; S.sigTaken = true; S.tpSeq = 0;
+  pos.lines.sl  = mkLine(pos.sl, COL.sl, slTitle(pos), 0);
+  S.pos = pos; S.sigTaken = true; pos.tpSeq = 0;
   setStatus(posStatus());
+  // Multi : on passe tout de suite a la position libre suivante (P2 pret pour Buy / Sell)
+  if(multiOn()){ const nx = SLOTS.findIndex(x => !x.sigTaken); if(nx >= 0) SLOT = nx; }
   setSignalUI(S.winOpen);
 }
 function posTitle(p){
   const pts = dirOf(p.side) * ((S.price != null ? S.price : p.entry) - p.entry);
-  return `${pts >= 0 ? "+" : ""}${pts.toFixed(2)} pts POS ${sideWord(p.side)} ${p.open}`;
+  return `${slotTag(p)}${pts >= 0 ? "+" : ""}${pts.toFixed(2)} pts POS ${sideWord(p.side)} ${p.open}`;
+}
+function slTitle(p){ return `${slotTag(p)}${p.trail ? "Trail SL " : "SL "}${fmtP(p.sl)}`; }
+/* v6.3 -- stop suiveur : il suit le meilleur prix atteint depuis l'entree a la distance
+   du stop (CONFIG.maxSlTicks), et ne recule jamais. L'operateur peut toujours le rapprocher. */
+function trailStep(price){
+  const p = S.pos; if(!p || !p.trail) return;
+  const d = dirOf(p.side);
+  if(d * (price - p.best) > 0) p.best = price;
+  const cand = rTick(p.best - d * maxSlPts());
+  if(d * (cand - p.sl) > 1e-9){ p.sl = cand; setLine(p.lines.sl, { price: cand, title: slTitle(p) }); S.stDirty = true; }
 }
 function updatePosUI(){
   const p = S.pos; if(!p) return;
@@ -1421,8 +1502,8 @@ function updatePosUI(){
   updatePerf();
 }
 function unrealizedUsd(){
-  const p = S.pos; if(!p || S.price == null) return 0;
-  return dirOf(p.side) * (S.price - p.entry) * p.open * CONFIG.pointValue;
+  if(S.price == null) return 0;
+  return SLOTS.reduce((a, x) => a + (x.pos ? dirOf(x.pos.side) * (S.price - x.pos.entry) * x.pos.open * CONFIG.pointValue : 0), 0);
 }
 function updatePerf(){
   const v = (S.sessUsd || 0) + unrealizedUsd();
@@ -1501,24 +1582,26 @@ function closeTrade(kind){
   const net = gross - fees;
   const usd = net * q * CONFIG.pointValue;
   rmLine(pos.lines.pos); rmLine(pos.lines.sl); pos.tps.forEach(t => rmLine(t.line));
-  S.exitLines = [ mkLine(pos.entry, COL.exit, sideWord(pos.side) + " Entry", 2),
-                  mkLine(exit, COL.exit, sideWord(pos.side) + " Exit", 0) ];
+  S.exitLines = (S.exitLines || []).concat([ mkLine(pos.entry, COL.exit, slotTag(pos) + sideWord(pos.side) + " Entry", 2),
+                  mkLine(exit, COL.exit, slotTag(pos) + sideWord(pos.side) + " Exit", 0) ]);
   S.sessUsd = (S.sessUsd || 0) + usd;
   S.sigRecord = { result:"trade", side: pos.side, qty: q, entry: pos.entry, exit: +exit.toFixed(4),
     exits: pos.fills, closeKind: kind, pnl: +net.toFixed(2), gross: +gross.toFixed(2), fees,
     usd: +usd.toFixed(2), reaction: pos.reaction, tSignal: pos.tSignal, signalPrice: pos.signalPrice,
     level: pos.level, tEntry: pos.tEntry, tExit: S.marketMs, slFinal: pos.sl, slMoves: pos.slMoves,
-    tpAdded: pos.tpAdded, tpMoves: pos.tpMoves,
+    tpAdded: pos.tpAdded, tpMoves: pos.tpMoves, slot: multiOn() ? pos.slot + 1 : null, trail: !!pos.trail,
     entryVsSignal: +(d * (pos.signalPrice - pos.entry)).toFixed(2) };
   S.pos = null;
-  setStatus(`Closed at ${fmtP(exit)} (${kind}) · waiting for the next authorization`);
+  S.uiDirty = true;
+  setStatus(`${slotTag(pos)}Closed at ${fmtP(exit)} (${kind})` + (anyPos() || (S.winOpen && !allTaken())
+    ? "" : " · waiting for the next authorization"));
   updatePerf();
   setSignalUI(S.winOpen);
   if(MODE === "demo") demoOnTradeClosed(pos.side, usd);
 }
 
 /* ---------------- STOP / TP ---------------- */
-function tpTitle(tp){ return `TP${tp.n} ${tp.qty} ${fmtP(tp.price)}`; }
+function tpTitle(tp){ return `${tp.slot != null && multiOn() ? `P${tp.slot + 1} ` : ""}TP${tp.n} ${tp.qty} ${fmtP(tp.price)}`; }
 function freeQty(){ const p = S.pos; return p ? p.open - p.tps.filter(t => !t.filled).reduce((a, t) => a + t.qty, 0) : 0; }
 function tpCheck(price){
   const p = S.pos, d = dirOf(p.side);
@@ -1545,7 +1628,7 @@ function addTP(qty, price){
   const err = tpCheck(price); if(err){ flash(err); return false; }
   const used = new Set(p.tps.filter(t => !t.filled).map(t => t.n));
   let n = 1; while(used.has(n)) n++;
-  const tp = { id: ++S.tpSeq, n, qty, price, filled: false };
+  const tp = { id: ++p.tpSeq, n, qty, price, filled: false, slot: p.slot };
   tp.line = mkLine(price, COL.tp, tpTitle(tp), 2);
   p.tps.push(tp); p.tpAdded++;
   setStatus(posStatus()); renderStopTp();
@@ -1569,11 +1652,11 @@ function setSL(price){
   let capped = false;
   if(d * (price - lim) < -1e-9){ price = lim; capped = true; }
   const err = slCheck(price);
-  if(err){ setLine(p.lines.sl, { price: p.sl, title: "SL " + fmtP(p.sl) }); flash(err); return false; }
+  if(err){ setLine(p.lines.sl, { price: p.sl, title: slTitle(p) }); flash(err); return false; }
   if(capped) flash(`Stop set at the maximum: ${fmtP(maxSlPts())} pts (${CONFIG.maxSlTicks} ticks) from your entry, ${fmtP(lim)}`);
-  if(price === p.sl){ setLine(p.lines.sl, { price: p.sl, title: "SL " + fmtP(p.sl) }); renderStopTp(); return true; }
+  if(price === p.sl){ setLine(p.lines.sl, { price: p.sl, title: slTitle(p) }); renderStopTp(); return true; }
   p.sl = price; p.slMoves++;
-  setLine(p.lines.sl, { price, title: "SL " + fmtP(price) }); renderStopTp(); return true;
+  setLine(p.lines.sl, { price, title: slTitle(p) }); renderStopTp(); return true;
 }
 function renderStopTp(){
   const p = S.pos, box = $("stBox"); if(!box) return;
@@ -1621,8 +1704,12 @@ $("btnTpAt").addEventListener("click", () => {
 /* ---------------- glisser les lignes SL / TP sur les graphiques ---------------- */
 let DRAG = null;
 function lineAt(series, y){
-  const p = S.pos; if(!p) return null;
-  const cands = [{ kind:"sl", price: p.sl }].concat(p.tps.filter(t => !t.filled).map(t => ({ kind:"tp", tp:t, price:t.price })));
+  /* v6.3 : lignes de TOUTES les positions ; la position touchee devient la position active */
+  const cands = [];
+  SLOTS.forEach((x, i) => { const p = x.pos; if(!p) return;
+    cands.push({ kind:"sl", price: p.sl, slot:i });
+    p.tps.filter(t => !t.filled).forEach(t => cands.push({ kind:"tp", tp:t, price:t.price, slot:i })); });
+  if(!cands.length) return null;
   let best = null;
   for(const c of cands){
     const cy = series.priceToCoordinate(c.price);
@@ -1638,21 +1725,22 @@ function paneDrag(p){
   const box = p.div;
   const yOf = e => e.clientY - box.getBoundingClientRect().top;
   box.addEventListener("mousedown", e => {
-    if(MODE !== "test" || !S.pos || e.button !== 0) return;
+    if(MODE !== "test" || !anyPos() || e.button !== 0) return;
     const hit = lineAt(p.series, yOf(e)); if(!hit) return;
     e.preventDefault(); e.stopPropagation();
+    if(hit.slot !== SLOT) selectSlot(hit.slot);
     DRAG = { ...hit, chart:p.chart, series:p.series, box, yOf, start:hit.price };
     DRAG.chart.applyOptions({ handleScroll:false, handleScale:false });
     document.body.style.cursor = "ns-resize";
   }, true);
   box.addEventListener("mousemove", e => {
-    if(DRAG || MODE !== "test" || !S.pos) return;
+    if(DRAG || MODE !== "test" || !anyPos()) return;
     box.style.cursor = lineAt(p.series, yOf(e)) ? "ns-resize" : "";
   });
   box.addEventListener("dblclick", e => {
-    if(MODE !== "test" || !S.pos) return;
+    if(MODE !== "test" || !anyPos()) return;
     const hit = lineAt(p.series, yOf(e));
-    if(hit && hit.kind === "tp"){ e.preventDefault(); e.stopPropagation(); removeTP(hit.tp); }
+    if(hit && hit.kind === "tp"){ e.preventDefault(); e.stopPropagation(); if(hit.slot !== SLOT) selectSlot(hit.slot); removeTP(hit.tp); }
   }, true);
 }
 /* Les gestes suivis hors des graphiques (deplacement en cours, relachement)
@@ -1665,7 +1753,7 @@ function setupDrag(){
     if(!DRAG || !S.pos) return;
     const pr = DRAG.series.coordinateToPrice(DRAG.yOf(e)); if(pr == null) return;
     const price = rTick(pr);
-    if(DRAG.kind === "sl") setLine(S.pos.lines.sl, { price, title: "SL " + fmtP(price) });
+    if(DRAG.kind === "sl") setLine(S.pos.lines.sl, { price, title: slotTag(S.pos) + "SL " + fmtP(price) });
     else setLine(DRAG.tp.line, { price, title: `TP${DRAG.tp.n} ${DRAG.tp.qty} ${fmtP(price)}` });
     DRAG.price = price;
   });
@@ -1682,12 +1770,16 @@ function setupDrag(){
 
 function finishSignal(){
   S.winClosed = false;
-  const r = S.sigRecord || { result:"missed", side:null, tSignal:S.winStartMs, signalPrice:S.winStartPrice,
-                             level: S.sig && S.sig.level, tExpired:S.winEndMs };
-  r.signalIdx = S.sigIdx + 1;
-  logSignal(r);
-  S.records.push(r);
-  S.sigRecord = null; S.sig = null; S.sigTaken = false;
+  forEachSlot(i => {
+    const r = S.sigRecord || { result:"missed", side:null, tSignal:S.winStartMs, signalPrice:S.winStartPrice,
+                               level: S.sig && S.sig.level, tExpired:S.winEndMs };
+    r.signalIdx = S.sigIdx + 1;
+    if(multiOn()) r.slot = i + 1;
+    logSignal(r);
+    S.records.push(r);
+    S.sigRecord = null; S.sigTaken = false;
+  });
+  S.sig = null;
   S.sigIdx++;
   updateSessionHeader();
   setSignalUI(false);
@@ -1707,10 +1799,11 @@ function logSignal(r){
   const net = !traded ? '<span class="m">—</span>'
     : `<span class="${r.usd >= 0 ? "w" : "l"}">${fmtUsd(r.usd)}</span>`;
   const row = $("logTable").insertRow(0);
-  row.innerHTML = `<td class="num">#${S.sigIdx + 1}</td><td>${side}</td><td class="num">${net}</td>`;
+  row.innerHTML = `<td class="num">#${S.sigIdx + 1}${r && r.slot ? "." + r.slot : ""}</td><td>${side}</td><td class="num">${net}</td>`;
 }
 
-function tradesDone(){ return S.records ? S.records.filter(r => r.result === "trade").length : 0; }
+/* v6.3 : en Multi, les 2 positions d'une meme autorisation comptent pour un seul trade du quota */
+function tradesDone(){ return S.records ? new Set(S.records.filter(r => r.result === "trade").map(r => r.signalIdx)).size : 0; }
 function updateSessionHeader(){
   $("hSig").textContent = tradesDone();
 }
@@ -1874,6 +1967,7 @@ async function startDemo(withTour){
     return;
   }
   MODE = "demo"; demoPaused = false;
+  applySessionSettings(false);           // v6.3 : la demo garde les reglages standard
   demoSaveSettings();
   $("btnDemoPause").textContent = "⏸ Pause";
   $("demoBar").classList.remove("hidden");
@@ -2227,17 +2321,18 @@ const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0
 
 function checkAccessCode(raw){
   const code = String(raw || "").trim().toUpperCase();
-  const table = CONFIG.accessCodes || {};
+  const table = Object.assign({}, CONFIG.accessCodes || {}, CONFIG.adminCodes || {});
   let until, found = false;
   for(const k in table){
     if(k.toUpperCase() === code){ found = true; until = table[k]; break; }
   }
   if(!found) return { ok:false, reason:"unknown" };
-  if(until == null) return { ok:true };
+  const admin = Object.keys(CONFIG.adminCodes || {}).some(k => k.toUpperCase() === code);
+  if(until == null) return { ok:true, admin };
   const [y, m, d] = String(until).split("-").map(Number);
   const end = new Date(y, m - 1, d, 23, 59, 59, 999);
   if(Date.now() > end.getTime()) return { ok:false, reason:"expired", until };
-  return { ok:true, until };
+  return { ok:true, until, admin };
 }
 
 function doLogin(){
@@ -2256,6 +2351,9 @@ function doLogin(){
     return;
   }
   S.operator = name;
+  S.isAdmin = !!res.admin;
+  $("adminWrap").classList.toggle("hidden", !S.isAdmin);
+  if(S.isAdmin) renderAdmin();
   $("hName").textContent = name;
   $("loginErr").classList.add("hidden");
   $("stageLogin").classList.add("hidden");
@@ -2935,6 +3033,7 @@ function startSession(pack){
   $("siSub").textContent = CONFIG.symbol + " · live replay · start " + S.startPick
     + " NY · " + nb + " signal" + (nb > 1 ? "s" : "") + " from there";
   flowStart(FLOW.cache[pack.id] || null);
+  applySessionSettings(true);            // v6.3 : reglages admin (operateur : standard)
   setupReplay(pack, nb, startMs);
   applyModeUI();
   flowUI();
@@ -2949,6 +3048,57 @@ function startSession(pack){
   runClock();
 }
 
+/* ================================================================
+   v6.3 -- ADMIN : profil Single / Multi 2, stop fixe ou suiveur, distance
+   ================================================================ */
+function renderAdmin(){
+  $("admMode").querySelectorAll("button").forEach(b => b.classList.toggle("on", (b.dataset.v === "multi") === ADMIN.multi));
+  $("admStop").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === ADMIN.stopMode));
+  $("admPts").value = ADMIN.stopPts;
+  $("admNote").textContent = (ADMIN.multi
+      ? "Multi 2: each authorization gives two positions of " + CONFIG.qty + " " + CONFIG.symbol + ", traded and managed separately. "
+      : "Single: one position per authorization. ")
+    + (ADMIN.stopMode === "trail"
+      ? "Trailing stop: it follows the best price reached by " + fmtP(ADMIN.stopPts) + " pts and never moves back."
+      : "Fixed stop at " + fmtP(ADMIN.stopPts) + " pts from the entry; it can be brought closer, never further.");
+}
+$("admMode").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; ADMIN.multi = b.dataset.v === "multi"; adminSave(); renderAdmin(); });
+$("admStop").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; ADMIN.stopMode = b.dataset.v; adminSave(); renderAdmin(); });
+$("admPts").addEventListener("change", e => {
+  const v = Math.round(parseFloat(e.target.value) * 4) / 4;
+  if(v >= 1 && v <= 100){ ADMIN.stopPts = v; adminSave(); }
+  renderAdmin();
+});
+/* reglages appliques a une seance (operateur : toujours les reglages standard) */
+function applySessionSettings(admin){
+  const on = admin && S.isAdmin;
+  S.sessSlots = on && ADMIN.multi ? 2 : 1;
+  S.sessTrail = on && ADMIN.stopMode === "trail";
+  CONFIG.maxSlTicks = on ? Math.round(ADMIN.stopPts * 4) : DEFAULT_SL_TICKS;
+}
+/* barre des positions (mode Multi) : la case choisie recoit Buy / Sell / Close / SL / TP */
+function selectSlot(i){
+  if(i < 0 || i >= SLOTS.length) return;
+  SLOT = i;
+  setSignalUI(S.winOpen);
+  if(S.pos) setStatus(posStatus());
+}
+function renderSlotBar(){
+  const bar = $("slotBar"); if(!bar) return;
+  bar.classList.toggle("hidden", !multiOn());
+  if(!multiOn()){ bar.innerHTML = ""; return; }
+  bar.innerHTML = SLOTS.map((x, i) => {
+    let st, cls = "";
+    if(x.pos){
+      const pts = dirOf(x.pos.side) * ((S.price != null ? S.price : x.pos.entry) - x.pos.entry);
+      st = `${x.pos.side} ${x.pos.open} · ${pts >= 0 ? "+" : ""}${pts.toFixed(2)}`; cls = x.pos.side === "BUY" ? "b" : "s";
+    } else if(S.winOpen && !x.sigTaken){ st = "authorized"; cls = "a"; }
+    else st = x.sigTaken ? "done" : "flat";
+    return `<button type="button" data-i="${i}" class="${i === SLOT ? "on" : ""}">P${i + 1}<span class="st ${cls}">${st}</span></button>`;
+  }).join("");
+}
+$("slotBar").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if(b) selectSlot(+b.dataset.i); });
+
 /* --- Next signal : la table est figee, le prochain signal est connu --- */
 function predictNextSignalMs(){
   if(!S.sigTable) return null;
@@ -2956,7 +3106,7 @@ function predictNextSignalMs(){
   return nxt ? nxt.t : null;
 }
 $("btnSkip").addEventListener("click", () => {
-  if(S.winOpen || S.winClosed || S.pos || MODE !== "test") return;
+  if(S.winOpen || S.winClosed || anyPos() || MODE !== "test") return;
   $("btnSkip").classList.remove("blink");
   const fireMs = predictNextSignalMs();
   if(fireMs === null){ fastForwardTo(S.pack.ticks[S.pack.ticks.length - 1][0]); return; }
@@ -2965,7 +3115,7 @@ $("btnSkip").addEventListener("click", () => {
 });
 
 $("btnPause").addEventListener("click", () => {
-  if(S.winOpen || S.winClosed || S.pos || MODE !== "test") return;
+  if(S.winOpen || S.winClosed || anyPos() || MODE !== "test") return;
   stopClock();
   $("pauseOverlay").classList.remove("hidden");
 });
@@ -3002,7 +3152,7 @@ addEventListener("keydown", e => { if(e.key === "Escape" && MODE === "demo") qui
    ================================================================ */
 $("btnQuit").addEventListener("click", () => {
   if(MODE !== "test") return;
-  if(S.pos) closePos(true);
+  forEachSlot(() => { if(S.pos) closePos(true); });
   if(S.winOpen || S.winClosed){ S.winOpen = false; S.winClosed = false; finishSignal(); }
   if(!$("sim").classList.contains("hidden")) endSession();
 });
@@ -3019,7 +3169,8 @@ function endSession(){
   const money = v => fmtUsd(+v.toFixed(2));
   $("endSub").textContent = `${S.operator || "Operator"} · ${S.pack.day} · `
     + `${trades.length} trade${trades.length > 1 ? "s" : ""} on ${S.sigTable.length} signal`
-    + `${S.sigTable.length > 1 ? "s" : ""} · ${CONFIG.qty} ${CONFIG.symbol} per trade`;
+    + `${S.sigTable.length > 1 ? "s" : ""} · ${CONFIG.qty} ${CONFIG.symbol} per trade`
+    + (S.sessSlots > 1 ? ` · Multi ${S.sessSlots}` : "") + (S.sessTrail ? ` · trailing stop ${fmtP(maxSlPts())} pts` : "");
   const put = (id, txt, cls) => { const e = $(id); e.textContent = txt; e.className = "num" + (cls ? " " + cls : ""); };
   put("ePnl", money(st.usd), st.usd >= 0 ? "w" : "l");
   put("eWin", trades.length ? Math.round(100 * st.winRate) + " %" : "—");
@@ -3048,7 +3199,7 @@ function endSession(){
     if(r.result !== "trade")
       return `<tr><td>${t}</td><td>${lvPrice(r.level)}</td><td colspan="4">missed</td><td>—</td></tr>`;
     return `<tr><td>${t}</td><td>${lvPrice(r.level)}</td>`
-      + `<td style="color:${r.side === "BUY" ? "var(--green)" : "var(--red)"}">${r.side}</td>`
+      + `<td style="color:${r.side === "BUY" ? "var(--green)" : "var(--red)"}">${r.slot ? "P" + r.slot + " " : ""}${r.side}</td>`
       + `<td>${fmtP(r.entry)}</td><td>${fmtP(r.exit)}</td><td>${r.closeKind}</td>`
       + `<td class="${r.usd >= 0 ? "w" : "l"}">${money(r.usd)}</td></tr>`;
   }).join("");

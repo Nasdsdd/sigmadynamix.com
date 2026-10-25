@@ -710,7 +710,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.2";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.2.1";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1563,8 +1563,15 @@ function clearTPs(){ if(!S.pos) return; S.pos.tps.filter(t => !t.filled).forEach
 function setSL(price){
   const p = S.pos; if(!p) return false;
   price = rTick(price);
+  /* v6.2.1 -- au-dela du maximum : le stop est pose AU maximum (20 pts), avec le message,
+     au lieu d'annuler le deplacement (meme regle que le Terminal). */
+  const d = dirOf(p.side), lim = rTick(p.entry - d * maxSlPts());
+  let capped = false;
+  if(d * (price - lim) < -1e-9){ price = lim; capped = true; }
   const err = slCheck(price);
-  if(err){ setLine(p.lines.sl, { price: p.sl }); flash(err); return false; }
+  if(err){ setLine(p.lines.sl, { price: p.sl, title: "SL " + fmtP(p.sl) }); flash(err); return false; }
+  if(capped) flash(`Stop set at the maximum: ${fmtP(maxSlPts())} pts (${CONFIG.maxSlTicks} ticks) from your entry, ${fmtP(lim)}`);
+  if(price === p.sl){ setLine(p.lines.sl, { price: p.sl, title: "SL " + fmtP(p.sl) }); renderStopTp(); return true; }
   p.sl = price; p.slMoves++;
   setLine(p.lines.sl, { price, title: "SL " + fmtP(price) }); renderStopTp(); return true;
 }

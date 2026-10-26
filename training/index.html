@@ -761,7 +761,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.5";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.5.1";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -792,7 +792,7 @@ const CONFIG = {
      0 = sans limite : en training l'operateur prend autant de signaux qu'il
      veut, la seance va jusqu'au dernier signal de la journee. Mettre 5 pour
      coller au format du recrutement. */
-  signalWindowSec: 180,           // fenetre d'entree de 3 minutes apres chaque signal
+  signalWindowSec: 300,           // v6.5.1 : fenetre d'entree de 5 minutes apres chaque signal (comme le logiciel)
   tradesPerSession: 0,
   historyMin:      60,            // minutes de bougies 1-min visibles avant le depart
   historyTickMin:  10,            // minutes de bougies tick visibles avant le depart
@@ -854,7 +854,7 @@ const TOUR = [
   { el:"ptBox",     title:"Partner Trading",
     text:"The price levels that can trigger your next signal, nearest first. ARMED: ready to fire. WAIT: has fired, and fires again only after the price has moved away and come back. 1/3: times fired / maximum. TICKS: distance from the current price, in red when very close. ORB: high and low of the first 15 minutes." },
   { el:"signalBox", title:"Actions",
-    text:"When the price reaches a level: AUTHORIZED, with a countdown of 180 seconds. Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit 20 points away, or type a price and use SL @ / TP @. The stop starts at its maximum, 20.00 points: you can bring it closer, never further." },
+    text:"When the price reaches a level: AUTHORIZED, with a countdown of 300 seconds. Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit 20 points away, or type a price and use SL @ / TP @. The stop starts at its maximum, 20.00 points: you can bring it closer, never further." },
   { el:"perfBox",   title:"Performance",
     text:"Your net result for the session, in dollars, costs included. The open position is counted at the current price." },
   { el:"log",       title:"Trade log",
@@ -2122,7 +2122,7 @@ function buildDemoScript(){
     }},
     { at: () => at(0, "10:04:19"), hold:true, run: ()=>{
         sig(29560);
-        say("Authorization: price comes back to the key level at 29 560, the top of the opening range. The lamp turns blue, you have three minutes. With the divergence, we choose to sell.");
+        say("Authorization: price comes back to the key level at 29 560, the top of the opening range. The lamp turns blue, you have five minutes. With the divergence, we choose to sell.");
     }},
     { afterPrevMs: 300, hold:true, run: ()=>{
         openPos("SELL");

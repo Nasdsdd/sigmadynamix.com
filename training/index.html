@@ -189,6 +189,18 @@
   #layBar #flowBar button{width:auto;padding:0 7px}
   #layBar #flowBar button:disabled{opacity:.35;cursor:not-allowed}
   #flowBar.off span{opacity:.45}
+  /* ---- v6.4 : outils de dessin (comme le Terminal) ---- */
+  #drawDd{position:relative;display:flex}
+  #layBar #drawMain{width:auto;padding:0 8px;font:700 10.5px var(--mono)}
+  #drawMenu{position:absolute;top:28px;right:0;display:none;flex-direction:column;gap:2px;min-width:150px;z-index:30;
+    background:var(--panel2);border:1px solid var(--strong);border-radius:10px;padding:5px;box-shadow:0 8px 22px rgba(0,0,0,.45)}
+  #drawDd.open #drawMenu{display:flex}
+  #layBar #drawMenu button{width:auto;height:28px;display:flex;align-items:center;gap:9px;padding:0 9px;text-align:left;
+    font:500 12px var(--sans, inherit);color:var(--text)}
+  #layBar #drawMenu button i{font-style:normal;width:14px;text-align:center;color:var(--muted)}
+  #layBar #drawMenu button.on i{color:#fff}
+  #drawMenu .dsep{height:1px;background:var(--border);margin:3px 4px}
+  .chartBox.drawing .cdiv{cursor:crosshair}
   #boMin{width:auto;font:600 10px var(--mono);color:var(--muted);background:transparent;border:1px solid var(--border);
     border-radius:6px;padding:2px 3px;cursor:pointer}
   #boMin:disabled{opacity:.35;cursor:not-allowed}
@@ -585,7 +597,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="order_flow_guide.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="order_flow_guide.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -739,7 +751,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.3.3";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.4";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1032,6 +1044,7 @@ function buildPanes(){
     const p = { k:LAY.tf[i], box, div, sel, chart, series, bars:[], inBar:0 };
     PANES.push(p);
     paneDrag(p);
+    drawAttach(p);   // v6.4 : outils de dessin
     /* Entre deux sessions le simulateur est masqué : clientWidth et clientHeight
        retombent à 0 et l'observateur appliquait ces dimensions aux graphiques.
        Selon le navigateur il ne se redéclenche pas toujours au réaffichage, et
@@ -1129,6 +1142,7 @@ function setupReplay(pack, maxSignals, startMs){
   forEachSlot(() => { if(S.pos){ rmLine(S.pos.lines.pos); rmLine(S.pos.lines.sl); S.pos.tps.forEach(t => rmLine(t.line)); } });
   resetSlots(MODE === "test" && S.sessSlots > 1 ? S.sessSlots : 1);
   if(PANES.length) clearExitLines();
+  drawReset();   // v6.4 : les dessins de la session precedente ne passent pas a la suivante
   Object.assign(S, {
     pack, maxSignals,
     sigTable: SIGNAL_TABLE[pack.id] || null,   // signaux figés (null en démo)
@@ -1725,7 +1739,7 @@ function paneDrag(p){
   const box = p.div;
   const yOf = e => e.clientY - box.getBoundingClientRect().top;
   box.addEventListener("mousedown", e => {
-    if(MODE !== "test" || !anyPos() || e.button !== 0) return;
+    if(MODE !== "test" || !anyPos() || e.button !== 0 || DRAW.mode) return;
     const hit = lineAt(p.series, yOf(e)); if(!hit) return;
     e.preventDefault(); e.stopPropagation();
     if(hit.slot !== SLOT) selectSlot(hit.slot);
@@ -2661,6 +2675,185 @@ function flowRefresh(force){
 }
 
 /* ---- dessin : profils (droite = seance, gauche = veille) et gros ordres ---- */
+/* ================================================================
+   v6.4 -- OUTILS DE DESSIN (memes outils que le Terminal)
+   Menu « Draw » de la barre des graphiques : Line, Trend, Fibonacci, Erase, Clear all.
+   - Line : ligne horizontale bleue au prix clique, sur TOUS les graphiques.
+   - Trend / Fibonacci : deux clics ; les points sont ancres en (heure, prix) et dessines sur
+     tous les graphiques, quelle que soit leur unite (1 min, 5 min, ticks...). Les clics
+     s'aimantent au plus haut / plus bas de la bougie quand ils en sont proches.
+   - Erase : retire le dessin le plus proche du clic ; Clear all : tout.
+   - Echap annule l'outil en cours. Chaque nouvelle session repart d'un graphique vierge.
+   ================================================================ */
+const DRAW = { mode:null, pend:null, hover:null, items:[] };   // items : {type:"line", l} | {type:"trend"|"fib", a:{t,p}, b:{t,p}}
+const FIB_LEVELS = [[0, "#9AA3B5"], [0.236, "#F23645"], [0.382, "#FF9800"], [0.5, "#4CAF50"], [0.618, "#089981"], [0.786, "#00BCD4"], [1, "#9AA3B5"]];
+const DRAW_BLUE = "#4D8CFF";
+function drawUpdate(){ PANES.forEach(p => { if(p.dReq) p.dReq(); }); }
+function drawPaint(){
+  const lab = { line:"Line", trend:"Trend", fib:"Fib", erase:"Erase" };
+  const main = $("drawMain"); if(!main) return;
+  main.classList.toggle("on", !!DRAW.mode);
+  main.textContent = DRAW.mode ? "✎ " + lab[DRAW.mode] + " ▾" : "✎ Draw ▾";
+  $("drawMenu").querySelectorAll("button[data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === DRAW.mode));
+  PANES.forEach(p => p.box.classList.toggle("drawing", !!DRAW.mode));
+}
+function setDrawMode(m){
+  DRAW.mode = (m && DRAW.mode !== m) ? m : null;
+  DRAW.pend = null; DRAW.hover = null;
+  drawPaint(); drawUpdate();
+}
+function drawReset(){
+  DRAW.items.forEach(it => { if(it.type === "line") rmLine(it.l); });
+  DRAW.items = []; DRAW.pend = null; DRAW.hover = null; DRAW.mode = null;
+  drawPaint(); drawUpdate();
+}
+/* duree d'une bougie de ce graphique (ticks : moyenne des 50 dernieres) */
+function barDur(p){
+  const tf = tfOf(p.k); if(!tf.ticks) return tf.sec;
+  const B = p.bars, n = B.length; if(n < 2) return 1;
+  const k = Math.min(50, n - 1);
+  return Math.max(0.2, (B[n - 1].time - B[n - 1 - k].time) / k);
+}
+/* heure (s) <-> position logique sur l'axe de CE graphique */
+function logicalOfTime(p, t){
+  const B = p.bars, n = B.length; if(!n) return null;
+  let lo = 0, hi = n - 1, i = -1;
+  while(lo <= hi){ const m = (lo + hi) >> 1; if(B[m].time <= t){ i = m; lo = m + 1; } else hi = m - 1; }
+  if(i < 0) return (t - B[0].time) / barDur(p);
+  if(i === n - 1) return n - 1 + (t - B[n - 1].time) / barDur(p);
+  return i + (t - B[i].time) / Math.max(1e-6, B[i + 1].time - B[i].time);
+}
+/* la bibliotheque ne place que des positions logiques ENTIERES : interpolation entre deux bougies */
+function xOfTime(p, t){
+  const lg = logicalOfTime(p, t); if(lg == null) return null;
+  const ts = p.chart.timeScale(), i = Math.floor(lg);
+  const x0 = ts.logicalToCoordinate(i), x1 = ts.logicalToCoordinate(i + 1);
+  if(x0 == null || x1 == null) return null;
+  return x0 + (x1 - x0) * (lg - i);
+}
+/* point clique -> {t, p}, aimante au plus haut / plus bas de la bougie a moins de 12 px */
+function drawPoint(p, x, y){
+  const lg = p.chart.timeScale().coordinateToLogical(x); if(lg == null) return null;
+  const pr = p.series.coordinateToPrice(y); if(pr == null) return null;
+  const B = p.bars, n = B.length; if(!n) return null;
+  const i = Math.round(lg);
+  let t, price = pr;
+  if(i >= 0 && i < n){
+    const b = B[i]; t = b.time;
+    const yh = p.series.priceToCoordinate(b.high), yl = p.series.priceToCoordinate(b.low);
+    if(yh != null && Math.abs(yh - y) <= 12) price = b.high;
+    else if(yl != null && Math.abs(yl - y) <= 12) price = b.low;
+  } else if(i >= n) t = B[n - 1].time + (lg - (n - 1)) * barDur(p);
+  else t = B[0].time + lg * barDur(p);
+  return { t, p: rTick(price) };
+}
+function fibPrice(it, lvl){ return it.b.p + (it.a.p - it.b.p) * lvl; }   // 100 % au 1er clic, 0 % au 2e
+function segDist(px, py, x1, y1, x2, y2){
+  const dx = x2 - x1, dy = y2 - y1, L = dx * dx + dy * dy;
+  const k = L ? Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / L)) : 0;
+  return Math.hypot(px - (x1 + k * dx), py - (y1 + k * dy));
+}
+function drawErase(p, x, y){
+  let best = null;
+  DRAW.items.forEach((it, i) => {
+    let d = Infinity;
+    if(it.type === "line"){ const yy = p.series.priceToCoordinate(it.l.price); if(yy != null) d = Math.abs(yy - y); }
+    else {
+      const xa = xOfTime(p, it.a.t), xb = xOfTime(p, it.b.t), ya = p.series.priceToCoordinate(it.a.p), yb = p.series.priceToCoordinate(it.b.p);
+      if(xa == null || xb == null || ya == null || yb == null) return;
+      if(it.type === "trend") d = segDist(x, y, xa, ya, xb, yb);
+      else if(x >= Math.min(xa, xb) - 6)
+        FIB_LEVELS.forEach(([l]) => { const yy = p.series.priceToCoordinate(fibPrice(it, l)); if(yy != null) d = Math.min(d, Math.abs(yy - y)); });
+    }
+    if(d <= 8 && (!best || d < best.d)) best = { i, d };
+  });
+  if(!best) return false;
+  const it = DRAW.items[best.i];
+  if(it.type === "line") rmLine(it.l);
+  DRAW.items.splice(best.i, 1);
+  return true;
+}
+function drawClick(p, x, y){
+  if(!DRAW.mode || MODE !== "test" && MODE !== "demo") return;
+  if(DRAW.mode === "erase"){ if(drawErase(p, x, y)) drawUpdate(); return; }
+  const pt = drawPoint(p, x, y); if(!pt) return;
+  if(DRAW.mode === "line"){
+    const l = mkLine(pt.p, DRAW_BLUE, "", 0); setLine(l, { lineWidth:2 });
+    DRAW.items.push({ type:"line", l });
+    setDrawMode(null); return;
+  }
+  if(!DRAW.pend){ DRAW.pend = pt; DRAW.hover = pt; drawUpdate(); return; }
+  DRAW.items.push({ type: DRAW.mode, a: DRAW.pend, b: pt });
+  setDrawMode(null);
+}
+function drawAttach(p){
+  const prim = {
+    attached(param){ p.dReq = param.requestUpdate; },
+    detached(){ p.dReq = null; },
+    updateAllViews(){},
+    paneViews(){ return [view]; }
+  };
+  const view = { zOrder(){ return "top"; }, renderer(){ return { draw(target){ drawPaneArt(p, target); } }; } };
+  try{ p.series.attachPrimitive(prim); }catch(e){ console.warn("draw: attachPrimitive failed", e); }
+  /* clics lus sur le conteneur (et non subscribeClick : deux clics rapproches y deviennent un
+     double-clic et le second est perdu) ; un glisser (deplacement du graphique) n'est pas un clic */
+  let down = null;
+  const rel = e => { const r = p.div.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  p.div.addEventListener("mousedown", e => { down = (DRAW.mode && e.button === 0) ? rel(e) : null; }, true);
+  p.div.addEventListener("mouseup", e => {
+    if(!down || !DRAW.mode) return;
+    const [x, y] = rel(e), moved = Math.hypot(x - down[0], y - down[1]); down = null;
+    if(moved > 4) return;
+    if(x > p.chart.timeScale().width()) return;          // clic sur l'echelle des prix
+    drawClick(p, x, y);
+  });
+  p.chart.subscribeCrosshairMove(param => {
+    if(!DRAW.pend || !param || !param.point) return;
+    const pt = drawPoint(p, param.point.x, param.point.y); if(pt){ DRAW.hover = pt; drawUpdate(); }
+  });
+}
+function drawPaneArt(p, target){
+  const list = DRAW.items.filter(it => it.type !== "line");
+  if(DRAW.pend && DRAW.hover) list.push({ type: DRAW.mode, a: DRAW.pend, b: DRAW.hover, preview:true });
+  if(!list.length) return;
+  target.useMediaCoordinateSpace(sc => {
+    const ctx = sc.context, W = sc.mediaSize.width;
+    ctx.font = "11px ui-monospace, Menlo, Consolas, monospace"; ctx.textBaseline = "bottom";
+    for(const it of list){
+      const xa = xOfTime(p, it.a.t), xb = xOfTime(p, it.b.t);
+      const ya = p.series.priceToCoordinate(it.a.p), yb = p.series.priceToCoordinate(it.b.p);
+      if(xa == null || xb == null || ya == null || yb == null) continue;
+      ctx.globalAlpha = it.preview ? 0.6 : 1;
+      if(it.type === "trend"){
+        ctx.strokeStyle = DRAW_BLUE; ctx.lineWidth = 2; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(xa, ya); ctx.lineTo(xb, yb); ctx.stroke();
+        ctx.fillStyle = DRAW_BLUE;
+        [[xa, ya], [xb, yb]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill(); });
+      } else if(it.type === "fib"){
+        const x0 = Math.max(0, Math.min(xa, xb));
+        for(const [l, col] of FIB_LEVELS){
+          const pr = fibPrice(it, l), y = p.series.priceToCoordinate(pr); if(y == null) continue;
+          ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.setLineDash([]);
+          ctx.beginPath(); ctx.moveTo(x0, Math.round(y) + 0.5); ctx.lineTo(W, Math.round(y) + 0.5); ctx.stroke();
+          ctx.fillStyle = col; ctx.fillText((l * 100).toFixed(l === 0 || l === 1 || l === 0.5 ? 0 : 1) + "% (" + fmtP(rTick(pr)) + ")", x0 + 4, y - 2);
+        }
+        ctx.strokeStyle = "#B2B5BE"; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(xa, ya); ctx.lineTo(xb, yb); ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+    ctx.globalAlpha = 1;
+  });
+}
+$("drawMain").addEventListener("click", () => $("drawDd").classList.toggle("open"));
+$("drawMenu").addEventListener("click", e => {
+  const b = e.target.closest("button[data-t]"); if(!b) return;
+  $("drawDd").classList.remove("open");
+  if(b.dataset.t === "clear"){ drawReset(); return; }
+  setDrawMode(b.dataset.t);
+});
+document.addEventListener("click", e => { if(!$("drawDd").contains(e.target)) $("drawDd").classList.remove("open"); });
+addEventListener("keydown", e => { if(e.key === "Escape"){ $("drawDd").classList.remove("open"); if(DRAW.mode) setDrawMode(null); } });
+
 class FlowPrimitive {
   constructor(p){ this.p = p; this.req = null; const self = this;
     this.view = { renderer(){ return { draw(target){ self.draw(target); } }; }, zOrder(){ return "top"; } }; }

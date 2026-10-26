@@ -201,6 +201,16 @@
   #layBar #drawMenu button.on i{color:#fff}
   #drawMenu .dsep{height:1px;background:var(--border);margin:3px 4px}
   .chartBox.drawing .cdiv{cursor:crosshair}
+  /* v6.5 -- menu VIEW */
+  #viewDd{position:relative;display:flex;margin-left:3px}
+  #layBar #viewMain{width:auto;padding:0 8px;font:700 10.5px var(--mono)}
+  #viewMenu{position:absolute;top:28px;right:0;display:none;flex-direction:column;gap:2px;min-width:200px;z-index:30;
+    background:var(--panel2);border:1px solid var(--strong);border-radius:10px;padding:5px;box-shadow:0 8px 22px rgba(0,0,0,.45)}
+  #viewDd.open #viewMenu{display:flex}
+  #viewMenu label{display:flex;align-items:center;gap:8px;height:28px;padding:0 9px;border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap}
+  #viewMenu label:hover{background:rgba(148,163,184,.10)}
+  #viewMenu input{accent-color:var(--accent);width:14px;height:14px;margin:0;cursor:pointer}
+  #viewMenu .dsep{height:1px;background:var(--border);margin:3px 4px}
   #boMin{width:auto;font:600 10px var(--mono);color:var(--muted);background:transparent;border:1px solid var(--border);
     border-radius:6px;padding:2px 3px;cursor:pointer}
   #boMin:disabled{opacity:.35;cursor:not-allowed}
@@ -597,7 +607,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="order_flow_guide.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="order_flow_guide.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label></div></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -751,7 +761,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.4";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.5";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1366,17 +1376,37 @@ function renderPartner(){
    Une ligne est decrite une fois et portee par autant de poignees qu'il y a
    de graphiques affiches. Changer la disposition les repose toutes. */
 let LINES = new Set();
-function mkLine(price, color, title, style){
-  const l = { price, o:{ price, color, lineWidth:1, lineStyle:style || 0, axisLabelVisible:true, title }, h:[] };
+/* v6.5 -- menu VIEW : compte a rebours de la bougie, etiquettes sur le graphique / sur l'echelle */
+const VIEW = { cd:false, lblChart:true, lblAxis:true };
+try{
+  const sv = JSON.parse(localStorage.getItem("sd_train_view") || "{}");
+  ["cd", "lblChart", "lblAxis"].forEach(k => { if(typeof sv[k] === "boolean") VIEW[k] = sv[k]; });
+}catch(e){}
+/* v6.5 -- etiquettes masquables (menu VIEW) : keep = ligne d'ordre (position, stop, TP, entree /
+   sortie), jamais masquee. Les autres (niveaux, ORB, volume profile, dessins) suivent VIEW. */
+function lineOpts(l){
+  if(l.keep) return l.o;
+  return Object.assign({}, l.o, { title: (VIEW.lblChart && VIEW.lblAxis) ? l.o.title : "",
+                                  axisLabelVisible: VIEW.lblAxis ? l.o.axisLabelVisible : false });
+}
+function mkLine(price, color, title, style, keep){
+  const l = { price, o:{ price, color, lineWidth:1, lineStyle:style || 0, axisLabelVisible:true, title }, h:[], keep:!!keep };
   LINES.add(l);
-  l.h = PANES.map(p => p.series.createPriceLine(l.o));
+  l.h = PANES.map(p => p.series.createPriceLine(lineOpts(l)));
   return l;
 }
 function setLine(l, opts){
   if(!l) return;
   Object.assign(l.o, opts);
   if(opts.price !== undefined) l.price = opts.price;
-  l.h.forEach(h => h.applyOptions(opts));
+  let o = opts;
+  if(!l.keep && ("title" in opts || "axisLabelVisible" in opts)){
+    const m = lineOpts(l); o = Object.assign({}, opts, { title:m.title, axisLabelVisible:m.axisLabelVisible });
+  }
+  l.h.forEach(h => h.applyOptions(o));
+}
+function applyLineLabels(){
+  for(const l of LINES) if(!l.keep){ const m = lineOpts(l); l.h.forEach(h => { try{ h.applyOptions({ title:m.title, axisLabelVisible:m.axisLabelVisible }); }catch(e){} }); }
 }
 function rmLine(l){
   if(!l) return;
@@ -1385,7 +1415,7 @@ function rmLine(l){
   LINES.delete(l);
 }
 function repaintLines(){
-  for(const l of LINES) l.h = PANES.map(p => p.series.createPriceLine(l.o));
+  for(const l of LINES) l.h = PANES.map(p => p.series.createPriceLine(lineOpts(l)));
 }
 function clearExitLines(){ (S.exitLines || []).forEach(rmLine); S.exitLines = []; }
 
@@ -1488,8 +1518,8 @@ function openPos(side){
     level: S.sig && S.sig.level, tEntry: S.marketMs, reaction: (S.marketMs - S.winStartMs) / 1000,
     slMoves: 0, tpAdded: 0, tpMoves: 0, lines: {}, slot: SLOT, best: entry,
     trail: trailOn() };
-  pos.lines.pos = mkLine(entry, COL.pos, posTitle(pos), 0);
-  pos.lines.sl  = mkLine(pos.sl, COL.sl, slTitle(pos), 0);
+  pos.lines.pos = mkLine(entry, COL.pos, posTitle(pos), 0, true);
+  pos.lines.sl  = mkLine(pos.sl, COL.sl, slTitle(pos), 0, true);
   S.pos = pos; S.sigTaken = true; pos.tpSeq = 0;
   setStatus(posStatus());
   // Multi : on passe tout de suite a la position libre suivante (P2 pret pour Buy / Sell)
@@ -1596,8 +1626,8 @@ function closeTrade(kind){
   const net = gross - fees;
   const usd = net * q * CONFIG.pointValue;
   rmLine(pos.lines.pos); rmLine(pos.lines.sl); pos.tps.forEach(t => rmLine(t.line));
-  S.exitLines = (S.exitLines || []).concat([ mkLine(pos.entry, COL.exit, slotTag(pos) + sideWord(pos.side) + " Entry", 2),
-                  mkLine(exit, COL.exit, slotTag(pos) + sideWord(pos.side) + " Exit", 0) ]);
+  S.exitLines = (S.exitLines || []).concat([ mkLine(pos.entry, COL.exit, slotTag(pos) + sideWord(pos.side) + " Entry", 2, true),
+                  mkLine(exit, COL.exit, slotTag(pos) + sideWord(pos.side) + " Exit", 0, true) ]);
   S.sessUsd = (S.sessUsd || 0) + usd;
   S.sigRecord = { result:"trade", side: pos.side, qty: q, entry: pos.entry, exit: +exit.toFixed(4),
     exits: pos.fills, closeKind: kind, pnl: +net.toFixed(2), gross: +gross.toFixed(2), fees,
@@ -1643,7 +1673,7 @@ function addTP(qty, price){
   const used = new Set(p.tps.filter(t => !t.filled).map(t => t.n));
   let n = 1; while(used.has(n)) n++;
   const tp = { id: ++p.tpSeq, n, qty, price, filled: false, slot: p.slot };
-  tp.line = mkLine(price, COL.tp, tpTitle(tp), 2);
+  tp.line = mkLine(price, COL.tp, tpTitle(tp), 2, true);
   p.tps.push(tp); p.tpAdded++;
   setStatus(posStatus()); renderStopTp();
   return tp;
@@ -2685,7 +2715,21 @@ function flowRefresh(force){
    - Erase : retire le dessin le plus proche du clic ; Clear all : tout.
    - Echap annule l'outil en cours. Chaque nouvelle session repart d'un graphique vierge.
    ================================================================ */
-const DRAW = { mode:null, pend:null, hover:null, items:[] };   // items : {type:"line", l} | {type:"trend"|"fib", a:{t,p}, b:{t,p}}
+const DRAW = { mode:null, pend:null, hover:null, items:[] };
+function viewPaint(){
+  $("viewMenu").querySelectorAll("input[data-v]").forEach(cb => { cb.checked = !!VIEW[cb.dataset.v]; });
+}
+$("viewMenu").addEventListener("change", e => {
+  const cb = e.target.closest("input[data-v]"); if(!cb) return;
+  VIEW[cb.dataset.v] = cb.checked;
+  try{ localStorage.setItem("sd_train_view", JSON.stringify(VIEW)); }catch(err){}
+  applyLineLabels();
+  PANES.forEach(p => { if(p.fPrim) p.fPrim.touch(); });
+  drawUpdate();
+});
+$("viewMain").addEventListener("click", () => $("viewDd").classList.toggle("open"));
+document.addEventListener("click", e => { if(!$("viewDd").contains(e.target)) $("viewDd").classList.remove("open"); });
+viewPaint();   // items : {type:"line", l} | {type:"trend"|"fib", a:{t,p}, b:{t,p}}
 const FIB_LEVELS = [[0, "#9AA3B5"], [0.236, "#F23645"], [0.382, "#FF9800"], [0.5, "#4CAF50"], [0.618, "#089981"], [0.786, "#00BCD4"], [1, "#9AA3B5"]];
 const DRAW_BLUE = "#4D8CFF";
 function drawUpdate(){ PANES.forEach(p => { if(p.dReq) p.dReq(); }); }
@@ -2791,9 +2835,19 @@ function drawAttach(p){
     attached(param){ p.dReq = param.requestUpdate; },
     detached(){ p.dReq = null; },
     updateAllViews(){},
-    paneViews(){ return [view]; }
+    paneViews(){ return [view]; },
+    priceAxisViews(){ return [cdView]; }   // v6.5 : compte a rebours de la bougie
   };
   const view = { zOrder(){ return "top"; }, renderer(){ return { draw(target){ drawPaneArt(p, target); } }; } };
+  const cdView = {
+    coordinate(){ const st = countdownState(p); return st ? st.y : -100; },
+    fixedCoordinate(){ const st = countdownState(p); return st ? st.y : -100; },
+    text(){ const st = countdownState(p); return st ? st.text : ""; },
+    textColor(){ return "#0E1729"; },
+    backColor(){ return "#F5F7FC"; },
+    visible(){ return !!countdownState(p); },
+    tickVisible(){ return false; }
+  };
   try{ p.series.attachPrimitive(prim); }catch(e){ console.warn("draw: attachPrimitive failed", e); }
   /* clics lus sur le conteneur (et non subscribeClick : deux clics rapproches y deviennent un
      double-clic et le second est perdu) ; un glisser (deplacement du graphique) n'est pas un clic */
@@ -2812,9 +2866,35 @@ function drawAttach(p){
     const pt = drawPoint(p, param.point.x, param.point.y); if(pt){ DRAW.hover = pt; drawUpdate(); }
   });
 }
+/* v6.5 -- temps restant de la bougie en cours (heure du replay), sous l'etiquette du dernier prix */
+function countdownState(p){
+  if(!VIEW.cd || !S.pack || !p.bars.length) return null;
+  const tf = tfOf(p.k); if(!tf.sec) return null;           // ticks : pas de duree
+  const last = p.bars[p.bars.length - 1];
+  const nowNy = (S.marketMs + S.nyOff + (S.dayShift || 0)) / 1000;
+  const left = Math.ceil(last.time + tf.sec - nowNy);
+  if(left < -tf.sec) return null;
+  const y = p.series.priceToCoordinate(last.close); if(y == null) return null;
+  const s2 = Math.max(0, left), mm = Math.floor(s2 / 60), ss = s2 % 60;
+  return { y: y + 19, text: (mm < 10 ? "0" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss };
+}
+/* v6.5 -- « Labels on the chart » allume et echelle eteinte : la bibliotheque n'ecrit pas le nom
+   d'une ligne sans son etiquette d'axe -- il est dessine ici, contre l'echelle. */
+function drawLineNames(p, ctx, W){
+  if(!(VIEW.lblChart && !VIEW.lblAxis)) return;
+  ctx.font = "10.5px ui-monospace, Menlo, Consolas, monospace"; ctx.textBaseline = "middle"; ctx.textAlign = "left";
+  for(const l of LINES){
+    if(l.keep || !l.o.title) continue;
+    const y = p.series.priceToCoordinate(l.price); if(y == null) continue;
+    const w = ctx.measureText(l.o.title).width, x = W - w - 10;
+    ctx.fillStyle = l.o.color; ctx.fillRect(x - 4, y - 8, w + 8, 16);
+    ctx.fillStyle = "#FFFFFF"; ctx.fillText(l.o.title, x, y);
+  }
+}
 function drawPaneArt(p, target){
   const list = DRAW.items.filter(it => it.type !== "line");
   if(DRAW.pend && DRAW.hover) list.push({ type: DRAW.mode, a: DRAW.pend, b: DRAW.hover, preview:true });
+  if(VIEW.lblChart && !VIEW.lblAxis) target.useMediaCoordinateSpace(sc => drawLineNames(p, sc.context, sc.mediaSize.width));
   if(!list.length) return;
   target.useMediaCoordinateSpace(sc => {
     const ctx = sc.context, W = sc.mediaSize.width;
@@ -2934,8 +3014,10 @@ class FlowPrimitive {
           ctx.strokeStyle = "rgba(244,114,182,.8)"; ctx.lineWidth = 1 * hr; ctx.strokeRect(x1 - w, yy - 8 * vr, w, 16 * vr);
           ctx.fillStyle = "#F9A8D4"; ctx.fillText(txt, x1 - 5 * hr, yy);
         };
-        up.forEach((t, i) => tag(t, (54 + i * 20) * vr));   // sous la barre CHARTS / FLOW
-        down.forEach((t, i) => tag(t, bottomEdge - (14 + i * 20) * vr));
+        if(VIEW.lblChart){   // v6.5
+          up.forEach((t, i) => tag(t, (54 + i * 20) * vr));   // sous la barre CHARTS / FLOW
+          down.forEach((t, i) => tag(t, bottomEdge - (14 + i * 20) * vr));
+        }
       }
       if(FLOW.on.bo && f.bo.length){
         const off = S.nyOff + (S.dayShift || 0), tf = tfOf(p.k), now = S.marketMs;

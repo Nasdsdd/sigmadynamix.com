@@ -739,7 +739,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.3.2";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.3.3";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -2403,16 +2403,17 @@ $("fCode").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); }
    ================================================================ */
 const FLOW = {
   on: { vp:true, prev:true, cvd:true, bo:true },
-  boMin: 100,          // v6.3.2 : 100 contrats par defaut en MNQ (comme le Terminal) ; la demo garde 50
+  boMin: 50,
+  boAuto: true,        // v6.3.3 : minimum selon le symbole des donnees (NQ 50, MNQ 100), comme le Terminal
   cache: {}
 };
 try{
   const sv = JSON.parse(localStorage.getItem("sd_train_flow") || "{}");
   if(sv.on) for(const k of Object.keys(FLOW.on)) if(typeof sv.on[k] === "boolean") FLOW.on[k] = sv.on[k];
-  // v6.3.2 : un 50 enregistre avant (ancien defaut) passe a 100, une fois ; un autre choix est garde
-  if([20,30,50,100].includes(sv.boMin)) FLOW.boMin = (sv.boMin === 50 && sv.v !== 2) ? 100 : sv.boMin;
+  // v6.3.3 : un choix fait a la main (boAuto false) est garde ; sinon le minimum suit le symbole
+  if(sv.v === 3 && sv.boAuto === false && [20,30,50,100].includes(sv.boMin)){ FLOW.boMin = sv.boMin; FLOW.boAuto = false; }
 }catch(e){}
-const flowSave = () => { try{ localStorage.setItem("sd_train_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin, v:2 })); }catch(e){} };
+const flowSave = () => { try{ localStorage.setItem("sd_train_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin, boAuto:FLOW.boAuto, v:3 })); }catch(e){} };
 const flowUrl = dayIso => CONFIG.packDir + "flow_" + dayIso.replace(/-/g, "") + ".json";
 
 /* Charge le flow_ d'une journee ; null s'il n'existe pas (journee sans volumes). */
@@ -2454,6 +2455,11 @@ function flowStart(f){
   flowClearLines();
   S.flow = f || null;
   S.flowN = -1;
+  // v6.3.3 : big orders -- minimum par defaut selon le symbole des donnees : 100 en MNQ, 50 en NQ
+  if(f && FLOW.boAuto && MODE !== "demo"){
+    const sym = String((f.raw && f.raw.symbol) || "").toUpperCase();
+    FLOW.boMin = sym.startsWith("MNQ") ? 100 : 50;
+  }
   if(f){
     S.fVol = new Float64Array(f.span); S.fBuy = new Float64Array(f.span); S.fSell = new Float64Array(f.span);
     S.dVol = new Float64Array(f.span); S.dBuy = new Float64Array(f.span); S.dSell = new Float64Array(f.span);
@@ -2801,7 +2807,7 @@ $("flowBar").addEventListener("click", e => {
   FLOW.on[b.dataset.f] = !FLOW.on[b.dataset.f];
   flowSave(); flowUI(); flowRefresh(true);
 });
-$("boMin").addEventListener("change", e => { FLOW.boMin = +e.target.value; flowSave(); flowRefresh(true); });
+$("boMin").addEventListener("change", e => { FLOW.boMin = +e.target.value; FLOW.boAuto = false; flowSave(); flowRefresh(true); });
 
 /* ================================================================
    JOURNEES : sondage du dossier daypacks/ et chargement

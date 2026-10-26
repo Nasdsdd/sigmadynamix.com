@@ -739,7 +739,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.3.1";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.3.2";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -2403,15 +2403,16 @@ $("fCode").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); }
    ================================================================ */
 const FLOW = {
   on: { vp:true, prev:true, cvd:true, bo:true },
-  boMin: 50,
+  boMin: 100,          // v6.3.2 : 100 contrats par defaut en MNQ (comme le Terminal) ; la demo garde 50
   cache: {}
 };
 try{
   const sv = JSON.parse(localStorage.getItem("sd_train_flow") || "{}");
   if(sv.on) for(const k of Object.keys(FLOW.on)) if(typeof sv.on[k] === "boolean") FLOW.on[k] = sv.on[k];
-  if([20,30,50,100].includes(sv.boMin)) FLOW.boMin = sv.boMin;
+  // v6.3.2 : un 50 enregistre avant (ancien defaut) passe a 100, une fois ; un autre choix est garde
+  if([20,30,50,100].includes(sv.boMin)) FLOW.boMin = (sv.boMin === 50 && sv.v !== 2) ? 100 : sv.boMin;
 }catch(e){}
-const flowSave = () => { try{ localStorage.setItem("sd_train_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin })); }catch(e){} };
+const flowSave = () => { try{ localStorage.setItem("sd_train_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin, v:2 })); }catch(e){} };
 const flowUrl = dayIso => CONFIG.packDir + "flow_" + dayIso.replace(/-/g, "") + ".json";
 
 /* Charge le flow_ d'une journee ; null s'il n'existe pas (journee sans volumes). */

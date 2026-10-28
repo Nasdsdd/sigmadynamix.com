@@ -55,15 +55,6 @@
       rgba(6,8,15,1) 58%,
       var(--void) 100%);
   }
-  .l-grid {
-    z-index: 1;
-    background-image:
-      linear-gradient(rgba(148,163,184,0.075) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148,163,184,0.075) 1px, transparent 1px);
-    background-size: 72px 72px;
-    mask-image: radial-gradient(circle at 50% 44%, #000 0%, transparent 74%);
-    -webkit-mask-image: radial-gradient(circle at 50% 44%, #000 0%, transparent 74%);
-  }
   .l-glow {
     z-index: 2;
     background: radial-gradient(circle 280px at 50% 42%,
@@ -208,7 +199,6 @@
 <body>
 
   <div class="layer l-gradient"></div>
-  <div class="layer l-grid"></div>
   <div class="layer l-glow"></div>
 
   <header>

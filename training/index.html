@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -653,7 +653,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <div id="stBox" class="hidden">
         <div class="sthead">STOP / TP</div>
         <div class="strow tprow"><label for="tpQty">Qty</label><select id="tpQty"></select>
-          <button class="mini g" id="btnAddTp">+TP</button><select id="tpR" title="Distance of +TP from the entry, in units of the maximum stop (1R = the stop distance). 2R by default."><option value="1">1R</option><option value="2" selected>2R</option><option value="3">3R</option></select><button class="mini" id="btnClearTp">Clear TP</button></div>
+          <button class="mini g" id="btnAddTp">+TP</button><select id="tpR" title="Distance of +TP from the entry, in units of the maximum stop (1R = the stop distance). 2R by default."><option value="1">1R</option><option value="2" selected>2R</option><option value="3">3R</option><option value="4">4R</option><option value="5">5R</option></select><button class="mini" id="btnClearTp">Clear TP</button></div>
         <div class="strow"><label for="stPrice">Price</label><input id="stPrice" type="number" step="0.25" inputmode="decimal">
           <button class="mini r" id="btnSlAt">SL @</button><button class="mini g" id="btnTpAt">TP @</button></div>
         <div id="stSummary"></div>
@@ -762,7 +762,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.6";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.6.1";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -856,7 +856,7 @@ const TOUR = [
   { el:"ptBox",     title:"Partner Trading",
     text:"The price levels that can trigger your next signal, nearest first. ARMED: ready to fire. WAIT: has fired, and fires again only after the price has moved away and come back. 1/3: times fired / maximum. TICKS: distance from the current price, in red when very close. ORB: high and low of the first 15 minutes." },
   { el:"signalBox", title:"Actions",
-    text:"When the price reaches a level: AUTHORIZED, with a countdown of 300 seconds. Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit at 2R, twice the maximum stop (40 points) - pick 1R, 2R or 3R next to it - or type a price and use SL @ / TP @. The stop starts at its maximum, 20.00 points: you can bring it closer, never further." },
+    text:"When the price reaches a level: AUTHORIZED, with a countdown of 300 seconds. Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit at 2R, twice the maximum stop (40 points) - pick 1R to 5R next to it - or type a price and use SL @ / TP @. The stop starts at its maximum, 20.00 points: you can bring it closer, never further." },
   { el:"perfBox",   title:"Performance",
     text:"Your net result for the session, in dollars, costs included. The open position is counted at the current price." },
   { el:"log",       title:"Trade log",
@@ -1665,7 +1665,7 @@ function slCheck(price){
                             : "On a sell the stop must stay above the current price";
   return null;
 }
-const tpR = () => { const v = +(($("tpR") || {}).value || CONFIG.tpDefaultR); return [1, 2, 3].includes(v) ? v : CONFIG.tpDefaultR; };
+const tpR = () => { const v = +(($("tpR") || {}).value || CONFIG.tpDefaultR); return [1, 2, 3, 4, 5].includes(v) ? v : CONFIG.tpDefaultR; };
 function addTP(qty, price){
   const p = S.pos; if(!p) return false;
   qty = Math.round(qty);

@@ -1,0 +1,36 @@
+================================================================================
+EVOLUTION -- PLATEFORME DE TRAINING v6.1 : ORDER FLOW (VP, veille, CVD, gros ordres)
+Dossier : sigmadynamix.com/training (Mac). Base : index.html v6.0 (copie gardee :
+_backup_index_v6.0.html, a supprimer avant publication si inutile).
+================================================================================
+DONNEES
+  make_training_flow.py <dossier History de SigmaTradeHistory> [-d daypacks] [--force]
+  -> daypacks/flow_AAAAMMJJ.json pour chaque daypack dont le profile1m_ existe.
+  Sources : profile1m_ (obligatoire, volumes acheteurs / vendeurs par minute et par prix),
+  trades_ (facultatif, pour les gros ordres). Daypacks inchanges.
+  Fait le 25/10 : 16, 19, 20, 21, 22, 23/10 (gros ordres : 16/10 seulement, seul trades_).
+PAGE (barre FLOW a cote de CHARTS 1 2 3, reglages gardes par navigateur)
+  VP   : profil de la seance 09:30-16:00 NY a droite, construit minute par minute (une
+         minute compte quand elle est close), achats verts / ventes rouges, POC jaune,
+         VAH / VAL bleus (70 %, regle du Terminal) + lignes de prix.
+  PREV : profil de la seance precedente a gauche (pale) + pPOC / pVAH / pVAL pointilles.
+  CVD  : bande basse : delta par bougie (unites minutes) et CVD remis a 0 a 09:30 ;
+         pointilles = plus haut / plus bas du CVD pendant l'ORB (apres 09:45).
+  BIG  : gros ordres, seuil >=20/30/50/100 (defaut 50). Pale = 30 s d'observation en
+         cours ; plein = a pousse le prix ; creux = absorbe. Cote : agresseur Rithmic si
+         present, sinon regle du tick bornee par les achats / ventes Rithmic du prix-minute.
+  Rien du futur : tout est revele a l'heure du replay. Journee sans flow_ : boutons
+  grises. Demo : sans flow.
+CONTROLES
+  Playwright (lightweight-charts 4.1.1) : 16/10 et 23/10, 1 et 3 graphiques (1 min,
+  100 ticks, 5 min), horloge x5, boutons, seuil, journee sans flow_, demo apres seance :
+  aucune erreur. POC du 23/10 a 16:00 = 29150 (= rapport SigmaTradeHistory).
+  200 images de replay : 68 ms.
+POUR UNE NOUVELLE JOURNEE
+  1. SigmaTradeHistory (PC) -> C:\SigmaData\History ; copier le dossier History sur le Mac.
+  2. make_training_daypacks.py comme avant, puis :
+     python3 make_training_flow.py "<chemin du dossier History>"   (dans le dossier training)
+  3. Publier index.html + daypacks/ (daypack_ et flow_).
+LIMITE : gros ordres seulement si trades_AAAAMMJJ.csv existe (--method auto, ~6 min par
+  journee, ou capture le jour meme pour le vrai agresseur).
+================================================================================

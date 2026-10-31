@@ -260,10 +260,10 @@
   .indMenu .irow span{flex:1}
   .indMenu .irow b{font:600 11px var(--mono);color:var(--muted)}
   .indMenu .irow b.on{color:#26A69A}
-  .indMenu .irow.sw i{position:relative;width:28px;height:15px;border-radius:8px;background:#3A3F4B;flex:none;transition:background .15s}
-  .indMenu .irow.sw i::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:6px;background:#D1D4DC;transition:left .15s}
-  .indMenu .irow.sw.on i{background:var(--accent)}
-  .indMenu .irow.sw.on i::after{left:15px}
+  .indMenu .irow.tgl i{margin-left:auto;position:relative;width:28px;height:15px;border-radius:8px;background:#3A3F4B;flex:none;transition:background .15s}
+  .indMenu .irow.tgl i::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:6px;background:#D1D4DC;transition:left .15s}
+  .indMenu .irow.tgl.on i{background:var(--accent)}
+  .indMenu .irow.tgl.on i::after{left:15px}
   .indMenu .irow.dis{opacity:.4;cursor:not-allowed}
   .indMenu .isep{height:1px;background:var(--border);margin:5px 4px 1px}
   .indLeg{position:absolute;top:38px;left:10px;z-index:6;display:flex;flex-direction:column;gap:3px;font-family:var(--mono)}
@@ -3281,26 +3281,33 @@ const IND_FLOW_ROWS = [
 ];
 function indMenu(p){
   const m = p.iDd.querySelector(".indMenu"), st = IND[p.idx];
-  let h = '<div class="hd">Add indicator</div>';
-  for(const k of Object.keys(IND_DEFS)){
+  /* v6.8 : meme ordre que le Terminal 2.5.1.23 -- Labels, Volume profile, Volume indicators (VWAP, Delta / CVD,
+     Big orders), Other indicators (ORB, SMA, EMA, Bollinger, MACD, RSI, ATR, Bar countdown). Les interrupteurs
+     « all charts » (barre FLOW / menu VIEW) sont places a la meme place que dans le Terminal. */
+  const fb = $("flowBar");
+  const flowRow = f => {
+    const [, name, tip] = IND_FLOW_ROWS.find(r => r[0] === f);
+    const btn = fb && fb.querySelector(`button[data-f="${f}"]`), dis = !btn || btn.disabled;
+    return `<div class="irow tgl${FLOW.on[f] && !dis ? " on" : ""}${dis ? " dis" : ""}" data-flow="${f}" title="${dis && btn ? btn.title : tip + " (all charts)"}"><span>${name}</span><i></i></div>`;
+  };
+  const indRow = k => {
     const d = IND_DEFS[k];
     if(IND_MULTI[k]){
       const n = Object.keys(st).filter(x => indBase(x) === k).length, full = n >= IND_MULTI_MAX;
-      h += `<div class="irow" data-add="${k}" title="${full ? "Maximum " + IND_MULTI_MAX + " on this chart" : "Add one more " + d.name + " (remove one with its ✕ in the legend)"}"><span>${d.name}</span><b class="${n ? "on" : ""}">${n ? n + " · " + (full ? "max" : "+") : "+"}</b></div>`;
-    } else {
-      h += `<div class="irow" data-tog="${k}"><span>${d.name}</span><b class="${st[k] ? "on" : ""}">${st[k] ? "✓" : "+"}</b></div>`;
+      return `<div class="irow" data-add="${k}" title="${full ? "Maximum " + IND_MULTI_MAX + " on this chart" : "Add one more " + d.name + " (remove one with its \u2715 in the legend)"}"><span>${d.name}</span><b class="${n ? "on" : ""}">${n ? n + " \u00B7 " + (full ? "max" : "+") : "+"}</b></div>`;
     }
-  }
-  const fb = $("flowBar");
-  h += '<div class="isep"></div><div class="hd">Order flow <i>all charts</i></div>';
-  for(const [f, name, tip] of IND_FLOW_ROWS){
-    const btn = fb && fb.querySelector(`button[data-f="${f}"]`), dis = !btn || btn.disabled;
-    h += `<div class="irow sw${FLOW.on[f] && !dis ? " on" : ""}${dis ? " dis" : ""}" data-flow="${f}" title="${dis && btn ? btn.title : tip}"><span>${name}</span><i></i></div>`;
-  }
-  h += `<div class="irow sw${VIEW.cd ? " on" : ""}" data-view="cd" title="Time left before the current candle closes, under the last price (minute charts)"><span>Bar countdown</span><i></i></div>`;
-  h += '<div class="isep"></div><div class="hd">Labels <i>all charts</i></div>';
-  h += `<div class="irow sw${VIEW.lblChart ? " on" : ""}" data-view="lblChart" title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><span>On the chart</span><i></i></div>`;
-  h += `<div class="irow sw${VIEW.lblAxis ? " on" : ""}" data-view="lblAxis" title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><span>On the price axis</span><i></i></div>`;
+    return `<div class="irow" data-tog="${k}"><span>${d.name}</span><b class="${st[k] ? "on" : ""}">${st[k] ? "\u2713" : "+"}</b></div>`;
+  };
+  let h = '<div class="hd">Labels <i>all charts</i></div>';
+  h += `<div class="irow tgl${VIEW.lblChart ? " on" : ""}" data-view="lblChart" title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><span>On the chart</span><i></i></div>`;
+  h += `<div class="irow tgl${VIEW.lblAxis ? " on" : ""}" data-view="lblAxis" title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><span>On the price axis</span><i></i></div>`;
+  h += '<div class="isep"></div><div class="hd">Volume profile <i>all charts</i></div>';
+  h += flowRow("vp") + flowRow("prev");
+  h += '<div class="isep"></div><div class="hd">Volume indicators</div>';
+  h += indRow("vwap") + flowRow("cvd") + flowRow("bo");
+  h += '<div class="isep"></div><div class="hd">Other indicators</div>';
+  ["orb", "sma", "ema", "boll", "macd", "rsi", "atr"].forEach(k => { h += indRow(k); });
+  h += `<div class="irow tgl${VIEW.cd ? " on" : ""}" data-view="cd" title="Time left before the current candle closes, under the last price (minute charts, all charts)"><span>Bar countdown</span><i></i></div>`;
   m.innerHTML = h;
   m.onclick = e => {
     e.stopPropagation();

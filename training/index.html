@@ -3073,7 +3073,7 @@ function indRemove(p, k){ delete IND[p.idx][k]; delete p.iNote[k]; indSave(); in
 function indBuildUi(box, sel){
   const top = document.createElement("div"); top.className = "ctop";
   const dd = document.createElement("div"); dd.className = "indDd";
-  dd.innerHTML = '<button type="button" class="indBtn" title="Indicators, order flow and labels">&#128200; Indicators &#9662;</button><div class="indMenu"></div>';
+  dd.innerHTML = '<button type="button" class="indBtn" title="Indicators, order flow and labels">Indicators &#9662;</button><div class="indMenu"></div>';
   top.appendChild(sel); top.appendChild(dd);
   const leg = document.createElement("div"); leg.className = "indLeg";
   const pop = document.createElement("div"); pop.className = "indPop hidden";

@@ -164,8 +164,9 @@ tailwind.config = {
       <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">How we operate</p>
       <h2 class="disp tight mt-5 text-3xl font-semibold sm:text-4xl">Research writes the rules. Operators execute them.</h2>
       <p class="mt-5 text-base leading-relaxed text-muted">
-        The separation is deliberate. Nobody improvises size, entry or exit.
-        The strategy is settled the day before; the session is about clean execution.
+        The separation is deliberate. The desk prepares the levels and the risk,
+        the operator trades them. The work is settled before the open, the session
+        is about clean execution.
       </p>
     </div>
 
@@ -175,10 +176,11 @@ tailwind.config = {
           <span class="num text-[11px] tracking-[0.2em] text-muted">STEP 01</span>
           <svg class="h-5 w-5 text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
         </div>
-        <h3 class="disp tight mt-6 text-xl font-semibold">Research &amp; backtest</h3>
+        <h3 class="disp tight mt-6 text-xl font-semibold">Research &amp; key levels</h3>
         <p class="mt-3 text-sm leading-relaxed text-muted">
-          Every strategy is developed internally against tick-level Nasdaq futures data,
-          then walked forward on unseen periods. If it only works in-sample, it does not ship.
+          The desk works the Nasdaq on tick-level data, session after session, and marks the
+          prices where the move is expected. Those levels are set before the open. Nothing
+          is improvised once the session starts.
         </p>
       </li>
       <li class="reveal rounded-card border border-line bg-panel p-8 lg:p-10">
@@ -188,9 +190,9 @@ tailwind.config = {
         </div>
         <h3 class="disp tight mt-6 text-xl font-semibold">Authorization signal</h3>
         <p class="mt-3 text-sm leading-relaxed text-muted">
-          During the session the desk pushes an authorization to the Sigma Dynamix Terminal:
-          size and invalidation. Direction depends on your current role. One position per signal.
-          Outside that authorization, no position is opened.
+          When price reaches one of those levels, the desk pushes an authorization to the
+          Sigma Dynamix Terminal: size and stop. Direction depends on your current role.
+          One position per signal. Outside that authorization, no position is opened.
         </p>
       </li>
       <li class="reveal rounded-card border border-line bg-panel p-8 lg:p-10">
@@ -200,8 +202,9 @@ tailwind.config = {
         </div>
         <h3 class="disp tight mt-6 text-xl font-semibold">Execution &amp; review</h3>
         <p class="mt-3 text-sm leading-relaxed text-muted">
-          The operator places the trade and manages it to the stated invalidation.
-          Every fill is logged. All sessions are reviewed, and you receive detailed briefs covering the execution.
+          The operator places the trade and manages it to the stop that comes with it.
+          The whole desk works the same levels at the same time. Every fill is logged, all
+          sessions are reviewed, and you receive detailed briefs covering the execution.
         </p>
       </li>
     </ol>
@@ -435,7 +438,7 @@ tailwind.config = {
           <h3 class="disp tight mt-5 text-2xl font-semibold sm:text-3xl">Futures Operator</h3>
           <p class="mt-4 text-base leading-relaxed text-muted">
             Run live sessions on Nasdaq futures from the Terminal. Execute authorized signals,
-            manage them to invalidation, and file the session debrief.
+            manage them to the stop, and file the session debrief.
           </p>
           <a id="careersCta" href="/assessment/" class="mt-8 inline-flex cursor-pointer items-center gap-2 rounded-ctl bg-blue px-5 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#1A72FF]">
             <span id="careersCtaLabel">Take the assessment</span>

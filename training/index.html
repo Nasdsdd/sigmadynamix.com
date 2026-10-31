@@ -217,6 +217,28 @@
   #flowHelp{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;
     border:1px solid var(--border);color:var(--muted);font:700 11px var(--mono);text-decoration:none;margin-left:2px}
   #flowHelp:hover{color:var(--text);border-color:var(--link)}
+  /* ---- v6.8 : plein ecran, retour au direct, selecteur de disposition ---- */
+  .fullBtn{height:23px;width:26px;display:flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid var(--border);
+    background:rgba(14,23,41,.92);color:var(--muted);cursor:pointer;padding:0}
+  .fullBtn:hover{color:var(--text);border-color:var(--accent)}
+  .fullBtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .liveBtn{position:absolute;right:78px;bottom:38px;z-index:8;width:28px;height:28px;border-radius:14px;display:none;
+    align-items:center;justify-content:center;background:var(--panel2);color:var(--text);border:1px solid var(--strong);
+    font:700 16px var(--mono);cursor:pointer;padding:0 0 2px;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+  .liveBtn.show{display:flex}
+  .liveBtn:hover{border-color:var(--accent)}
+  #layDd{position:relative;display:flex;margin-left:3px}
+  #layBar #layPick{width:auto;padding:0 6px;display:flex;align-items:center;gap:3px;color:var(--text)}
+  #layPick .car{font-size:9px;color:var(--muted)}
+  #layMenu{position:absolute;top:28px;right:0;display:none;flex-direction:column;z-index:31;background:var(--panel2);
+    border:1px solid var(--strong);border-radius:10px;padding:4px 8px;box-shadow:0 8px 22px rgba(0,0,0,.45)}
+  #layDd.open #layMenu{display:flex}
+  #layMenu .lrow{display:flex;align-items:center;gap:4px;padding:5px 0}
+  #layMenu .lrow + .lrow{border-top:1px solid var(--border)}
+  #layMenu .ln{width:18px;font:600 12px var(--mono);color:var(--muted)}
+  #layBar #layMenu button{width:34px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:#C9CFE0;padding:0}
+  #layBar #layMenu button:hover{background:rgba(148,163,184,.12);border-color:transparent}
+  #layBar #layMenu button.on{background:#F5F7FC;color:#0A0F1E;border-color:#F5F7FC}
   /* ---- v6.7 : menu Indicators par graphique (comme le Terminal) ---- */
   .chartBox .ctop{position:absolute;top:8px;left:10px;z-index:7;display:flex;align-items:flex-start;gap:6px}
   .chartBox .ctop .tfsel{position:static}
@@ -655,7 +677,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="order_flow_guide.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label></div></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="order_flow_guide.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label></div></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -809,7 +831,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.7";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.8";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1010,7 +1032,12 @@ const LAYOUTS = {
        { cols:"1fr 1fr", rows:"1fr 1fr", show:[0, 1, 2], name:"big chart on top",
          place:{ 0:{ c:"1 / span 2", r:"1" }, 1:{ c:"1", r:"2" }, 2:{ c:"2", r:"2" } } },
        { cols:"1fr 1fr", rows:"1fr 1fr", show:[0, 1, 2], name:"big chart at the bottom",
-         place:{ 0:{ c:"1 / span 2", r:"2" }, 1:{ c:"1", r:"1" }, 2:{ c:"2", r:"1" } } } ]
+         place:{ 0:{ c:"1 / span 2", r:"2" }, 1:{ c:"1", r:"1" }, 2:{ c:"2", r:"1" } } },
+       /* v6.8 : comme le Terminal 2.5.1.24 -- trois colonnes, trois lignes */
+       { cols:"1fr 1fr 1fr", rows:"1fr", show:[0, 1, 2], name:"three side by side",
+         place:{ 0:{ c:"1", r:"1" }, 1:{ c:"2", r:"1" }, 2:{ c:"3", r:"1" } } },
+       { cols:"1fr", rows:"1fr 1fr 1fr", show:[0, 1, 2], name:"three stacked",
+         place:{ 0:{ c:"1", r:"1" }, 1:{ c:"1", r:"2" }, 2:{ c:"1", r:"3" } } } ]
 };
 const LAY = { n:1, tf:["1m","100t","5m"], v:{ 1:0, 2:1, 3:0 } };
 try{
@@ -1104,6 +1131,7 @@ function buildPanes(){
   const host = $("charts");
   for(const p of PANES){ try{ p.chart.remove(); }catch(e){} p.box.remove(); }
   PANES = [];
+  LAY.full = null;      // v6.8 : un changement de disposition quitte le plein ecran
   const def = layDef();
   /* v6.7 : idx = numero du graphique (0, 1, 2) ; il garde son unite de temps et ses
      indicateurs quelle que soit la disposition (en disposition 1, variante 2 : le graphique 2) */
@@ -1128,6 +1156,7 @@ function buildPanes(){
     PANES.push(p);
     paneDrag(p);
     drawAttach(p);   // v6.4 : outils de dessin
+    paneExtras(p);   // v6.8 : plein ecran, retour au direct, glissement vertical
     /* Entre deux sessions le simulateur est masqué : clientWidth et clientHeight
        retombent à 0 et l'observateur appliquait ces dimensions aux graphiques.
        Selon le navigateur il ne se redéclenche pas toujours au réaffichage, et
@@ -1147,13 +1176,18 @@ function buildPanes(){
 /* v6.7 -- place les graphiques dans la grille selon la variante, sans les reconstruire. */
 function layGrid(){
   const host = $("charts"), def = layDef();
-  host.style.gridTemplateColumns = def.cols;
-  host.style.gridTemplateRows = def.rows;
+  const full = PANES.some(p => p.idx === LAY.full) ? LAY.full : null;   // v6.8 : un seul graphique en grand
+  host.style.gridTemplateColumns = full != null ? "1fr" : def.cols;
+  host.style.gridTemplateRows = full != null ? "1fr" : def.rows;
   for(const p of PANES){
     const pl = (def.place && def.place[p.idx]) || null;
-    p.box.style.gridColumn = pl ? pl.c : "";
-    p.box.style.gridRow = pl ? pl.r : "";
+    p.box.style.gridColumn = full != null ? "1" : (pl ? pl.c : "");
+    p.box.style.gridRow = full != null ? "1" : (pl ? pl.r : "");
+    p.box.classList.toggle("hidden", full != null && p.idx !== full);
+    const fb = p.box.querySelector(".fullBtn");
+    if(fb){ fb.classList.toggle("on", full === p.idx); fb.title = full === p.idx ? "Back to the layout (Esc)" : "Full screen: this chart only"; }
   }
+  layPickPaint();
   [...$("layBar").querySelectorAll("button[data-n]")].forEach(b => {
     const n = +b.dataset.n, on = n === LAY.n;
     b.classList.toggle("on", on);
@@ -1175,6 +1209,152 @@ function layUnderBar(){
   }
 }
 addEventListener("resize", () => { if(PANES.length) layUnderBar(); });
+/* ================================================================
+   v6.8 -- RETOURS D'UN OPERATEUR (31/10)
+   - Le graphique revenait tout seul a droite a chaque nouvelle bougie (ecart
+     remis a 15 %) : l'ecart choisi a la souris est maintenant garde ; un
+     operateur qui regarde l'historique (derniere bougie hors de l'ecran) n'est
+     plus deplace, et un bouton » le ramene au direct.
+   - Glissement VERTICAL des le premier geste (la bibliotheque l'ignore tant que
+     l'echelle des prix est automatique ; meme correction que le Terminal).
+   - Lignes de tendance et Fibonacci modifiables : saisir une extremite et la
+     faire glisser (prolonger, corriger).
+   - Bouton plein ecran sur chaque graphique (Echap ou re-clic : retour).
+   - Selecteur de disposition comme le Terminal 2.5.1.24 (et TradingView).
+   ================================================================ */
+/* Nouvelle bougie : l'ecart a droite d'avant son arrivee est remis tel quel. */
+function paneFollow(p){
+  /* La bibliotheque garde d'elle-meme l'ecart a droite quand la derniere bougie est visible
+     (shiftVisibleRangeOnNewBar) : l'ancien recadrage a 15 % a chaque bougie (keepRightPad)
+     annulait le choix de l'operateur. Ici, rien a faire sauf montrer le bouton » si la derniere
+     bougie est hors de l'ecran (l'operateur regarde l'historique : la vue reste ou elle est). */
+  paneLiveBtn(p);
+}
+/* Bouton » : visible quand la derniere bougie est sortie de l'ecran par la droite. */
+function paneLiveBtn(p){
+  if(!p.liveBtn) return;
+  let off = false;
+  try{ off = p.bars.length > 0 && p.chart.timeScale().scrollPosition() < -0.5; }catch(e){}
+  p.liveBtn.classList.toggle("show", off);
+}
+function paneExtras(p){
+  /* plein ecran */
+  const fb = document.createElement("button");
+  fb.type = "button"; fb.className = "fullBtn"; fb.title = "Full screen: this chart only";
+  fb.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.5V1h3.5M8.5 1H12v3.5M12 8.5V12H8.5M4.5 12H1V8.5"/></svg>';
+  fb.addEventListener("click", e => { e.stopPropagation(); LAY.full = LAY.full === p.idx ? null : p.idx; layGrid(); });
+  p.box.querySelector(".ctop").appendChild(fb);
+  /* retour au direct */
+  const lb = document.createElement("button");
+  lb.type = "button"; lb.className = "liveBtn"; lb.title = "Back to the latest candles"; lb.innerHTML = "&#187;";
+  lb.addEventListener("click", e => { e.stopPropagation(); framePane(p); lb.classList.remove("show"); });
+  p.box.appendChild(lb); p.liveBtn = lb;
+  p.chart.timeScale().subscribeVisibleLogicalRangeChange(() => paneLiveBtn(p));
+
+  const div = p.div;
+  const rel = e => { const r = div.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const inPlot = (x, y) => { try{ return x < p.chart.timeScale().width() && y < div.clientHeight - p.chart.timeScale().height(); }catch(e){ return true; } };
+  /* extremite de dessin la plus proche (8 px) */
+  const endAt = (x, y) => {
+    let best = null;
+    for(const it of DRAW.items){
+      if(it.type !== "trend" && it.type !== "fib") continue;
+      for(const k of ["a", "b"]){
+        const xx = xOfTime(p, it[k].t), yy = p.series.priceToCoordinate(it[k].p);
+        if(xx == null || yy == null) continue;
+        const d = Math.hypot(xx - x, yy - y);
+        if(d <= 8 && (!best || d < best.d)) best = { it, k, d };
+      }
+    }
+    return best;
+  };
+  let press = null;
+  div.addEventListener("mousedown", e => {
+    press = null;
+    if(e.button !== 0 || DRAG || DRAW.mode) return;
+    const [x, y] = rel(e);
+    const hit = endAt(x, y);
+    if(hit){                                  /* deplacement d'une extremite */
+      e.preventDefault(); e.stopPropagation();
+      DRAW.edit = { it:hit.it, k:hit.k, p };
+      p.chart.applyOptions({ handleScroll:false, handleScale:false });
+      document.body.style.cursor = "move";
+      return;
+    }
+    if(inPlot(x, y)) press = { y:e.clientY };
+  }, true);
+  div.addEventListener("mousemove", e => {
+    if(press && (e.buttons & 1) && Math.abs(e.clientY - press.y) >= 2){
+      press = null;                           /* glissement vertical : echelle des prix libre */
+      try{ const ps = p.series.priceScale(); if(ps.options().autoScale) ps.applyOptions({ autoScale:false }); }catch(err){}
+    }
+    if(DRAW.edit || (e.buttons & 1) || DRAW.mode) return;
+    const [x, y] = rel(e);
+    const hit = endAt(x, y);
+    const prev = DRAW.hoverEnd;
+    DRAW.hoverEnd = hit ? { it:hit.it, k:hit.k } : null;
+    if(hit) div.style.cursor = "move";
+    else if(div.style.cursor === "move") div.style.cursor = "";
+    if((prev && prev.it) !== (hit && hit.it) || (prev && prev.k) !== (hit && hit.k)) drawUpdate();
+  }, true);
+  div.addEventListener("mouseleave", () => { if(DRAW.hoverEnd && !DRAW.edit){ DRAW.hoverEnd = null; drawUpdate(); } });
+}
+/* gestes suivis hors du graphique (une fois pour la page) */
+addEventListener("mousemove", e => {
+  const ed = DRAW.edit; if(!ed) return;
+  const r = ed.p.div.getBoundingClientRect();
+  const pt = drawPoint(ed.p, e.clientX - r.left, e.clientY - r.top);
+  if(pt){ ed.it[ed.k] = pt; drawUpdate(); }
+});
+addEventListener("mouseup", () => {
+  const ed = DRAW.edit; if(!ed) return;
+  DRAW.edit = null;
+  try{ ed.p.chart.applyOptions({ handleScroll:true, handleScale:true }); }catch(e){}
+  document.body.style.cursor = "";
+  drawUpdate();
+});
+
+/* ---- selecteur de disposition (comme le Terminal 2.5.1.24) ---- */
+const LAY_CHOICES = [
+  { n:1, v:null, tip:"One chart",                 r:[[0,0,1,1]] },
+  { n:2, v:0,    tip:"Two charts side by side",   r:[[0,0,.5,1],[.5,0,.5,1]] },
+  { n:2, v:1,    tip:"Two charts stacked",        r:[[0,0,1,.5],[0,.5,1,.5]] },
+  { n:3, v:4,    tip:"Three charts side by side", r:[[0,0,1/3,1],[1/3,0,1/3,1],[2/3,0,1/3,1]] },
+  { n:3, v:5,    tip:"Three charts stacked",      r:[[0,0,1,1/3],[0,1/3,1,1/3],[0,2/3,1,1/3]] },
+  { n:3, v:0,    tip:"Large chart on the left",   r:[[0,0,.5,1],[.5,0,.5,.5],[.5,.5,.5,.5]] },
+  { n:3, v:1,    tip:"Large chart on the right",  r:[[.5,0,.5,1],[0,0,.5,.5],[0,.5,.5,.5]] },
+  { n:3, v:2,    tip:"Large chart on top",        r:[[0,0,1,.5],[0,.5,.5,.5],[.5,.5,.5,.5]] },
+  { n:3, v:3,    tip:"Large chart at the bottom", r:[[0,.5,1,.5],[0,0,.5,.5],[.5,0,.5,.5]] }
+];
+const layIcon = (rects, w, h) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" stroke="currentColor" stroke-width="1.3">`
+  + rects.map(([x, y, rw, rh]) => `<rect x="${(x * (w - 2) + 1).toFixed(1)}" y="${(y * (h - 2) + 1).toFixed(1)}" width="${(rw * (w - 2)).toFixed(1)}" height="${(rh * (h - 2)).toFixed(1)}" rx="1.5"/>`).join("") + "</svg>";
+const layIsCur = c => c.n === LAY.n && (c.v === null || c.v === (LAY.v[c.n] || 0) % LAYOUTS[c.n].length);
+function layPickPaint(){
+  const b = $("layPick"); if(!b) return;
+  const cur = LAY_CHOICES.find(layIsCur) || LAY_CHOICES[0];
+  b.innerHTML = layIcon(cur.r, 16, 12) + '<span class="car">&#9662;</span>';
+  let h = "";
+  for(let n = 1; n <= 3; n++){
+    h += `<div class="lrow"><span class="ln">${n}</span>`;
+    LAY_CHOICES.forEach((c, i) => { if(c.n === n) h += `<button type="button" data-i="${i}" class="${layIsCur(c) ? "on" : ""}" title="${c.tip}">${layIcon(c.r, 22, 16)}</button>`; });
+    h += "</div>";
+  }
+  $("layMenu").innerHTML = h;
+}
+$("layPick").addEventListener("click", e => { e.stopPropagation(); layPickPaint(); $("layDd").classList.toggle("open"); });
+$("layMenu").addEventListener("click", e => {
+  e.stopPropagation();
+  const b = e.target.closest("button[data-i]"); if(!b) return;
+  const c = LAY_CHOICES[+b.dataset.i];
+  $("layDd").classList.remove("open");
+  const before = LAY.n === c.n ? layDef().show.join(",") : null;
+  LAY.n = c.n;
+  if(c.v !== null) LAY.v[c.n] = c.v;
+  laySave();
+  if(before !== null && layDef().show.join(",") === before && LAY.full == null){ layGrid(); return; }
+  buildPanes();
+});
+document.addEventListener("click", e => { if(!$("layDd").contains(e.target)) $("layDd").classList.remove("open"); });
 /* Changement d'unite de temps d'un seul graphique : ses bougies sont
    reconstruites depuis le debut de la journee, les autres ne bougent pas. */
 function setPaneTf(i){
@@ -1409,7 +1589,7 @@ function applyTick(ms, price, bulk){
     const nb = paneTick(p, nyMs, price);
     if(!bulk){
       p.series.update(p.bars[p.bars.length-1]);
-      if(nb) keepRightPad(p.chart);
+      if(nb) paneFollow(p);   // v6.8 : garde l'ecart choisi par l'operateur (avant : remis a 15 %)
     }
   }
   lvlStep(ms, price);                 // états des niveaux (Partner Trading)
@@ -3397,6 +3577,15 @@ function drawPaneArt(p, target){
         }
         ctx.strokeStyle = "#B2B5BE"; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
         ctx.beginPath(); ctx.moveTo(xa, ya); ctx.lineTo(xb, yb); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = "#B2B5BE";   // v6.8 : extremites saisissables
+        [[xa, ya], [xb, yb]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill(); });
+      }
+      /* v6.8 : extremite survolee ou deplacee -- anneau blanc */
+      const hv = DRAW.edit || DRAW.hoverEnd;
+      if(hv && hv.it === it){
+        const [hx, hy] = hv.k === "a" ? [xa, ya] : [xb, yb];
+        ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 2; ctx.setLineDash([]);
+        ctx.beginPath(); ctx.arc(hx, hy, 6, 0, Math.PI * 2); ctx.stroke();
       }
     }
     ctx.globalAlpha = 1;
@@ -3410,7 +3599,7 @@ $("drawMenu").addEventListener("click", e => {
   setDrawMode(b.dataset.t);
 });
 document.addEventListener("click", e => { if(!$("drawDd").contains(e.target)) $("drawDd").classList.remove("open"); });
-addEventListener("keydown", e => { if(e.key === "Escape"){ $("drawDd").classList.remove("open"); if(DRAW.mode) setDrawMode(null); } });
+addEventListener("keydown", e => { if(e.key === "Escape"){ $("drawDd").classList.remove("open"); if(DRAW.mode) setDrawMode(null); if(LAY.full != null){ LAY.full = null; layGrid(); } } });
 
 class FlowPrimitive {
   constructor(p){ this.p = p; this.req = null; const self = this;
@@ -3517,15 +3706,18 @@ class FlowPrimitive {
           }
           const xc = ts.timeToCoordinate(bt), yc = y(o[1]);
           if(xc === null || yc === null) continue;
-          const rad = Math.min(14, 3 + Math.sqrt(o[2] / FLOW.boMin) * 4) * hr;
+          // v6.8 : meme taille que le Terminal 2.5.1.24 (un peu plus grandes qu'avant : 8,5 px au minimum, 12,5 au plus)
+          const rad = Math.min(12.5, 4 + 4.5 * Math.sqrt(o[2] / FLOW.boMin)) * hr;
           const pending = t + f.boSec * 1000 > now;
-          const col = o[3] > 0 ? "34,197,94" : "239,68,68";
+          /* v6.8 (Nicolas, 31/10) : vert et rouge PLUS FONCES que les bougies (22C55E / EF4444), avec un fin
+             liseré clair : posee sur une bougie de la meme couleur, la bulle se distingue. */
+          const col = o[3] > 0 ? "21,128,61" : "185,28,28";
           ctx.beginPath(); ctx.arc(xc * hr, yc, rad, 0, Math.PI * 2);
-          if(pending){ ctx.fillStyle = `rgba(${col},.18)`; ctx.fill(); ctx.strokeStyle = `rgba(${col},.45)`; ctx.lineWidth = 1 * hr; ctx.stroke(); }
-          else if(o[4] === 2){ ctx.fillStyle = `rgba(${col},.75)`; ctx.fill(); }
-          else { ctx.strokeStyle = `rgba(${col},.95)`; ctx.lineWidth = 2 * hr; ctx.stroke(); }
+          if(pending){ ctx.fillStyle = `rgba(${col},.35)`; ctx.fill(); ctx.strokeStyle = "rgba(245,247,252,.35)"; ctx.lineWidth = 1 * hr; ctx.stroke(); }
+          else if(o[4] === 2){ ctx.fillStyle = `rgba(${col},.9)`; ctx.fill(); ctx.strokeStyle = "rgba(245,247,252,.6)"; ctx.lineWidth = 1 * hr; ctx.stroke(); }
+          else { ctx.fillStyle = "rgba(14,23,41,.55)"; ctx.fill(); ctx.strokeStyle = `rgba(${col},1)`; ctx.lineWidth = 2.5 * hr; ctx.stroke(); }
           if(rad > 7 * hr){
-            ctx.fillStyle = pending || o[4] !== 2 ? `rgba(${col},1)` : "#0E1729";
+            ctx.fillStyle = "#F5F7FC";   // v6.8 : nombre clair sur fond fonce
             ctx.font = `${Math.round(9 * hr)}px IBM Plex Mono, monospace`;
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(String(o[2]), xc * hr, yc);

@@ -12,12 +12,12 @@
       var d = document.createElement("div");
       d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0B1020;color:#FCA5A5;"
         + "font:13px/1.6 ui-monospace,Menlo,monospace;padding:24px;overflow:auto;white-space:pre-wrap";
-      d.textContent = "SIGMA — erreur au chargement\n\n" + msg
+      d.textContent = "SIGMA, erreur au chargement\n\n" + msg
         + "\n\nNavigateur : " + navigator.userAgent
         + "\nURL : " + location.href
         + "\n\nCopiez ce texte tel quel.";
       (document.body || document.documentElement).appendChild(d);
-    }catch(e){ alert("SIGMA — erreur au chargement\n\n" + msg); }
+    }catch(e){ alert("SIGMA, erreur au chargement\n\n" + msg); }
   }
   /* Les extensions du navigateur (MetaMask, portefeuilles crypto, bloqueurs)
      injectent leurs propres scripts et produisent regulierement des erreurs qui
@@ -59,7 +59,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<title>Sigma Dynamix — Operator Assessment</title>
+<title>Sigma Dynamix · Operator Assessment</title>
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.min.js"></script>
 <script>
   if(typeof LightweightCharts === "undefined"){
@@ -439,14 +439,14 @@
     <p class="lead">
       We are not recruiting operators at the moment. This assessment is only open
       during an active hiring window.<br><br>
-      If you were invited by email, please use the personal link we sent you —
+      If you were invited by email, please use the personal link we sent you,
       it remains valid.<br><br>
       Otherwise, you are welcome to write to us and we will let you know when the
       next window opens:<br>
       <b style="font-family:var(--mono)">support@sigmadynamix.com</b>
     </p>
     <p style="font-size:13px;color:var(--muted);margin-top:18px">
-      Nothing has been recorded — no application has been started.
+      Nothing has been recorded, no application has been started.
     </p>
   </div>
 </div>
@@ -460,7 +460,7 @@
       <b>It cannot be completed on a phone or a small tablet.</b><br><br>
       Please open the link from your email, or this page, on a desktop or laptop computer:<br>
       <b style="font-family:var(--mono)">sigmadynamix.com/assessment/</b><br><br>
-      Nothing has been recorded — your application starts when you open it on a computer.
+      Nothing has been recorded, your application starts when you open it on a computer.
     </p>
     <p style="font-size:13px;color:var(--muted);margin-top:18px">
       Already on a computer? Widen your browser window, or
@@ -472,7 +472,7 @@
 <!-- ===== STAGE 0 : DAY PACKS (admin/prep — invisible in production) ===== -->
 <div class="stage hidden" id="stage0">
   <div class="card">
-    <h2>Preparation — Day packs</h2>
+    <h2>Preparation · Day packs</h2>
     <p class="lead">Load one or more <b>daypack_YYYYMMDD.json</b> files (built with build_daypack.py). Each test session replays the market from a fixed Paris start time. In production this step is server-side and invisible to candidates.</p>
     <input type="file" id="packInput" accept=".json" multiple>
     <div class="filelist" id="packList"></div>
@@ -515,7 +515,7 @@
     <label for="fCountry">Country of residence</label>
     <select id="fCountry" autocomplete="country-name"
       style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--strong);background:var(--panel2);color:var(--text);font-size:15px">
-      <option value="">— Select your country —</option>
+      <option value="">Select your country</option>
     </select>
     <div id="questions"></div>
     <div class="err hidden" id="formErr"></div>
@@ -526,7 +526,7 @@
 <!-- ===== FAQ (après le questionnaire) ===== -->
 <div class="stage hidden" id="stageFaq">
   <div class="card">
-    <h2>Good — a few things to know</h2>
+    <h2>Good, a few things to know</h2>
     <p class="lead">Quick answers about the role, before the strategy presentation.</p>
     <div id="faqList"></div>
     <button class="btn" id="btnFaqNext">Continue</button>
@@ -588,9 +588,9 @@
 <div class="stage hidden" id="stageDemoConfirm">
   <div class="card">
     <h2>Did you understand everything?</h2>
-    <p class="lead">You can rewatch the demo if anything is unclear — otherwise, continue to the trading tests.</p>
+    <p class="lead">You can rewatch the demo if anything is unclear. Otherwise, continue to the trading tests.</p>
     <button class="btn ghost" id="btnRewatch">↺ Rewatch the demo</button>
-    <button class="btn" id="btnDemoOk">I understood — continue</button>
+    <button class="btn" id="btnDemoOk">I understood, continue</button>
   </div>
 </div>
 
@@ -607,7 +607,7 @@
       • You can take this assessment <b>only once</b>.
     </div>
     <div class="err hidden" id="warnErr"></div>
-    <button class="btn" id="btnStartTests">I understand — start the tests</button>
+    <button class="btn" id="btnStartTests">I understand, start the tests</button>
   </div>
 </div>
 
@@ -711,7 +711,7 @@
 <div id="pauseOverlay" class="hidden">
   <div class="card">
     <h2>Paused</h2>
-    <p class="lead">The market replay is frozen. Do <b>not</b> close or refresh this page — your attempt would be lost.</p>
+    <p class="lead">The market replay is frozen. Do <b>not</b> close or refresh this page, your attempt would be lost.</p>
     <button class="btn" id="btnResumeNow">Resume</button>
   </div>
 </div>
@@ -733,9 +733,9 @@
     <div class="verdict" id="rVerdict"></div>
     <div id="sendStatus" style="margin-top:14px;font-size:14px;color:var(--muted)">Sending your results…</div>
     <div class="warnbox hidden" id="manualSend" style="margin-top:12px">
-      <b>Automatic sending failed — please send your results manually:</b><br>
+      <b>Automatic sending failed, please send your results manually:</b><br>
       1. Click "Download my results file" below.<br>
-      2. Email the downloaded file to <b id="reportEmailTxt"></b> (the email button opens a pre-filled message — just attach the file and send).
+      2. Email the downloaded file to <b id="reportEmailTxt"></b> (the email button opens a pre-filled message, just attach the file and send).
     </div>
     <button class="btn hidden" id="btnDlResults">⬇ Download my results file</button>
     <button class="btn ghost hidden" id="btnMailResults">✉ Open email</button>
@@ -840,12 +840,12 @@ const QUESTIONNAIRE = {
         { label: "Yes, every weekday", points: 3 },
         { label: "Most weekdays", points: 1 },
         { label: "Rarely at that time", points: 0 } ]},
-    { text: "This is a side job — around 30 minutes of trading per day, not a full-time position. Does that match what you are looking for?",
+    { text: "This is a side job, around 30 minutes of trading per day, not a full-time position. Does that match what you are looking for?",
       options: [
         { label: "Yes, a short daily side job is exactly what I want", points: 2 },
         { label: "I would prefer more hours, but I'm interested", points: 1 },
         { label: "I was looking for a full-time position", points: 0 } ]},
-    { text: "In our model, operators execute signals generated by the firm's strategy — you do not trade your own analysis. How do you feel about that?",
+    { text: "In our model, operators execute signals generated by the firm's strategy, you do not trade your own analysis. How do you feel about that?",
       options: [
         { label: "Very comfortable: execution is a skill in itself", points: 3 },
         { label: "Comfortable, though I would sometimes want to add my view", points: 1 },
@@ -1053,7 +1053,7 @@ $("packInput").addEventListener("change", async e => {
       if(packs.some(x=>x.day===p.day)) continue;
       packs.push(p);
       const d = document.createElement("div");
-      d.innerHTML = `<span>${p.day} — ${p.ticks.length.toLocaleString("en")} ticks</span>
+      d.innerHTML = `<span>${p.day} · ${p.ticks.length.toLocaleString("en")} ticks</span>
         <span class="ok">ready ✓</span>`;
       $("packList").appendChild(d);
     }catch(err){
@@ -1172,7 +1172,7 @@ const candidate = { first:"", last:"", email:"", score:0 };
         opts += `<option value="${y}">${y}${y===q.max?"+":""}</option>`;
       d.innerHTML = `<div class="qt">${qi+1}. ${q.text}</div>
         <select id="years${qi}" style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--strong);background:var(--panel2);color:var(--text);font-size:15px">
-          <option value="">— Select —</option>${opts}</select>`;
+          <option value="">Select</option>${opts}</select>`;
     } else {
       /* v16.6 : note facultative sous la question (q.note) et avertissement
          affiché quand une réponse précise est cochée (option.warn) */
@@ -1292,7 +1292,7 @@ async function sendLink(idx){
     try{
       fetch("https://formsubmit.co/ajax/" + CONFIG.reportEmail, { method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ _subject: `New lead — ${candidate.first} ${candidate.last} (${candidate.country || "?"})`,
+        body: JSON.stringify({ _subject: `New lead: ${candidate.first} ${candidate.last} (${candidate.country || "?"})`,
           _template: "box", candidate: `${candidate.first} ${candidate.last} <${candidate.email}>`,
           country: candidate.country, screening_score: candidate.score, link_email_sent: res === "sent" ? "yes" : "NO",
           link, answers: candidate.answers.map(a => `${a.q} => ${a.answer}`).join(" || ") }) }).catch(()=>{});
@@ -1383,7 +1383,7 @@ const BACKEND_MESSAGES = {
   /* codes d'erreur encore renvoyés par le serveur actuel */
   invite_not_assigned: `This assessment link was issued before our latest update and can no longer be used. `
     + `Email ${SUPPORT_EMAIL} and we will send you a new one right away.`,
-  service_unavailable: `Our assessment service is temporarily unavailable. This is on our side, not yours — please try again in a few minutes. If the problem persists, email us at ${SUPPORT_EMAIL} and we will get you back on track.`,
+  service_unavailable: `Our assessment service is temporarily unavailable. This is on our side, not yours, please try again in a few minutes. If the problem persists, email us at ${SUPPORT_EMAIL} and we will get you back on track.`,
   service_paused:      `Our assessment service is waking up. Please wait a minute and click the button again. If it still fails, email us at ${SUPPORT_EMAIL}.`,
   already_completed: "Our records show you have already completed this assessment. Each candidate may only take it once.",
   already_started:   "An assessment has already been started with these details. If you were interrupted, please contact us so we can reopen it for you.",
@@ -1391,7 +1391,7 @@ const BACKEND_MESSAGES = {
   invalid_token:     "This assessment link is not recognised. Please check the link we sent you.",
   missing_identity:  "Please provide your name and a valid email address.",
   pack_unavailable:  "Market data is temporarily unavailable. Please try again in a few minutes.",
-  default:           `We could not start the assessment. Please check your connection and try again — and if it keeps failing, email us at ${SUPPORT_EMAIL}.`
+  default:           `We could not start the assessment. Please check your connection and try again, and if it keeps failing, email us at ${SUPPORT_EMAIL}.`
 };
 
 /* Récupère les journées attribuées par le serveur puis télécharge les packs */
@@ -1450,7 +1450,7 @@ const FAQ = [
   ["How and when will I be paid?",
    "If selected, by bank transfer at the beginning of each month."],
   ["What happens if I am selected?",
-   "A two-week evaluation on the Terminal first, under live session conditions and with the same debrief requirements. It confirms that what you showed here holds day after day. This evaluation period is <b>not compensated</b> — compensation starts when you move to live sessions on desk capital.<div class='steps'><div class='step'><span>STEP 01</span><b>Online assessment</b><i>The simulation you are about to take. About 30 minutes.</i></div><div class='step'><span>STEP 02</span><b>Ranking &amp; selection</b><i>Scored on execution quality, timing and discipline.</i></div><div class='step'><span>STEP 03</span><b>Two-week evaluation</b><i>Daily sessions on the Terminal, debrief every day.</i></div><div class='step hl'><span>STEP 04</span><b>Live desk capital</b><i>Firm signals on firm capital. Compensation starts.</i></div></div>"]
+   "A two-week evaluation on the Terminal first, under live session conditions and with the same debrief requirements. It confirms that what you showed here holds day after day. This evaluation period is <b>not compensated</b>. Compensation starts when you move to live sessions on desk capital.<div class='steps'><div class='step'><span>STEP 01</span><b>Online assessment</b><i>The simulation you are about to take. About 30 minutes.</i></div><div class='step'><span>STEP 02</span><b>Ranking &amp; selection</b><i>Scored on execution quality, timing and discipline.</i></div><div class='step'><span>STEP 03</span><b>Two-week evaluation</b><i>Daily sessions on the Terminal, debrief every day.</i></div><div class='step hl'><span>STEP 04</span><b>Live desk capital</b><i>Firm signals on firm capital. Compensation starts.</i></div></div>"]
 ];
 /* Les trois questions de rémunération passent en tête, dans cet ordre. Le montant garanti ne figure plus dans les annonces : le
    candidat arrive sans le connaître, il doit le trouver tout de suite.
@@ -2852,7 +2852,7 @@ function showFinal(){
   localStorage.setItem(ATTEMPT_KEY, JSON.stringify(flag));
   $("stage4").classList.remove("hidden");
   $("resName").textContent =
-    `${candidate.first} ${candidate.last} — ${candidate.email}`;   /* v16.7 : le score de screening n'est plus montré au candidat */
+    `${candidate.first} ${candidate.last} · ${candidate.email}`;   /* v16.7 : le score de screening n'est plus montré au candidat */
   let allT=[], missed=0;
   EV.results.forEach((r,i)=>{
     allT = allT.concat(r.records.filter(x=>x.result==="trade"));
@@ -2866,7 +2866,7 @@ function showFinal(){
                missed <= c.maxMissed && avgReact <= c.maxAvgReactionSec;
   const v = $("rVerdict");
   v.className = "verdict ok";
-  v.textContent = "✓ Assessment complete — thank you. We will analyse your results and get back to you within the next few days.";
+  v.textContent = "✓ Assessment complete, thank you. We will analyse your results and get back to you within the next few days.";
   /* le verdict interne (pass) reste calculé pour Sigma Dynamix, sans être montré au candidat */
   /* export des résultats : fichier téléchargé par le candidat + email pré-rempli */
   const report = {
@@ -2936,7 +2936,7 @@ function showFinal(){
       const msg = String(data.message || "");
       if(/activat|confirm/i.test(msg)){
         /* premier envoi : FormSubmit vient d'expédier le mail d'activation */
-        $("sendStatus").textContent = "✓ Results submitted. (First-time setup: the recruiter must confirm the activation email once — your results will be delivered after that.)";
+        $("sendStatus").textContent = "✓ Results submitted. (First-time setup: the recruiter must confirm the activation email once, your results will be delivered after that.)";
         $("sendStatus").style.color = "var(--amber)";
         $("manualSend").classList.remove("hidden");
         $("btnDlResults").classList.remove("hidden");
@@ -2967,7 +2967,7 @@ function showFinal(){
     const body = encodeURIComponent(
       `Hello,\n\nPlease find attached my assessment results file.\n\n` +
       `Name: ${candidate.first} ${candidate.last}\nEmail: ${candidate.email}\n` +
-      `Total PnL: ${pnl.toFixed(2)} pts — Win rate: ${(winRate*100).toFixed(0)}% — Missed: ${missed}\n\n` +
+      `Total PnL: ${pnl.toFixed(2)} pts, Win rate: ${(winRate*100).toFixed(0)}%, Missed: ${missed}\n\n` +
       `(Do not forget to attach the downloaded results file.)`);
     location.href = `mailto:${CONFIG.reportEmail}?cc=${CONFIG.reportCc}&subject=${subj}&body=${body}`;
   };

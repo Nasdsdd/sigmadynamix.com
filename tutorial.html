@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tutorial — Sigma Dynamix</title>
+<title>Tutorial · Sigma Dynamix</title>
 <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFPUlEQVR42sVXXWxUVRD+5szd3e4uZcvyE1GoGsBEE40PGkz4JwYkCJKoETViIP5giFGIiUAaiAikGvkJWkFBDRGIgsUCDz7wgD7wINEHJFEi8gAUiEKh3bK73b3nzPhwb9st3f5JiSc5uQ/3nvt9M/PNmRlCsBiAi6fvGmOs96aSzgMwHoAHgHBrSwFYAH+R0hHx7Mf5axcb2zGpAzw1ZgGB64joTlUNzw3mIhARVPWSwi3LtzQ2AGACgHjl2HmGzWEFAFUbkqJBZqAAHIg8AiBO5udbLxyhRKJ6tEbwG4FGAOpC8Nu5HECs0Kvk4yH24kPXkuHHy4MTQBxuM8DdfhY3h9MAcERmiJIoJVLVZwAaB6iGLzvB1YL8G/9RDwSoQjkGeImb/yEBQz1LiVS16wocHhYfqBgmtvpJAkUCPah2WqTU7Qi0RDmqABO46aTQP78amGg5Q8TrDo6AnCug+NhHsOOfIBTCr0wJGPpwjACIA96FU4gemQFwLHRyl2W8Ht0HBWUvKXwAhTxIfDVtV1Q4HsoFXROFSghpwICMg3eqTsvZ2HEskarW8gQEEF+L0/eKvXsmc/6aRH9c7OjKL6zRFEhs4KmSiFBpwgW5BvgZA0706K4eCCBQsisCXkwKsw+pG/Ugm6ZzEju6AJRtNPCSgNo+rgsCDAMqPX7Rs29Ugrj5ORM99jKZ5kaR9N2mOHOvIlYlEB8w0c40NQwyXJK2Yer2At47ASCItZcEtZ4z0Z9eUcrdEDfyAS5O+1IBUYjt8DkBUJEwKlqycQsEAEB9IJaG+fs4x44vU/KLasdOYX9SncDllMiAALQVCkrGaKGtAKL+3+J9EyAD2CwQHapu7GwomMhBTfNpEDGRIWRbruu6NSvl2NEGGX3HKLG+7TcJ0+dtJgJEK7U4bZf497/AMKyRn2skcrKWKZLEjWtNun7je7J65Vv86CMP88KFz0gh2wrm/pUUr0/riy1wE5539r45HuWg0ROrJPL7p6wVI5Ftvq6bttTKireXMgDs3nPAbd++kxOpKlhrB4GAOiA6FHxmD0crJzjKnEXkdB1LbARymRbdsWOre/21RR4AfL7ra7f0jeUmFo8Ts4Fq/+pHz/dAFyIK2CwMe3AmjmI+pzt3bpPFixYyAGzZ9plbsXyVSVZWEhkDEem3CL3+0SSYimGw1ocrFGTvvl363NPzGYDWfrhNVr27xgypqiIFBgTebwKGGX6xDaQq9d/t1nlzZzEAXbdhk6yted9UptOkqoBqN/X3FYo+CTAzioUCPGapP7BbZ8+awVBgZc16+WBjLSdSw+H7fghEXQoTEeB5Xq9e6ZWAMQb5XA6JeFwaDu7RGdMncbHo64barXbz5k/M6Op7xToXNB7hJhAUwdM6i+bmjEkkE+VKce8iJCI455CuSsk3+77QKZMncj7fBiJC48XLkohXIPC6hs1PEIKwsQ16cWuxumaD1tcf4ngyWdYTXm/WZ1taMPWpuTpl8kQGgHi8AgAwftw9pr8ie+nFZ93+bw/2eDP20JJ1CoiZdcH8OTpyxHAjGhaddktvLsbUtf5Ya/X7wz9o09Um40Ui5QQpvTSlnSTymdawxxp4YxpNJhHpDt7RlHqq2kDGvAMtX7iJCJXpYQOqcKWziHNSznIFkVGRhv99MDG53PnLEF1CBICIw0FSbwNwMKQSMREA0SW53PnLDIBtMXPai1WeJJipRCZ1G+bCIJhkDBSXFG5RPtN4GABzyIxtIfOHlxyyn5yxIE0DqApFOVjj+Z+k+Eo9+2q++eKJ9qn8X73Lg34/ckxWAAAAAElFTkSuQmCC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -158,7 +158,7 @@ function fail(title, msg){
     let left = d.expiresIn || 900;
     const exp = document.getElementById("exp");
     const tick = () => {
-      if (left <= 0){ exp.textContent = "Access expired — reload the page"; return; }
+      if (left <= 0){ exp.textContent = "Access expired, reload the page"; return; }
       const m = Math.floor(left/60), sec = String(left%60).padStart(2,"0");
       exp.textContent = `Access expires in ${m}:${sec}`;
       left--; setTimeout(tick, 1000);

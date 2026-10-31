@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<title>Sigma Dynamix — Training</title>
+<title>Sigma Dynamix · Training</title>
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.min.js"></script>
 <script>
   if(typeof LightweightCharts === "undefined"){
@@ -616,7 +616,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
          of control after an acceleration, and a buy on a bounce with the stop moved to the entry.
          A guided tour of the screen comes first.</p>
       <button class="btn" id="btnStartDemo">&#9654; Watch the demo</button>
-      <p id="demoSeen">&#10003; Demo watched &mdash; you can replay it at any time.</p>
+      <p id="demoSeen">&#10003; Demo watched, you can replay it at any time.</p>
     </div>
     <div id="guideStep">
       <p>New on the charts: the order flow tools (volume profile, previous session, delta / CVD, big orders).
@@ -3154,7 +3154,7 @@ function indRender(p, full){
     if(b === "ema") indPush(L(0, { color:q.color, lineWidth:2 }), line(indEma(c, q.period)), full);
     if(b === "vwap"){
       const v = indVwap(p);
-      if(!v) note = " – no volume data";
+      if(!v) note = ", no volume data";
       indPush(L(0, { color:q.color, lineWidth:2 }), v ? line(v) : [], full);
     }
     if(b === "boll"){
@@ -3181,9 +3181,9 @@ function indRender(p, full){
     if(b === "atr") indPush(L(0, { priceScaleId:sid, color:q.color, lineWidth:2 }), line(indAtr(B, q.period)), full);
     if(b === "orb"){
       const m = Math.max(1, Math.round(q.minutes)), o = indOrb(B, m);
-      if(o.na){ note = " – bars ≤ " + m + " min only"; indClear(p, k); }
+      if(o.na){ note = ", bars ≤ " + m + " min only"; indClear(p, k); }
       else {
-        if(o.approx) note = " – ≈ (exact on a 1 min chart)";
+        if(o.approx) note = ", ≈ (exact on a 1 min chart)";
         indPush(L(0, { color:q.color, lineWidth:1, lineType:1, lastValueVisible:true, title:"ORB H" }), gap(o.hi), full);
         indPush(L(1, { color:q.color, lineWidth:1, lineType:1, lastValueVisible:true, title:"ORB L" }), gap(o.lo), full);
       }
@@ -3870,7 +3870,7 @@ async function renderCalendar(){
   });
   $("calStatus").textContent = n
     ? `${n} day${n > 1 ? "s" : ""} available this month.`
-    : "No day available this month — try another month.";
+    : "No day available this month, try another month.";
 }
 
 function pickDay(di){

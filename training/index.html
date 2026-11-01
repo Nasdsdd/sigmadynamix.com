@@ -735,7 +735,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <button id="btnQuit">■ End session</button>
     </div>
     <div class="pbox tight" id="ptBox">
-      <div class="phead">PARTNER TRADING</div>
+      <div class="phead">KEY LEVELS</div>
       <table id="ptTable"><thead><tr><th>APP</th><th>TYPE</th><th>PRICE</th><th>TICKS</th></tr></thead>
         <tbody id="ptBody"></tbody></table>
     </div>
@@ -921,8 +921,8 @@ const TOUR = [
   { el:"flowBar",   title:"Order flow",
     text:"The FLOW bar switches the order flow tools on and off: VP (volume profile of the session), PREV (previous session), CVD (delta and cumulative delta) and BIG (big orders, with their minimum size). They give context; the key levels give the authorization. The ? opens the guide." },
   { el:"panel",     title:"Right-hand panel",
-    text:"All your controls and information sit in this column. On smaller screens it does not fit entirely: scroll it with your mouse wheel or trackpad to reach every block (Performance, Actions, Stop / TP, Partner Trading, Replay speed, Next signal, trade log). A \"Scroll\" marker at the bottom tells you when more is below." },
-  { el:"ptBox",     title:"Partner Trading",
+    text:"All your controls and information sit in this column. On smaller screens it does not fit entirely: scroll it with your mouse wheel or trackpad to reach every block (Performance, Actions, Stop / TP, Key levels, Replay speed, Next signal, trade log). A \"Scroll\" marker at the bottom tells you when more is below." },
+  { el:"ptBox",     title:"Key levels",
     text:"The price levels that can trigger your next signal, nearest first. ARMED: ready to fire. WAIT: has fired, and fires again only after the price has moved away and come back. 1/3: times fired / maximum. TICKS: distance from the current price, in red when very close. ORB: high and low of the first 15 minutes." },
   { el:"signalBox", title:"Actions",
     text:"When the price reaches a level: AUTHORIZED, with a countdown of 300 seconds. Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit at 2R, twice the maximum stop (40 points) - pick 1R to 5R next to it - or type a price and use SL @ / TP @. The stop starts at its maximum, 20.00 points: you can bring it closer, never further." },

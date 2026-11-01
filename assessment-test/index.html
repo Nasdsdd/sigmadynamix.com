@@ -891,7 +891,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <button id="btnPause">⏸ Pause</button>
     </div>
     <div class="pbox tight" id="ptBox">
-      <div class="phead">PARTNER TRADING</div>
+      <div class="phead">KEY LEVELS</div>
       <table id="ptTable"><thead><tr><th>APP</th><th>TYPE</th><th>PRICE</th><th>TICKS</th></tr></thead>
         <tbody id="ptBody"></tbody></table>
     </div>
@@ -1080,7 +1080,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v22.1";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v22.2";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + " · TEST";
   const b = document.createElement("div");
@@ -1124,8 +1124,8 @@ const TOUR = [
     text:"FLOW turns the order flow tools on or off: VP (volume profile), PREV (previous session), CVD (delta) and BIG (big orders). Draw adds lines and Fibonacci, VIEW sets the labels. Context only: the key levels give the authorization." },
   { el:"panel",     title:"Right-hand panel",
     text:"All your controls are in this column. Scroll it if it does not fit on your screen." },
-  { el:"ptBox",     title:"Partner Trading",
-    text:"The levels that can trigger your next signal. ARMED: ready to fire. WAIT: fires again only after price moves away and comes back. TICKS: distance from the price." },
+  { el:"ptBox",     title:"Key levels",
+    text:"The key levels of the desk that can trigger your next signal. ARMED: ready to fire. WAIT: fires again only after price moves away and comes back. TICKS: distance from the price." },
   { el:"signalBox", title:"Actions",
     text:"When price reaches a level: AUTHORIZED, 5 minutes to enter. Buy or Sell, your choice, 10 MNQ. The stop starts at 20 points: closer allowed, never further. +TP adds a take profit (2R, 40 points by default). Close: all or part of the position." },
   { el:"perfBox",   title:"Performance",
@@ -1403,10 +1403,14 @@ function layGrid(){
    son unite de temps, son bouton Indicators et sa legende descendent d'une ligne. */
 function layUnderBar(){
   const bar = $("layBar"); if(!bar) return;
+  /* demo : la barre se place juste a gauche des boutons Pause / Voice */
+  const db = $("demoBar"), demo = $("charts").classList.contains("demoOn") && db && !db.classList.contains("hidden");
+  bar.style.right = demo ? (db.offsetWidth + 22) + "px" : "";
   const br = bar.getBoundingClientRect();
   for(const p of PANES){
     const r = p.box.getBoundingClientRect();
-    const under = r.width > 0 && r.top < br.bottom && r.bottom > br.top && r.left + 330 > br.left && r.left < br.right;
+    const ct = p.box.querySelector(".ctop"), cw = ct ? ct.offsetWidth : 320;   // largeur reelle des menus du graphique
+    const under = r.width > 0 && r.top < br.bottom && r.bottom > br.top && r.left + 16 + cw > br.left && r.left < br.right;
     p.box.classList.toggle("underBar", under);
   }
 }
@@ -2413,7 +2417,8 @@ function say(text){
   const u = new SpeechSynthesisUtterance(text);
   if(demoVoice) u.voice = demoVoice;
   u.lang = "en-US"; u.rate = 1.12; u.pitch = 0.92;   // +15 % pour suivre le replay accelere
-  u.onstart = ()=>showCaption(text);   // le sous-titre s'affiche quand la phrase démarre
+  if(!liveUtterances.size) showCaption(text);   // sous-titre tout de suite, sans attendre le moteur vocal
+  u.onstart = ()=>showCaption(text);
   trackUtterance(u);
   speechSynthesis.speak(u);            // file d'attente : ne coupe plus la phrase en cours
 }
@@ -2516,6 +2521,10 @@ async function startDemo(withTour){
     return;
   }
   bt.disabled = false; bt.textContent = bl;
+  /* reveille le moteur vocal pendant la visite guidee : la 1re phrase part sans delai */
+  if(voiceOn && "speechSynthesis" in window){
+    try{ speechSynthesis.cancel(); const w = new SpeechSynthesisUtterance(" "); w.volume = 0; if(demoVoice) w.voice = demoVoice; speechSynthesis.speak(w); }catch(e){}
+  }
   $("stagePres").classList.add("hidden");
   $("btnSkipDemo").classList.remove("hidden");
   MODE = "demo"; demoPaused = false;
@@ -2523,7 +2532,7 @@ async function startDemo(withTour){
   demoSaveSettings();
   $("btnDemoPause").textContent = "⏸ Pause";
   $("demoBar").classList.remove("hidden");
-  $("charts").classList.add("demoOn");   // la barre des graphiques descend sous celle de la demo
+  $("charts").classList.add("demoOn"); layUnderBar();   // la barre des graphiques descend sous celle de la demo
   $("sim").classList.remove("hidden");
   $("hstat").classList.remove("hidden");
   $("hName").textContent = "DEMO";
@@ -2560,7 +2569,7 @@ function demoLoadPart(i){
 let speechKeepAlive = null;
 function runDemoTrades(){
   $("demoBar").classList.remove("hidden");
-  $("charts").classList.add("demoOn");
+  $("charts").classList.add("demoOn"); layUnderBar();
   /* contournement du bug Chrome qui coupe les phrases longues (~15 s) */
   clearInterval(speechKeepAlive);
   if("speechSynthesis" in window)
@@ -2780,7 +2789,7 @@ function endDemo(){
   cancelSpeech();
   $("caption").classList.add("hidden");
   $("demoBar").classList.add("hidden");
-  $("charts").classList.remove("demoOn");
+  $("charts").classList.remove("demoOn"); layUnderBar();
   MODE = "test";
   $("sim").classList.add("hidden");
   $("hstat").classList.add("hidden");

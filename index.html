@@ -339,71 +339,44 @@ tailwind.config = {
 <!-- ══ TERMINAL ══ -->
 <section id="terminal" class="py-24 lg:py-32">
   <div class="mx-auto max-w-site px-4 sm:px-6 lg:px-8">
-    <div class="grid gap-14 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:gap-20">
-      <div class="reveal">
-        <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Sigma Dynamix Terminal</p>
-        <h2 class="disp tight mt-5 text-3xl font-semibold sm:text-4xl">The desk ships its own software.</h2>
-        <p class="mt-6 text-base leading-relaxed text-muted">
-          Operators don't watch a chat channel. They run a Windows desktop application built
-          in-house that receives authorization signals, timestamps them, and records every
-          action taken against them.
-        </p>
-        <ul class="mt-8 space-y-4">
-          <li class="flex gap-3 text-sm text-muted">
-            <svg class="mt-0.5 h-4 w-4 flex-none text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Signed builds, versioned release notes
-          </li>
-          <li class="flex gap-3 text-sm text-muted">
-            <svg class="mt-0.5 h-4 w-4 flex-none text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Credentials issued per operator, revocable
-          </li>
-          <li class="flex gap-3 text-sm text-muted">
-            <svg class="mt-0.5 h-4 w-4 flex-none text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Full session log exported for the debrief
-          </li>
-          <li class="flex gap-3 text-sm text-muted">
-            <svg class="mt-0.5 h-4 w-4 flex-none text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Full charting with volume and order flow tools
-          </li>
-        </ul>
-      </div>
-
-      <!-- spec card -->
-      <div class="reveal overflow-hidden rounded-card border border-line bg-panel">
-        <div class="flex items-center justify-between border-b border-line px-6 py-4">
-          <div class="flex items-center gap-2.5">
-            <span class="inline-block h-2 w-2 rounded-full bg-green"></span>
-            <span class="num text-sm">SigmaTerminal.exe</span>
-          </div>
-          <span class="num text-[11px] uppercase tracking-[0.16em] text-muted">Windows desktop</span>
-        </div>
-        <dl class="divide-y divide-line px-6">
-          <div class="flex items-baseline justify-between gap-4 py-4">
-            <dt class="text-sm text-muted">Operating system</dt>
-            <dd class="num text-right text-sm">Windows 10 / 11, 64-bit</dd>
-          </div>
-          <div class="flex items-baseline justify-between gap-4 py-4">
-            <dt class="text-sm text-muted">Runtime</dt>
-            <dd class="num text-right text-sm">.NET 8 Desktop Runtime</dd>
-          </div>
-          <div class="flex items-baseline justify-between gap-4 py-4">
-            <dt class="text-sm text-muted">Memory</dt>
-            <dd class="num text-right text-sm">8 GB RAM minimum</dd>
-          </div>
-          <div class="flex items-baseline justify-between gap-4 py-4">
-            <dt class="text-sm text-muted">Network</dt>
-            <dd class="text-right text-sm">Wired connection recommended</dd>
-          </div>
-          <div class="flex items-baseline justify-between gap-4 py-4">
-            <dt class="text-sm text-muted">Access</dt>
-            <dd class="text-right text-sm">Credentials issued by the desk</dd>
-          </div>
-        </dl>
-        <p class="border-t border-line px-6 py-4 text-xs text-muted">
-          Distributed to onboarded operators only. An access code is required to download.
-        </p>
-      </div>
+    <div class="max-w-2xl">
+      <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-blue">Sigma Dynamix Terminal</p>
+      <h2 class="disp tight mt-5 text-3xl font-semibold sm:text-4xl">The desk ships its own software.</h2>
+      <p class="mt-6 text-base leading-relaxed text-muted">
+        Operators don't watch a chat channel. They run a Windows desktop application built
+        in-house that receives authorization signals, timestamps them, and records every
+        action taken against them.
+      </p>
     </div>
+
+    <figure class="reveal mt-12 overflow-hidden rounded-card border border-line bg-panel lg:mt-14">
+      <img src="assets/terminal-session.webp" width="2400" height="1333" loading="lazy" decoding="async"
+           alt="The Sigma Dynamix Terminal during a live session"
+           class="block w-full">
+      <figcaption class="border-t border-line px-5 py-4 text-xs leading-relaxed text-muted sm:px-6">
+        A live session: the levels prepared by the desk, the authorization and its countdown,
+        volume profile, delta and large orders on the chart, and the running result of the day.
+      </figcaption>
+    </figure>
+
+    <ul class="reveal mt-10 grid gap-5 sm:grid-cols-2 lg:mt-12 lg:grid-cols-4">
+      <li class="flex gap-3 text-sm text-muted">
+        <svg class="mt-0.5 h-4 w-4 flex-none text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        Signed builds, versioned release notes
+      </li>
+      <li class="flex gap-3 text-sm text-muted">
+        <svg class="mt-0.5 h-4 w-4 flex-none text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        Credentials issued per operator, revocable
+      </li>
+      <li class="flex gap-3 text-sm text-muted">
+        <svg class="mt-0.5 h-4 w-4 flex-none text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        Full session log exported for the debrief
+      </li>
+      <li class="flex gap-3 text-sm text-muted">
+        <svg class="mt-0.5 h-4 w-4 flex-none text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        Full charting with volume and order flow tools
+      </li>
+    </ul>
   </div>
 </section>
 

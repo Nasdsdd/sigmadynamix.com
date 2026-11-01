@@ -219,7 +219,7 @@
     background:transparent;color:var(--muted);font:700 11px var(--mono);cursor:pointer}
   #layBar button:hover{color:var(--text);border-color:var(--border)}
   #layBar button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-  #charts.demoOn #layBar{top:48px}
+  #charts.demoOn #layBar{top:10px;right:250px}   /* evaluation : sur la ligne des boutons de la demo, a leur gauche */
   #closeRow{margin-top:12px}
   /* v6.3 -- mode Multi : une case par position, celle choisie recoit les ordres */
   #slotBar{display:flex;gap:6px;margin:4px 0 10px}
@@ -1080,7 +1080,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v22";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v22.1";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -1114,21 +1114,21 @@ const SPEED = 1;
    ================================================================ */
 const TOUR = [
   { el:"charts",    title:"The charts",
-    text:"Two charts to start with: 100-tick candles on top for execution, 1-minute candles below for context. Choose 1, 2 or 3 charts at the top right (click the same number again to change the layout), set the time frame of each chart with the menu in its top-left corner and add indicators with the Indicators button next to it (moving averages, VWAP, Bollinger Bands, MACD, RSI, ATR, ORB). The key levels of the desk are drawn in violet with their zone, the opening range (ORB) in orange. Your position, stop loss and take profits are drawn on every chart: drag the red SL line or a green TP line to move it, double-click a TP line to remove it. The clock hours are hidden: you only see minutes and seconds." },
+    text:"One 1-minute chart to start. Add charts with 1, 2 or 3 at the top, change the time frame in the top-left menu, add indicators with Indicators. Violet lines: the key levels of the desk. Drag the red SL or green TP line to move it. Clock hours are hidden." },
   { el:"layBar",    title:"Order flow & tools",
-    text:"The FLOW bar switches the order flow tools on and off: VP (volume profile of the session, with its POC, VAH and VAL), PREV (previous session), CVD (delta per candle and cumulative delta) and BIG (big orders, with their minimum size). Next to it, Draw adds lines, trend lines and Fibonacci retracements, and VIEW sets the bar countdown and the labels. The order flow gives context: only the key levels give the authorization." },
+    text:"FLOW turns the order flow tools on or off: VP (volume profile), PREV (previous session), CVD (delta) and BIG (big orders). Draw adds lines and Fibonacci, VIEW sets the labels. Context only: the key levels give the authorization." },
   { el:"panel",     title:"Right-hand panel",
-    text:"All your controls and information sit in this column. On smaller screens it does not fit entirely: scroll it with your mouse wheel or trackpad to reach every block (Performance, Actions, Stop / TP, Next signal, Partner Trading, trade log). A \"Scroll\" marker at the bottom tells you when more is below." },
+    text:"All your controls are in this column. Scroll it if it does not fit on your screen." },
   { el:"ptBox",     title:"Partner Trading",
-    text:"The price levels that can trigger your next signal, nearest first. ARMED: ready to fire. WAIT: has fired, and fires again only after the price has moved away and come back. 1/3: times fired / maximum. TICKS: distance from the current price, in red when very close. ORB: high and low of the first 15 minutes." },
+    text:"The levels that can trigger your next signal. ARMED: ready to fire. WAIT: fires again only after price moves away and comes back. TICKS: distance from the price." },
   { el:"signalBox", title:"Actions",
-    text:"When the price reaches a level: AUTHORIZED, with a countdown of 300 seconds (5 minutes). Buy and Sell both light up, the direction is your choice. One trade per authorization, 10 MNQ. Once filled, the STOP / TP box appears: choose a quantity and click +TP to add a take profit at 2R, twice the maximum stop (40 points), or pick 1R to 5R next to it; you can also type a price and use SL @ / TP @. The stop starts at its maximum, 20.00 points: you can bring it closer, never further. Close closes the quantity chosen in its menu (Half, All): all of the position or only part of it." },
+    text:"When price reaches a level: AUTHORIZED, 5 minutes to enter. Buy or Sell, your choice, 10 MNQ. The stop starts at 20 points: closer allowed, never further. +TP adds a take profit (2R, 40 points by default). Close: all or part of the position." },
   { el:"perfBox",   title:"Performance",
-    text:"Your net result for the session, in dollars, costs included. The open position is counted at the current price." },
+    text:"Your net result for the session, in dollars, costs included." },
   { el:"log",       title:"Trade log",
-    text:"One line per signal: the direction you chose and your net result in dollars." },
+    text:"One line per signal: your direction and your net result." },
   { el:"pauseBox",  title:"Next signal & Pause",
-    text:"The market replays in real time. \"Next signal\" fast-forwards the replay to a few seconds before the next authorization. Pause is allowed between two signals only, never while a signal is live or a position is open. Do not close or refresh the page: your attempt would be lost." }
+    text:"Next signal jumps to just before the next authorization. Pause only between two signals. Never close or refresh the page." }
 ];
 
 const $ = id => document.getElementById(id);
@@ -1235,16 +1235,16 @@ const LAYOUTS = {
        { cols:"1fr", rows:"1fr 1fr 1fr", show:[0, 1, 2], name:"three stacked",
          place:{ 0:{ c:"1", r:"1" }, 1:{ c:"1", r:"2" }, 2:{ c:"1", r:"3" } } } ]
 };
-/* evaluation : deux graphiques empiles par defaut, 100 ticks en haut, 1 minute en bas */
-const LAY = { n:2, tf:["100t","1m","5m"], v:{ 1:0, 2:1, 3:0 } };
+/* evaluation : un graphique 1 minute plein ecran par defaut */
+const LAY = { n:1, tf:["1m","100t","5m"], v:{ 1:0, 2:1, 3:0 } };
 try{
-  const sv = JSON.parse(localStorage.getItem("sd_assess_layout") || "{}");
+  const sv = JSON.parse(localStorage.getItem("sd_eval2_layout") || "{}");
   if(sv.n >= 1 && sv.n <= 3) LAY.n = sv.n;
   if(Array.isArray(sv.tf)) sv.tf.forEach((k, i) => { if(i < 3 && TFS.some(x => x.k === k)) LAY.tf[i] = k; });
   if(sv.v && typeof sv.v === "object") [1, 2, 3].forEach(n => { const x = +sv.v[n]; if(x >= 0 && x < LAYOUTS[n].length) LAY.v[n] = x; });
 }catch(e){}
 const layDef = () => { const vs = LAYOUTS[LAY.n]; return vs[(LAY.v[LAY.n] || 0) % vs.length]; };
-const laySave = () => { try{ localStorage.setItem("sd_assess_layout", JSON.stringify(LAY)); }catch(e){} };
+const laySave = () => { try{ localStorage.setItem("sd_eval2_layout", JSON.stringify(LAY)); }catch(e){} };
 let PANES = [];        // [{k, box, div, sel, chart, series, bars, inBar}]
 
 const S = {};          // état du replay courant
@@ -1265,12 +1265,12 @@ const slotTag = p => (multiOn() && p && p.slot != null) ? `P${p.slot + 1} ` : ""
 const DEFAULT_SL_TICKS = 80;
 const ADMIN = { multi:false, stopMode:"fixed", stopPts:20 };
 try{
-  const sv = JSON.parse(localStorage.getItem("sd_assess_admin") || "{}");
+  const sv = JSON.parse(localStorage.getItem("sd_eval2_admin") || "{}");
   if(typeof sv.multi === "boolean") ADMIN.multi = sv.multi;
   if(sv.stopMode === "fixed" || sv.stopMode === "trail") ADMIN.stopMode = sv.stopMode;
   if(+sv.stopPts >= 1 && +sv.stopPts <= 100) ADMIN.stopPts = +sv.stopPts;
 }catch(e){}
-const adminSave = () => { try{ localStorage.setItem("sd_assess_admin", JSON.stringify(ADMIN)); }catch(e){} };
+const adminSave = () => { try{ localStorage.setItem("sd_eval2_admin", JSON.stringify(ADMIN)); }catch(e){} };
 const trailOn = () => MODE === "test" && S.sessTrail === true;
 let MODE = "test";     // "demo" | "test"
 
@@ -1875,7 +1875,7 @@ let LINES = new Set();
 /* v6.5 -- menu VIEW : compte a rebours de la bougie, etiquettes sur le graphique / sur l'echelle */
 const VIEW = { cd:false, lblChart:true, lblAxis:true };
 try{
-  const sv = JSON.parse(localStorage.getItem("sd_assess_view") || "{}");
+  const sv = JSON.parse(localStorage.getItem("sd_eval2_view") || "{}");
   ["cd", "lblChart", "lblAxis"].forEach(k => { if(typeof sv[k] === "boolean") VIEW[k] = sv[k]; });
 }catch(e){}
 /* v6.5 -- etiquettes masquables (menu VIEW) : keep = ligne d'ordre (position, stop, TP, entree /
@@ -2489,8 +2489,8 @@ async function loadDemoParts(){
 /* Reglages de l'operateur gardes pendant la demo (la demo allume tout). */
 function demoSaveSettings(){
   S.demoSaved = { on: Object.assign({}, FLOW.on), boMin: FLOW.boMin, boAuto: FLOW.boAuto };
-  FLOW.on = { vp:true, prev:true, cvd:true, bo:true };
-  FLOW.boMin = 50;
+  FLOW.on = { vp:true, prev:true, cvd:false, bo:true };
+  FLOW.boMin = 100;
 }
 function demoRestoreSettings(){
   const sv = S.demoSaved; if(!sv) return;
@@ -2566,14 +2566,15 @@ function runDemoTrades(){
     }, 10000);
   const run = ++demoRunId;
   const live = () => MODE==="demo" && run===demoRunId;
-  const L1 = "Welcome. This demo shows how our operators trade, on real replays of the NQ futures market, with the order flow tools of the FLOW bar switched on.";
-  const L2 = "The rule never changes. A key level marked by the desk gives the authorization: it is the only thing that lets you trade. The direction is yours, buy or sell. The order flow gives the context. Volume profile, previous session, delta and big orders tell you what the market is doing. They are not entry points.";
-  const L3 = "First example, Wednesday the 21st of October, a few minutes after the open.";
+  const L1 = "Welcome. This demo shows how our operators trade, on real replays of the NQ futures market.";
+  const L2 = "Look at the violet lines: these are the key levels set by the desk. Authorizations fire only on these levels, and we trade nothing else. When price reaches a key level, you are authorized, and from there you look for your entry.";
+  const L3 = "The direction is yours, buy or sell. The order flow tools give the context, not the entries. First example, Wednesday the 21st of October, a few minutes after the open.";
   /* le marche reste fige pendant l'introduction */
   stopClock();
   say(L1);
   afterSay(L1, ()=>{
     if(!live()) return;
+    demoBlinkLevels(12000);
     say(L2);
     afterSay(L2, ()=>{
       if(!live()) return;
@@ -2612,6 +2613,15 @@ function afterSay(text, fn){
   else setTimeout(fn, Math.max(3000, text.length * 55));
 }
 
+/* fait clignoter les niveaux violets (debut de la demo, premiere autorisation) */
+function demoBlinkLevels(ms){
+  clearInterval(S.blinkT);
+  let n = 0; const max = Math.max(2, Math.round(ms / 400));
+  S.blinkT = setInterval(() => {
+    if(MODE !== "demo" || ++n > max){ clearInterval(S.blinkT); if(MODE === "demo") setShowLevels(true); return; }
+    setShowLevels(n % 2 === 0);
+  }, 400);
+}
 function buildDemoScript(){
   const at = (part, hms, plusMs) => nyToUtcMs(CONFIG.demo.parts[part].day, hms) + (plusMs || 0);
   const pos = () => S.pos;
@@ -2628,7 +2638,8 @@ function buildDemoScript(){
     }},
     { at: () => at(0, "09:49:51"), hold:true, run: ()=>{
         sig(29913.25);
-        say("Authorization. Price reaches the key level at 29 913, the high of the opening range, drawn in violet with its zone. The lamp turns blue and the countdown starts: you have five minutes. A big buy order of 75 contracts hits the top, the circle on the chart, but price does not go much higher. Far above the value area, buyers are running out of steam: we choose to sell.");
+        demoBlinkLevels(3000);
+        say("Authorization. Price reaches the key level at 29 913, the high of the opening range. The lamp turns blue: you have five minutes to enter. Price is far above the value area and stalls on the level: we choose to sell.");
     }},
     { afterPrevMs: 1200, hold:true, run: ()=>{
         openPos("SELL");
@@ -2811,7 +2822,8 @@ function showTourStep(){
   }
   /* jamais hors de l'écran, le bouton Next reste toujours cliquable */
   tx = Math.min(Math.max(m, tx), innerWidth - tipW - m);
-  ty = Math.min(Math.max(m, ty), innerHeight - tipH - m);
+  const topMin = (document.querySelector("header") || { getBoundingClientRect: () => ({ bottom: 0 }) }).getBoundingClientRect().bottom + m;
+  ty = Math.min(Math.max(topMin, ty), innerHeight - tipH - m);   // jamais sous l'en-tete
   tip.style.left = tx + "px"; tip.style.top = ty + "px";
 }
 $("tourNext").addEventListener("click", ()=>{
@@ -2877,18 +2889,18 @@ function sessionStats(records){
    Une journee sans flow_ : boutons grises, le reste de la page inchange.
    ================================================================ */
 const FLOW = {
-  on: { vp:true, prev:true, cvd:true, bo:true },
-  boMin: 50,
+  on: { vp:true, prev:true, cvd:false, bo:true },     // evaluation : CVD eteint par defaut
+  boMin: 100,
   boAuto: true,        // v6.3.3 : minimum selon le symbole des donnees (NQ 50, MNQ 100), comme le Terminal
   cache: {}
 };
 try{
-  const sv = JSON.parse(localStorage.getItem("sd_assess_flow") || "{}");
+  const sv = JSON.parse(localStorage.getItem("sd_eval2_flow") || "{}");
   if(sv.on) for(const k of Object.keys(FLOW.on)) if(typeof sv.on[k] === "boolean") FLOW.on[k] = sv.on[k];
   // v6.3.3 : un choix fait a la main (boAuto false) est garde ; sinon le minimum suit le symbole
   if(sv.v === 3 && sv.boAuto === false && [20,30,50,100].includes(sv.boMin)){ FLOW.boMin = sv.boMin; FLOW.boAuto = false; }
 }catch(e){}
-const flowSave = () => { try{ localStorage.setItem("sd_assess_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin, boAuto:FLOW.boAuto, v:3 })); }catch(e){} };
+const flowSave = () => { try{ localStorage.setItem("sd_eval2_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin, boAuto:FLOW.boAuto, v:3 })); }catch(e){} };
 const flowUrl = dayIso => CONFIG.packDir + "flow_" + dayIso.replace(/-/g, "") + ".json";
 
 /* Charge le flow_ d'une journee ; null s'il n'existe pas (journee sans volumes). */
@@ -2931,10 +2943,7 @@ function flowStart(f){
   S.flow = f || null;
   S.flowN = -1;
   // v6.3.3 : big orders -- minimum par defaut selon le symbole des donnees : 100 en MNQ, 50 en NQ
-  if(f && FLOW.boAuto && MODE !== "demo"){
-    const sym = String((f.raw && f.raw.symbol) || "").toUpperCase();
-    FLOW.boMin = sym.startsWith("MNQ") ? 100 : 50;
-  }
+  if(f && FLOW.boAuto && MODE !== "demo") FLOW.boMin = 100;   // evaluation : les candidats tradent le MNQ, minimum 100
   if(f){
     S.fVol = new Float64Array(f.span); S.fBuy = new Float64Array(f.span); S.fSell = new Float64Array(f.span);
     S.dVol = new Float64Array(f.span); S.dBuy = new Float64Array(f.span); S.dSell = new Float64Array(f.span);
@@ -3172,7 +3181,7 @@ const indNum = k => Object.keys(indDef(k).params);
 const IND = [{}, {}, {}];                      // reglages par graphique
 const IND_FOLD = [false, false, false];        // legende repliee, par graphique
 try{
-  const sv = JSON.parse(localStorage.getItem("sd_assess_ind") || "null");
+  const sv = JSON.parse(localStorage.getItem("sd_eval2_ind") || "null");
   if(Array.isArray(sv)) sv.forEach((o, i) => {
     if(i > 2 || !o || typeof o !== "object") return;
     for(const k of Object.keys(o)){
@@ -3182,10 +3191,10 @@ try{
       IND[i][k] = c;
     }
   });
-  const fd = JSON.parse(localStorage.getItem("sd_assess_ind_fold") || "null");
+  const fd = JSON.parse(localStorage.getItem("sd_eval2_ind_fold") || "null");
   if(Array.isArray(fd)) fd.forEach((v, i) => { if(i < 3) IND_FOLD[i] = !!v; });
 }catch(e){}
-const indSave = () => { try{ localStorage.setItem("sd_assess_ind", JSON.stringify(IND)); localStorage.setItem("sd_assess_ind_fold", JSON.stringify(IND_FOLD)); }catch(e){} };
+const indSave = () => { try{ localStorage.setItem("sd_eval2_ind", JSON.stringify(IND)); localStorage.setItem("sd_eval2_ind_fold", JSON.stringify(IND_FOLD)); }catch(e){} };
 
 /* ---- calculs (repris de chart.html du Terminal) ---- */
 function indSma(v, p){ const o = []; let s = 0; for(let i = 0; i < v.length; i++){ s += v[i]; if(i >= p) s -= v[i-p]; o.push(i >= p - 1 ? s / p : null); } return o; }
@@ -3512,7 +3521,7 @@ function viewPaint(){
 /* v6.7 : aussi appelee par le menu Indicators de chaque graphique */
 function viewSet(k, on){
   VIEW[k] = !!on;
-  try{ localStorage.setItem("sd_assess_view", JSON.stringify(VIEW)); }catch(err){}
+  try{ localStorage.setItem("sd_eval2_view", JSON.stringify(VIEW)); }catch(err){}
   viewPaint();
   applyLineLabels();
   PANES.forEach(p => { if(p.fPrim) p.fPrim.touch(); });
@@ -4484,7 +4493,7 @@ const FAQ = [
   ["Once authorized, how much time do I have to enter?",
    "You have 5 minutes per signal to open your position. An authorization is not an order to enter immediately: it tells you the price is in a zone where you may trade. You can enter straight away, or wait a minute or two for a better price within that time."],
   ["How many points do traders typically target?",
-   "Around 40 NQ points: that is the default distance of a take profit, twice the stop distance (a 2:1 reward to risk). That is about $80 per MNQ contract, or $800 on a 10 MNQ position."],
+   "Usually 20 to 30 NQ points, that is $40 to $60 per MNQ contract, or $400 to $600 on a 10 MNQ position. When the market moves strongly in your favour, you can let part of the position run and go for more: read the move, the targets are yours."],
   ["How do the stop loss and take profits work?",
    "Your stop loss is placed automatically 20 points (80 ticks) from your entry. You can bring it closer at any time, to break-even or beyond, but never move it further. Take profits are yours: choose a quantity and click +TP (placed 40 points away by default, twice the stop), then drag the line or type a price. You can split the position over several take profits. To close only part of the position, choose a quantity in Qty and click Close: the same Qty is used by +TP."],
   ["How should I manage my entry?",

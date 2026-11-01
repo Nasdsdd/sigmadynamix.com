@@ -409,6 +409,9 @@ const GUIDES = [
   { id:"faq", title:"Trader FAQ",
     blurb:"The questions operators ask most often, from account setup to what to do when something goes wrong mid-session.",
     tag:"Reference", meta:"Reference" },
+  { id:"order-flow", title:"Order flow guide", href:"/guides/order-flow.html",
+    blurb:"The ORB and the order flow tools of the Terminal: volume profile, previous session and virgin POCs, delta / CVD, big orders, with real NQ examples.",
+    tag:"Trading", meta:"Guide" },
 ];
 
 /* ============================================================
@@ -427,7 +430,7 @@ const CFG = {
 
 /* ---------- rendu ---------- */
 const card = (t, i) => `
-  <a class="card" href="tutorial.html?t=${t.id}">
+  <a class="card" href="${t.href || "tutorial.html?t=" + t.id}"${t.href ? ' target="_blank" rel="noopener"' : ""}>
     <div class="card-top">
       <span class="idx">${String(i+1).padStart(2,"0")}</span>
       <span class="chip">${t.tag}</span>

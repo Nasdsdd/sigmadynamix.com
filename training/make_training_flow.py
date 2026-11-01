@@ -30,6 +30,9 @@ Contenu (rien n'est recalcule par la page, sauf l'agregation progressive) :
                            les achats / ventes de Rithmic a ce prix dans cette minute (les totaux
                            par prix restent exacts).
 
+v6.9 : ajoute aussi a chaque flow_ la liste des POC VIERGES des seances precedentes (voir add_npoc) ;
+    python3 make_training_flow.py --npoc-only [-d daypacks]  -> seulement ce calcul, sans dossier History.
+
 Usage :
     python3 make_training_flow.py C:\\SigmaData\\History [-d daypacks] [--force]
 """
@@ -232,12 +235,86 @@ def build(day, hist, daypack, prev_day):
     return out, summary
 
 
+NPOC_SESSIONS = 5   # seances regardees en arriere, la veille comprise (comme le Terminal)
+
+
+def session_stats(flow):
+    """POC (en ticks absolus) et prix traites (ticks) de la seance 09:30-16:00 d'un flow_."""
+    base, vol, k = flow["base"], {}, 0
+    for i, c in enumerate(flow["pc"]):
+        for j in range(k, k + c):
+            t = base + flow["pp"][j]
+            vol[t] = vol.get(t, 0) + flow["pb"][j] + flow["ps"][j] + (flow["pn"][j] if flow.get("pn") else 0)
+        k += c
+    va = value_area(vol)
+    return (va[0] if va else None), set(t for t, v in vol.items() if v > 0)
+
+
+def add_npoc(daypacks_dir):
+    """
+    v6.9 -- POC VIERGES, regle du Terminal 2.5.1.25 : pour la journee D, le POC d'une seance S plus ancienne que la
+    veille (5 seances en arriere, la veille comprise) est vierge si son prix n'a ete traite pendant AUCUNE seance
+    09:30-16:00 entre S et D (la veille comprise) ; l'apres-seance et la nuit ne comptent pas. Une seance du
+    calendrier (jour ouvre) sans flow_ entre S et D : impossible de verifier, S n'est pas proposee.
+    Ecrit flow["npoc"] = [{"day", "poc"}] (plus recent d'abord) ; la page efface en direct un POC touche pendant
+    la seance rejouee. Rend le nombre de fichiers modifies.
+    """
+    files = {}
+    for path in glob.glob(os.path.join(daypacks_dir, "flow_*.json")):
+        ymd = os.path.basename(path)[5:13]
+        if not ymd.isdigit():
+            continue
+        files[datetime.date(int(ymd[:4]), int(ymd[4:6]), int(ymd[6:]))] = path
+    stats = {}
+    for d, path in files.items():
+        with open(path, encoding="utf-8") as fh:
+            stats[d] = session_stats(json.load(fh))
+    changed = 0
+    for d, path in sorted(files.items()):
+        # les NPOC_SESSIONS jours ouvres precedant D
+        prior, x = [], d
+        while len(prior) < NPOC_SESSIONS:
+            x -= datetime.timedelta(days=1)
+            if x.weekday() < 5:
+                prior.append(x)
+        out = []
+        for idx, s in enumerate(prior):
+            if idx == 0 or s not in stats or stats[s][0] is None:      # la veille : pPOC / pVAH / pVAL (PREV)
+                continue
+            between = prior[:idx]                                     # seances entre S et D (la veille comprise)
+            if any(e not in stats for e in between):
+                continue
+            poc = stats[s][0]
+            if any(poc in stats[e][1] for e in between):
+                continue
+            with open(files[s], encoding="utf-8") as fh:
+                tick = float(json.load(fh).get("tickSize", 0.25))
+            out.append({"day": s.isoformat(), "poc": round(poc * tick, 2)})
+        with open(path, encoding="utf-8") as fh:
+            flow = json.load(fh)
+        if flow.get("npoc") == out:
+            continue
+        flow["npoc"] = out
+        with open(path + ".tmp", "w", encoding="utf-8") as fh:
+            json.dump(flow, fh, separators=(",", ":"))
+        os.replace(path + ".tmp", path)
+        changed += 1
+        print(f"{d.isoformat():<12}POC vierges : " + (", ".join(f"{n['day'][5:]} {n['poc']:.2f}" for n in out) or "aucun"))
+    return changed
+
+
 def main():
     ap = argparse.ArgumentParser(description="Ajoute les volumes Rithmic aux journees du training.")
-    ap.add_argument("history", help="dossier History de SigmaTradeHistory (profile1m_*.csv, trades_*.csv)")
+    ap.add_argument("history", nargs="?", help="dossier History de SigmaTradeHistory (profile1m_*.csv, trades_*.csv)")
     ap.add_argument("-d", "--daypacks", default="daypacks", help="dossier des daypacks (defaut : daypacks)")
     ap.add_argument("--force", action="store_true", help="refaire les flow_ deja presents")
+    ap.add_argument("--npoc-only", action="store_true", help="seulement les POC vierges des flow_ existants")
     a = ap.parse_args()
+    if a.npoc_only:
+        print(f"POC vierges : {add_npoc(a.daypacks)} flow_ mis a jour")
+        return 0
+    if not a.history:
+        ap.error("dossier History manquant (ou --npoc-only)")
 
     have = sorted(datetime.date(int(p[-12:-8]), int(p[-8:-6]), int(p[-6:-4]))
                   for p in glob.glob(os.path.join(a.history, "profile1m_*.csv")))
@@ -270,6 +347,8 @@ def main():
               f"{('-' if s['bo'] is None else s['bo']):>12}")
     print(f"\n{written} flow_ ecrit(s), {skipped} deja present(s) (--force pour refaire), "
           f"{missing} journee(s) sans profile1m_ dans {a.history}")
+    n = add_npoc(a.daypacks)   # v6.9 : POC vierges, recalcules sur toutes les journees a chaque passage
+    print(f"POC vierges : {n} flow_ mis a jour")
     return 0
 
 

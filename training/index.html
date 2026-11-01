@@ -619,9 +619,9 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <p id="demoSeen">&#10003; Demo watched, you can replay it at any time.</p>
     </div>
     <div id="guideStep">
-      <p>New on the charts: the order flow tools (volume profile, previous session, delta / CVD, big orders).
+      <p>New on the charts: the ORB and the order flow tools (volume profile, previous session and virgin POCs, delta / CVD, big orders).
          Read the short guide to understand what they show and how to use them around the key levels.</p>
-      <a class="btn ghost" id="btnGuide" href="order_flow_guide.html" target="_blank" rel="noopener">&#128214; Open the order flow guide</a>
+      <a class="btn ghost" id="btnGuide" href="/guides/order-flow.html" target="_blank" rel="noopener">&#128214; Open the order flow guide</a>
     </div>
 
     <h3 class="sect">1 &middot; Trading day</h3>
@@ -677,7 +677,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="order_flow_guide.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label></div></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session, and the virgin POCs (nPOC) of the sessions before">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label></div></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -831,7 +831,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.8";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.9";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1593,6 +1593,7 @@ function applyTick(ms, price, bulk){
     }
   }
   lvlStep(ms, price);                 // états des niveaux (Partner Trading)
+  npocStep(ms, price);                // v6.9 : POC vierges touches pendant la seance
   forEachSlot(() => { if(S.pos){ trailStep(price); checkFills(price); } });   // stop (suiveur) et take profits
   /* déclenchement sur la table figée : identique pour tous les candidats.
      v17.1 : un signal qui tombe pendant un trade (ou une fenêtre ouverte) est
@@ -2799,6 +2800,8 @@ function flowActive(){ return !!S.flow; }
 function flowStart(f){
   flowClearLines();
   S.flow = f || null;
+  S.npoc = f && f.raw && Array.isArray(f.raw.npoc) ? f.raw.npoc.map(n => ({ day:n.day, poc:+n.poc, touched:false })) : [];   // v6.9
+  S.npocLast = null;
   S.flowN = -1;
   // v6.3.3 : big orders -- minimum par defaut selon le symbole des donnees : 100 en MNQ, 50 en NQ
   if(f && FLOW.boAuto && MODE !== "demo"){
@@ -2886,6 +2889,23 @@ function flowValueArea(v){
 }
 const flowPx = k => (S.flow.raw.base + k) * S.flow.tick;
 
+/* ================================================================
+   v6.9 -- POC VIERGES (nPOC), regle du Terminal 2.5.1.25
+   Le POC d'une seance d'avant la veille (jusqu'a 5 seances en arriere) que le prix n'a plus
+   traite pendant AUCUNE seance 09:30-16:00 depuis : la liste est preparee par
+   make_training_flow.py (flow["npoc"]). Pendant la journee rejouee, un nPOC est efface des que le
+   prix l'atteint ou le traverse PENDANT la seance (avant 09:30 et apres 16:00 : rien ne compte).
+   Affiches avec PREV (lignes violettes pointillees « nPOC Thu 29 »).
+   ================================================================ */
+const npocLabel = iso => { const d = new Date(iso + "T12:00:00Z"); return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getUTCDay()] + " " + String(d.getUTCDate()).padStart(2, "0"); };
+function npocStep(ms, price){
+  const f = S.flow; if(!f || !S.npoc || !S.npoc.length) return;
+  if(ms < f.raw.m0 || ms >= f.raw.rth.t1){ S.npocLast = null; return; }
+  const a = S.npocLast == null ? price : S.npocLast, lo = Math.min(a, price) - 1e-6, hi = Math.max(a, price) + 1e-6;
+  for(const n of S.npoc) if(!n.touched && n.poc >= lo && n.poc <= hi){ n.touched = true; n.at = ms; }
+  S.npocLast = price;
+}
+
 /* Lignes de prix : POC / VAH / VAL de la seance et de la veille (sur tous les graphiques). */
 function flowSyncLines(){
   const f = S.flow;
@@ -2901,6 +2921,8 @@ function flowSyncLines(){
     want.push(["ppoc", p.poc, "#F472B6", "pPOC", 2]);
     want.push(["pvah", p.vah, "#F9A8D4", "pVAH", 2]);
     want.push(["pval", p.val, "#F9A8D4", "pVAL", 2]);
+    /* v6.9 : POC vierges des seances d'avant (comme le Terminal), effaces des qu'ils sont touches en seance */
+    for(const n of (S.npoc || [])) if(!n.touched) want.push(["np" + n.day, n.poc, "#C9A2FF", "nPOC " + npocLabel(n.day), 1]);
   }
   const key = want.map(w => w[0]).join(",");
   if(!S.flowL || S.flowL.key !== key){
@@ -3275,7 +3297,7 @@ addEventListener("keydown", e => { if(e.key === "Escape"){ document.querySelecto
 
 const IND_FLOW_ROWS = [
   ["vp",   "Volume profile",   "Volume profile of the session, built minute by minute (POC, VAH, VAL)"],
-  ["prev", "Previous session", "Volume profile and POC / VAH / VAL of the previous session"],
+  ["prev", "Previous session", "Volume profile and POC / VAH / VAL of the previous session, and the virgin POCs (nPOC) of the sessions before"],
   ["cvd",  "Delta / CVD",      "Delta per candle and cumulative delta, reset at 09:30 NY"],
   ["bo",   "Big orders",       "Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed"]
 ];

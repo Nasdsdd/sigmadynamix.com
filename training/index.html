@@ -1248,7 +1248,23 @@ function layGrid(){
 }
 /* v6.7 -- un graphique place sous la barre CHARTS / FLOW / Draw / VIEW (en haut a droite) :
    son unite de temps, son bouton Indicators et sa legende descendent d'une ligne. */
+/* v6.10 (Nicolas, 03/11) : la barre CHARTS / FLOW / Draw / VIEW debordait sur l'echelle des prix du
+   graphique de droite. Elle se cale maintenant a gauche de cette echelle (largeur lue sur la bibliotheque). */
+function layBarPlace(){
+  const bar = $("layBar"), host = $("charts"); if(!bar || !host) return;
+  const hr = host.getBoundingClientRect();
+  let w = 0;
+  for(const p of PANES){
+    const r = p.box.getBoundingClientRect();
+    if(r.width > 0 && Math.abs(r.right - hr.right) < 4 && r.top < hr.top + 60){
+      try{ w = Math.max(w, p.chart.priceScale("right").width()); }catch(e){}
+    }
+  }
+  const right = (w > 0 ? w : 70) + 10;
+  if(bar.style.right !== right + "px") bar.style.right = right + "px";
+}
 function layUnderBar(){
+  layBarPlace();
   const bar = $("layBar"); if(!bar) return;
   const br = bar.getBoundingClientRect();
   for(const p of PANES){
@@ -1258,6 +1274,7 @@ function layUnderBar(){
   }
 }
 addEventListener("resize", () => { if(PANES.length) layUnderBar(); });
+setInterval(() => { if(PANES.length) layUnderBar(); }, 1000);   // v6.10 : l'echelle des prix change de largeur avec les prix
 /* ================================================================
    v6.8 -- RETOURS D'UN OPERATEUR (31/10)
    - Le graphique revenait tout seul a droite a chaque nouvelle bougie (ecart
@@ -1730,6 +1747,13 @@ const VIEW = { cd:false, lblChart:true, lblAxis:true };
 try{
   const sv = JSON.parse(localStorage.getItem("sd_train_view") || "{}");
   ["cd", "lblChart", "lblAxis"].forEach(k => { if(typeof sv[k] === "boolean") VIEW[k] = sv[k]; });
+  /* v6.10 (Nicolas, 03/11) : « Labels on the chart » coche par defaut -- remis une fois pour tout le monde,
+     y compris les navigateurs qui l'avaient decoche avant ; ensuite le choix de l'operateur est garde. */
+  if(!localStorage.getItem("sd_train_view_v610")){
+    VIEW.lblChart = true;
+    localStorage.setItem("sd_train_view_v610", "1");
+    localStorage.setItem("sd_train_view", JSON.stringify(VIEW));
+  }
 }catch(e){}
 /* v6.5 -- etiquettes masquables (menu VIEW) : keep = ligne d'ordre (position, stop, TP, entree /
    sortie), jamais masquee. Les autres (niveaux, ORB, volume profile, dessins) suivent VIEW. */

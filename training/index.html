@@ -211,6 +211,15 @@
   #viewMenu label:hover{background:rgba(148,163,184,.10)}
   #viewMenu input{accent-color:var(--accent);width:14px;height:14px;margin:0;cursor:pointer}
   #viewMenu .dsep{height:1px;background:var(--border);margin:3px 4px}
+  /* v6.10 : themes de couleur des graphiques (comme le Terminal 2.5.1.38) */
+  #viewMenu .thmHd{font:700 10px var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:5px 9px 2px}
+  #viewMenu .thmRow{display:flex;gap:4px;padding:3px 6px 5px}
+  #layBar #viewMenu .thmRow button{flex:1;width:auto;height:26px;padding:0 6px;display:flex;align-items:center;justify-content:center;gap:5px;
+    border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text);font:600 11px var(--mono);cursor:pointer}
+  #layBar #viewMenu .thmRow button:hover{background:rgba(148,163,184,.10)}
+  #layBar #viewMenu .thmRow button.on{border-color:var(--accent);background:rgba(0,102,254,.16);color:#fff}
+  #viewMenu .thmRow i{display:inline-flex;gap:2px}
+  #viewMenu .thmRow i b{display:block;width:4px;height:10px;border-radius:1px}
   #boMin{width:auto;font:600 10px var(--mono);color:var(--muted);background:transparent;border:1px solid var(--border);
     border-radius:6px;padding:2px 3px;cursor:pointer}
   #boMin:disabled{opacity:.35;cursor:not-allowed}
@@ -677,7 +686,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session, and the virgin POCs (nPOC) of the sessions before">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label></div></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session, and the virgin POCs (nPOC) of the sessions before">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label><div class="dsep"></div><div class="thmHd">Colours</div><div class="thmRow"><button type="button" data-thm="default" title="Default theme: softer colours, as in the Terminal by default"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Default</button><button type="button" data-thm="bright" title="Bright theme: stronger colours"><i><b style="background:#22C55E"></b><b style="background:#EF4444"></b></i>Bright</button><button type="button" data-thm="light" title="Light theme: white background, dark text"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Light</button></div></div></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -1124,6 +1133,45 @@ const CHART_OPTS = {
 };
 const CANDLE_OPTS = { upColor:"#22C55E", downColor:"#EF4444",
   wickUpColor:"#22C55E", wickDownColor:"#EF4444", borderVisible:false };
+/* v6.10 (Nicolas, 03/11) : themes de couleur des graphiques, les memes que le Terminal 2.5.1.38 :
+   Default (couleurs douces du Terminal), Bright (l'ancien aspect du training, par defaut ici) et Light
+   (fond blanc, textes fonces). Communs a tous les graphiques, gardes par navigateur (sd_train_theme). */
+const TRAIN_THEMES = {
+  default:{ bg:"#131722", up:"#26A69A", down:"#EF5350", text:"#D1D4DC", grid:"#1E222D", border:"#2A2E39" },
+  bright: { bg:"#0E1729", up:"#22C55E", down:"#EF4444", text:"#93A2BD", grid:"rgba(148,163,184,0.10)", border:"rgba(148,163,184,0.16)" },
+  light:  { bg:"#FFFFFF", up:"#26A69A", down:"#EF5350", text:"#334155", grid:"rgba(15,23,42,0.08)", border:"#CBD5E1" }
+};
+let THEME_K = "bright";
+try{ const v = localStorage.getItem("sd_train_theme"); if(TRAIN_THEMES[v]) THEME_K = v; }catch(e){}
+function themeOpts(){
+  const t = TRAIN_THEMES[THEME_K];
+  CHART_OPTS.layout = { background:{color:t.bg}, textColor:t.text };
+  CHART_OPTS.grid = { vertLines:{color:t.grid}, horzLines:{color:t.grid} };
+  CHART_OPTS.timeScale.borderColor = t.border;
+  CHART_OPTS.rightPriceScale.borderColor = t.border;
+  Object.assign(CANDLE_OPTS, { upColor:t.up, downColor:t.down, wickUpColor:t.up, wickDownColor:t.down });
+}
+themeOpts();
+function themePaint(){
+  document.querySelectorAll("#viewMenu button[data-thm]").forEach(b => b.classList.toggle("on", b.dataset.thm === THEME_K));
+}
+function themeSet(k){
+  if(!TRAIN_THEMES[k]) return;
+  THEME_K = k;
+  try{ localStorage.setItem("sd_train_theme", k); }catch(e){}
+  themeOpts();
+  for(const p of PANES){
+    try{
+      p.chart.applyOptions({ layout:CHART_OPTS.layout, grid:CHART_OPTS.grid,
+        timeScale:{ borderColor:CHART_OPTS.timeScale.borderColor }, rightPriceScale:{ borderColor:CHART_OPTS.rightPriceScale.borderColor } });
+      p.series.applyOptions({ upColor:CANDLE_OPTS.upColor, downColor:CANDLE_OPTS.downColor,
+        wickUpColor:CANDLE_OPTS.wickUpColor, wickDownColor:CANDLE_OPTS.wickDownColor });
+    }catch(e){}
+    p.box.style.background = TRAIN_THEMES[k].bg;
+    if(p.fPrim) p.fPrim.touch();
+  }
+  themePaint();
+}
 
 /* Construit — ou reconstruit — les graphiques affiches. Appelee au premier
    affichage et a chaque changement du nombre de graphiques. */
@@ -1150,6 +1198,7 @@ function buildPanes(){
     host.insertBefore(box, $("caption"));
     const chart = LightweightCharts.createChart(div, CHART_OPTS);
     const series = chart.addCandlestickSeries(CANDLE_OPTS);
+    box.style.background = TRAIN_THEMES[THEME_K].bg;   // v6.10
     const p = { idx, k:LAY.tf[idx], box, div, sel, chart, series, bars:[], inBar:0, iS:{}, iNote:{} };
     sel.addEventListener("change", () => { LAY.tf[idx] = sel.value; laySave(); setPaneTf(PANES.indexOf(p)); });
     indWire(p);
@@ -3414,6 +3463,11 @@ $("viewMenu").addEventListener("change", e => {
   const cb = e.target.closest("input[data-v]"); if(!cb) return;
   viewSet(cb.dataset.v, cb.checked);
 });
+$("viewMenu").addEventListener("click", e => {   // v6.10 : themes de couleur
+  const b = e.target.closest("button[data-thm]"); if(!b) return;
+  e.stopPropagation(); themeSet(b.dataset.thm);
+});
+themePaint();
 $("viewMain").addEventListener("click", () => $("viewDd").classList.toggle("open"));
 document.addEventListener("click", e => { if(!$("viewDd").contains(e.target)) $("viewDd").classList.remove("open"); });
 viewPaint();   // items : {type:"line", l} | {type:"trend"|"fib", a:{t,p}, b:{t,p}}
@@ -3746,7 +3800,7 @@ class FlowPrimitive {
           if(!pending && o[4] !== 2){ ctx.fillStyle = "rgba(14,23,41,.25)"; ctx.fill(); ctx.lineWidth = 1.5 * hr; ctx.strokeStyle = `rgba(${col},.9)`; ctx.stroke(); }
           else { ctx.fillStyle = `rgba(${col},${pending ? .2 : .5})`; ctx.fill(); }
           if(rad > 7 * hr){
-            ctx.fillStyle = "#F5F7FC";
+            ctx.fillStyle = THEME_K === "light" ? "#0F172A" : "#F5F7FC";   // v6.10 : nombre fonce sur fond blanc
             ctx.font = `600 ${Math.round((rad >= 11 * hr ? 10 : 9) * hr)}px Segoe UI, Inter, sans-serif`;
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(String(o[2]), xc * hr, yc);

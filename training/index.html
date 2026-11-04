@@ -686,7 +686,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session, and the virgin POCs (nPOC) of the sessions before">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label><div class="dsep"></div><div class="thmHd">Colours</div><div class="thmRow"><button type="button" data-thm="default" title="Default theme: softer colours, as in the Terminal by default"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Default</button><button type="button" data-thm="bright" title="Bright theme: stronger colours"><i><b style="background:#22C55E"></b><b style="background:#EF4444"></b></i>Bright</button><button type="button" data-thm="light" title="Light theme: white background, dark text"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Light</button></div></div></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Levels of the previous session (pPOC, pVAH, pVAL) and the virgin POCs (nPOC) of the sessions before, as in the Terminal">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label><div class="dsep"></div><div class="thmHd">Colours</div><div class="thmRow"><button type="button" data-thm="default" title="Default theme: softer colours, as in the Terminal by default"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Default</button><button type="button" data-thm="bright" title="Bright theme: stronger colours"><i><b style="background:#22C55E"></b><b style="background:#EF4444"></b></i>Bright</button><button type="button" data-thm="light" title="Light theme: white background, dark text"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Light</button></div></div></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -840,7 +840,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.10";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.11";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -2821,7 +2821,7 @@ $("fCode").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); }
    Une journee sans flow_ : boutons grises, le reste de la page inchange.
    ================================================================ */
 const FLOW = {
-  on: { vp:true, prev:true, cvd:true, bo:true },
+  on: { vp:true, prev:true, cvd:false, bo:true },   // v6.11 (Nicolas, 04/11) : CVD eteint par defaut (trop de place), BIG allume
   boMin: 50,
   boAuto: true,        // v6.3.3 : minimum selon le symbole des donnees (NQ 50, MNQ 100), comme le Terminal
   cache: {}
@@ -2829,10 +2829,12 @@ const FLOW = {
 try{
   const sv = JSON.parse(localStorage.getItem("sd_train_flow") || "{}");
   if(sv.on) for(const k of Object.keys(FLOW.on)) if(typeof sv.on[k] === "boolean") FLOW.on[k] = sv.on[k];
+  // v6.11 : nouveaux defauts appliques UNE fois a tous (CVD eteint, BIG allume) ; ensuite le choix est garde.
+  if(sv.v !== 4){ FLOW.on.cvd = false; FLOW.on.bo = true; }
   // v6.3.3 : un choix fait a la main (boAuto false) est garde ; sinon le minimum suit le symbole
-  if(sv.v === 3 && sv.boAuto === false && [20,30,50,100].includes(sv.boMin)){ FLOW.boMin = sv.boMin; FLOW.boAuto = false; }
+  if((sv.v === 3 || sv.v === 4) && sv.boAuto === false && [20,30,50,100].includes(sv.boMin)){ FLOW.boMin = sv.boMin; FLOW.boAuto = false; }
 }catch(e){}
-const flowSave = () => { try{ localStorage.setItem("sd_train_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin, boAuto:FLOW.boAuto, v:3 })); }catch(e){} };
+const flowSave = () => { try{ localStorage.setItem("sd_train_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin, boAuto:FLOW.boAuto, v:4 })); }catch(e){} };
 const flowUrl = dayIso => CONFIG.packDir + "flow_" + dayIso.replace(/-/g, "") + ".json";
 
 /* Charge le flow_ d'une journee ; null s'il n'existe pas (journee sans volumes). */
@@ -3370,7 +3372,7 @@ addEventListener("keydown", e => { if(e.key === "Escape"){ document.querySelecto
 
 const IND_FLOW_ROWS = [
   ["vp",   "Volume profile",   "Volume profile of the session, built minute by minute (POC, VAH, VAL)"],
-  ["prev", "Previous session", "Volume profile and POC / VAH / VAL of the previous session, and the virgin POCs (nPOC) of the sessions before"],
+  ["prev", "Previous session", "Levels of the previous session (pPOC, pVAH, pVAL) and the virgin POCs (nPOC) of the sessions before, as in the Terminal"],
   ["cvd",  "Delta / CVD",      "Delta per candle and cumulative delta, reset at 09:30 NY"],
   ["bo",   "Big orders",       "Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed"]
 ];
@@ -3771,7 +3773,8 @@ class FlowPrimitive {
         const pr = f.raw.prev;
         if(!pr._vol){ let span = 0; for(const x of pr.pp) span = Math.max(span, x + 1); pr._vol = new Float64Array(span); pr.pp.forEach((x, i) => pr._vol[x] = pr.pv[i]); }
         const pva = { poc: Math.round(pr.poc / f.tick) - pr.base, vah: Math.round(pr.vah / f.tick) - pr.base, val: Math.round(pr.val / f.tick) - pr.base };
-        histo(pr._vol, null, null, pr.base, -1, W * 0.12, .14, pva);
+        /* v6.11 (Nicolas, 04/11) : plus de profil de la veille dessine a gauche -- seulement les niveaux
+           (pPOC / pVAH / pVAL, lignes) et les POC vierges, comme « Prior session levels » du Terminal. */
         /* niveaux de la veille hors de l'ecran : etiquette au bord, avec une fleche */
         const H = sc.bitmapSize.height, bottomEdge = FLOW.on.cvd ? H * 0.70 : H - 4 * vr;
         const up = [], down = [];

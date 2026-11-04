@@ -840,7 +840,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.11";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.12";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1454,14 +1454,33 @@ $("layBar").addEventListener("click", e => {
 
 /* Ajoute un tick a la bougie courante d'un graphique, en ouvre une si besoin.
    Rend vrai quand une nouvelle bougie vient de s'ouvrir. */
+/* v2.5.1.43 : heure REELLE d'une bougie : time peut etre decale (bougies de ticks tombees
+   dans la meme seconde, poussees d'une seconde chacune pour l'axe) ; rt garde l'heure reelle. */
+const bRt = b => (b.rt != null ? b.rt : b.time);
+/* v2.5.1.43 : heure de PLACEMENT des dessins, strictement croissante : l'heure reelle, et pour les bougies de la
+   meme seconde un petit decalage (1/256 s, puis la moitie de ce qui reste avant la seconde suivante), comme
+   le Terminal 2.5.1.43 : un point pose sur la 3e bougie d'une seconde reste sur elle. */
+function placeTime(p, rt){
+  const n = p.bars.length;
+  if(n < 2) return rt;
+  const prev = p.bars[n - 2].pt;
+  if(prev == null || rt > prev) return rt;
+  const cap = Math.floor(prev) + 1, t = prev + 1 / 256;
+  return t < cap ? t : prev + (cap - prev) / 2;
+}
 function paneTick(p, nyMs, price){
   const tf = tfOf(p.k);
   let nb = false;
   if(tf.ticks){
     if(p.inBar === 0){
-      p.bars.push({ time:Math.floor(nyMs/1000), open:price, high:price, low:price, close:price });
+      const real = Math.floor(nyMs/1000);
+      p.bars.push({ time:real, open:price, high:price, low:price, close:price });
       const n = p.bars.length;
-      if(n > 1 && p.bars[n-1].time <= p.bars[n-2].time) p.bars[n-1].time = p.bars[n-2].time + 1;
+      if(n > 1 && p.bars[n-1].time <= p.bars[n-2].time){
+        p.bars[n-1].time = p.bars[n-2].time + 1;
+        p.bars[n-1].rt = real;   // v2.5.1.43 : heure reelle gardee (ORB, VWAP / CVD, dessins, gros ordres)
+      }
+      p.bars[n-1].pt = placeTime(p, real);
       nb = true;
     }
     p.inBar = (p.inBar + 1) % tf.ticks;
@@ -1469,7 +1488,7 @@ function paneTick(p, nyMs, price){
     const t = Math.floor(nyMs/(tf.sec*1000)) * tf.sec;
     const last = p.bars[p.bars.length-1];
     if(!last || last.time !== t){
-      p.bars.push({ time:t, open:price, high:price, low:price, close:price });
+      p.bars.push({ time:t, open:price, high:price, low:price, close:price, pt:t });
       nb = true;
     }
   }
@@ -3052,9 +3071,9 @@ function flowPaneData(p, n){
   const dl = [], cv = [], hi = [], lo = [];
   for(let i = 0; i < p.bars.length; i++){
     const b = p.bars[i];
-    const startMs = b.time * 1000 - off;
+    const startMs = bRt(b) * 1000 - off;   // v2.5.1.43 : heure reelle (ticks)
     const endMs = tf.sec ? Math.min(startMs + tf.sec * 1000, nowMs)
-                         : Math.min(i + 1 < p.bars.length ? p.bars[i+1].time * 1000 - off : nowMs, nowMs);
+                         : Math.min(i + 1 < p.bars.length ? bRt(p.bars[i+1]) * 1000 - off : nowMs, nowMs);
     const c = flowCvdAt(endMs, n);
     if(c === null) continue;
     cv.push({ time:b.time, value:c });
@@ -3175,9 +3194,9 @@ function indOrb(b, minutes){
   const partial = n > 1 && step >= 60 && (minutes * 60) % step !== 0;
   let cur = null;
   for(let i = 0; i < n; i++){
-    const t = b[i].time, ws = Math.floor(t / 86400) * 86400 + OPEN, we = ws + minutes * 60;
+    const t = bRt(b[i]), ws = Math.floor(t / 86400) * 86400 + OPEN, we = ws + minutes * 60;   // v2.5.1.43 : heure reelle
     if(t >= ws && t < we){
-      if(!cur || cur.ws !== ws){ cur = { ws, hi:b[i].high, lo:b[i].low, valid: i > 0 && b[i-1].time < ws }; continue; }
+      if(!cur || cur.ws !== ws){ cur = { ws, hi:b[i].high, lo:b[i].low, valid: i > 0 && bRt(b[i-1]) < ws }; continue; }
       cur.hi = Math.max(cur.hi, b[i].high); cur.lo = Math.min(cur.lo, b[i].low);
     }
     if(cur && cur.valid){ hi[i] = cur.hi; lo[i] = cur.lo; }
@@ -3201,8 +3220,8 @@ function indVwap(p){
   const w = indVwapPrep(f), n = flowDoneMinutes(), off = S.nyOff + (S.dayShift || 0), tf = tfOf(p.k), now = S.marketMs, m0 = f.raw.m0;
   const B = p.bars, out = new Array(B.length).fill(null);
   for(let i = 0; i < B.length; i++){
-    const st = B[i].time * 1000 - off;
-    const end = tf.sec ? Math.min(st + tf.sec * 1000, now) : Math.min(i + 1 < B.length ? B[i+1].time * 1000 - off : now, now);
+    const st = bRt(B[i]) * 1000 - off;   // v2.5.1.43 : heure reelle (ticks)
+    const end = tf.sec ? Math.min(st + tf.sec * 1000, now) : Math.min(i + 1 < B.length ? bRt(B[i+1]) * 1000 - off : now, now);
     if(end <= m0) continue;
     const k = Math.max(0, Math.min(n, Math.floor((end - m0) / 60000)));
     if(w.vv[k] > 0) out[i] = w.pv[k] / w.vv[k];
@@ -3521,20 +3540,23 @@ function drawReset(){
   drawPaint(); drawUpdate();
 }
 /* duree d'une bougie de ce graphique (ticks : moyenne des 50 dernieres) */
+/* v2.5.1.43 : heures de PLACEMENT (pt : heure reelle, doublons de la meme seconde decales), comme le Terminal 2.5.1.43 */
+const bPt = b => (b.pt != null ? b.pt : bRt(b));
 function barDur(p){
   const tf = tfOf(p.k); if(!tf.ticks) return tf.sec;
   const B = p.bars, n = B.length; if(n < 2) return 1;
   const k = Math.min(50, n - 1);
-  return Math.max(0.2, (B[n - 1].time - B[n - 1 - k].time) / k);
+  return Math.max(0.2, (bPt(B[n - 1]) - bPt(B[n - 1 - k])) / k);
 }
-/* heure (s) <-> position logique sur l'axe de CE graphique */
+/* heure (s) <-> position logique sur l'axe de CE graphique : l'ouverture d'une bougie = son centre,
+   interpolation lineaire dans le temps entre deux ouvertures (meme regle que le Terminal 2.5.1.43) */
 function logicalOfTime(p, t){
   const B = p.bars, n = B.length; if(!n) return null;
   let lo = 0, hi = n - 1, i = -1;
-  while(lo <= hi){ const m = (lo + hi) >> 1; if(B[m].time <= t){ i = m; lo = m + 1; } else hi = m - 1; }
-  if(i < 0) return (t - B[0].time) / barDur(p);
-  if(i === n - 1) return n - 1 + (t - B[n - 1].time) / barDur(p);
-  return i + (t - B[i].time) / Math.max(1e-6, B[i + 1].time - B[i].time);
+  while(lo <= hi){ const m = (lo + hi) >> 1; if(bPt(B[m]) <= t){ i = m; lo = m + 1; } else hi = m - 1; }
+  if(i < 0) return (t - bPt(B[0])) / barDur(p);
+  if(i === n - 1) return n - 1 + (t - bPt(B[n - 1])) / barDur(p);
+  return i + (t - bPt(B[i])) / Math.max(1e-6, bPt(B[i + 1]) - bPt(B[i]));
 }
 /* la bibliotheque ne place que des positions logiques ENTIERES : interpolation entre deux bougies */
 function xOfTime(p, t){
@@ -3552,12 +3574,12 @@ function drawPoint(p, x, y){
   const i = Math.round(lg);
   let t, price = pr;
   if(i >= 0 && i < n){
-    const b = B[i]; t = b.time;
+    const b = B[i]; t = bPt(b);   // v2.5.1.43 : heure de placement (heure reelle) de la bougie cliquee
     const yh = p.series.priceToCoordinate(b.high), yl = p.series.priceToCoordinate(b.low);
     if(yh != null && Math.abs(yh - y) <= 12) price = b.high;
     else if(yl != null && Math.abs(yl - y) <= 12) price = b.low;
-  } else if(i >= n) t = B[n - 1].time + (lg - (n - 1)) * barDur(p);
-  else t = B[0].time + lg * barDur(p);
+  } else if(i >= n) t = bPt(B[n - 1]) + (lg - (n - 1)) * barDur(p);
+  else t = bPt(B[0]) + lg * barDur(p);
   return { t, p: rTick(price) };
 }
 function fibPrice(it, lvl){ return it.b.p + (it.a.p - it.b.p) * lvl; }   // 100 % au 1er clic, 0 % au 2e
@@ -3812,7 +3834,7 @@ class FlowPrimitive {
           if(tf.sec) bt = Math.floor(sec / tf.sec) * tf.sec;
           else {
             let lo = 0, hi = p.bars.length - 1, r = -1;
-            while(lo <= hi){ const m = (lo + hi) >> 1; if(p.bars[m].time <= sec){ r = m; lo = m + 1; } else hi = m - 1; }
+            while(lo <= hi){ const m = (lo + hi) >> 1; if(bRt(p.bars[m]) <= sec){ r = m; lo = m + 1; } else hi = m - 1; }   // v2.5.1.43 : heure reelle
             if(r < 0) continue;
             bt = p.bars[r].time;
           }

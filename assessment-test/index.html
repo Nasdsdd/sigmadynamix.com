@@ -12,12 +12,12 @@
       var d = document.createElement("div");
       d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0B1020;color:#FCA5A5;"
         + "font:13px/1.6 ui-monospace,Menlo,monospace;padding:24px;overflow:auto;white-space:pre-wrap";
-      d.textContent = "SIGMA, erreur au chargement\n\n" + msg
+      d.textContent = "SIGMA — erreur au chargement\n\n" + msg
         + "\n\nNavigateur : " + navigator.userAgent
         + "\nURL : " + location.href
         + "\n\nCopiez ce texte tel quel.";
       (document.body || document.documentElement).appendChild(d);
-    }catch(e){ alert("SIGMA, erreur au chargement\n\n" + msg); }
+    }catch(e){ alert("SIGMA — erreur au chargement\n\n" + msg); }
   }
   /* Les extensions du navigateur (MetaMask, portefeuilles crypto, bloqueurs)
      injectent leurs propres scripts et produisent regulierement des erreurs qui
@@ -181,13 +181,6 @@
   .btn.ghost:hover:not(:disabled){background:rgba(0,96,248,.10);border-color:var(--accent)}
 
   .err{color:var(--red);font-size:13px;margin-top:12px}
-  #flowHelp{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;
-    border:1px solid var(--border);color:var(--muted);font:700 11px var(--mono);text-decoration:none;margin-left:2px}
-  #flowHelp:hover{color:var(--text);border-color:var(--link)}
-  #warnGuide{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:14px 0}
-  #guideStep #warnGuide p{margin:0;max-width:62ch}
-  #guideStep #warnGuide .btn{white-space:nowrap;margin:0}
-  #guideStep.warnGuide{margin-top:16px}
   .warnbox{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.5);
     border-radius:var(--r-ctl);padding:14px 16px;font-size:14px;line-height:1.6;
     color:var(--text);margin:14px 0}
@@ -271,6 +264,15 @@
   #viewMenu label:hover{background:rgba(148,163,184,.10)}
   #viewMenu input{accent-color:var(--accent);width:14px;height:14px;margin:0;cursor:pointer}
   #viewMenu .dsep{height:1px;background:var(--border);margin:3px 4px}
+  /* v6.10 : themes de couleur des graphiques (comme le Terminal 2.5.1.38) */
+  #viewMenu .thmHd{font:700 10px var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:5px 9px 2px}
+  #viewMenu .thmRow{display:flex;gap:4px;padding:3px 6px 5px}
+  #layBar #viewMenu .thmRow button{flex:1;width:auto;height:26px;padding:0 6px;display:flex;align-items:center;justify-content:center;gap:5px;
+    border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text);font:600 11px var(--mono);cursor:pointer}
+  #layBar #viewMenu .thmRow button:hover{background:rgba(148,163,184,.10)}
+  #layBar #viewMenu .thmRow button.on{border-color:var(--accent);background:rgba(0,102,254,.16);color:#fff}
+  #viewMenu .thmRow i{display:inline-flex;gap:2px}
+  #viewMenu .thmRow i b{display:block;width:4px;height:10px;border-radius:1px}
   #boMin{width:auto;font:600 10px var(--mono);color:var(--muted);background:transparent;border:1px solid var(--border);
     border-radius:6px;padding:2px 3px;cursor:pointer}
   #boMin:disabled{opacity:.35;cursor:not-allowed}
@@ -415,7 +417,7 @@
   #aStatus.warn{color:var(--amber);border-color:rgba(245,158,11,.45)}
   #orderBox .tbtn{padding:13px 0}
   #btnBuy{background:var(--green)} #btnSell{background:var(--red)}
-  #stBox{margin-top:12px;border-top:1px solid var(--border);padding-top:10px}
+  #stBox{margin-top:12px;border-top:1px solid var(--border);padding-top:10px;position:relative}
   .sthead{font-family:var(--disp);font-size:11px;font-weight:600;letter-spacing:.1em;margin-bottom:8px}
   .strow{display:grid;grid-template-columns:38px 1fr auto auto;gap:6px;align-items:center;margin-bottom:7px}
   .strow label{font-size:11.5px;color:var(--muted)}
@@ -430,6 +432,20 @@
   #stSummary{font:11.5px/1.5 var(--mono);color:var(--text);background:var(--panel2);border:1px solid var(--border);
     border-radius:8px;padding:7px 9px}
   #stSummary span{font-family:var(--sans);color:var(--muted);font-size:11px}
+  /* v6.14 : comme le Terminal 2.5.1.43 -- bouton « Take profit on chart » et bulle d'aide « ? » */
+  .sthead{display:flex;align-items:center;gap:8px}
+  #stHelp{position:static;width:18px;height:18px;border-radius:50%;border:1px solid var(--strong);background:var(--panel2);
+    color:var(--muted);font:700 11px/16px var(--sans);text-align:center;cursor:pointer;letter-spacing:0;user-select:none}
+  #stHelp:hover,#stHelp.open{color:var(--text);border-color:var(--link)}
+  #stHelpTip{display:none;position:absolute;left:0;right:0;top:34px;z-index:50;text-align:left;white-space:normal;
+    background:var(--panel);border:1px solid var(--strong);border-radius:8px;padding:9px 11px;box-shadow:0 8px 24px rgba(0,0,0,.35);
+    font:400 11.5px/1.45 var(--sans);color:var(--text);letter-spacing:0}
+  #stHelpTip p{margin:0 0 7px} #stHelpTip p:last-child{margin:0}
+  #stHelp:hover #stHelpTip,#stHelp.open #stHelpTip{display:block}
+  #btnTpChart{width:100%;margin-top:2px;padding:8px 0;border-radius:8px;border:1px solid rgba(34,197,94,.6);
+    background:rgba(34,197,94,.18);color:var(--text);font:600 12.5px/1.25 var(--sans);cursor:pointer}
+  #btnTpChart:hover:not(:disabled){filter:brightness(1.2)} #btnTpChart:disabled{opacity:.35;cursor:not-allowed}
+  #btnTpChart.armed{background:var(--green);color:#0E1729;border-color:var(--green)}
   #ptTable{width:100%;border-collapse:collapse;font-size:11.5px}
   #ptTable th{font:600 9.5px var(--sans);letter-spacing:.08em;color:var(--muted);text-align:left;padding:0 4px 5px}
   #ptTable th:nth-child(n+3),#ptTable td:nth-child(n+3){text-align:right}
@@ -638,6 +654,12 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     transition:border-color .2s,background-color .2s}
   #btnSkipDemo:hover{border-color:var(--accent);background:rgba(0,96,248,.12)}
   .hstat div{white-space:nowrap}
+  #warnGuide{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:14px 0}
+  #guideStep #warnGuide p{margin:0;max-width:62ch}
+  #guideStep #warnGuide .btn{white-space:nowrap;margin:0}
+  #guideStep.warnGuide{margin-top:16px}
+  header #demoBar{position:static;margin-left:16px;z-index:auto}
+  #charts.demoOn #layBar{top:8px}
 </style>
 </head>
 <body>
@@ -671,14 +693,14 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     <p class="lead">
       We are not recruiting operators at the moment. This assessment is only open
       during an active hiring window.<br><br>
-      If you were invited by email, please use the personal link we sent you,
+      If you were invited by email, please use the personal link we sent you —
       it remains valid.<br><br>
       Otherwise, you are welcome to write to us and we will let you know when the
       next window opens:<br>
       <b style="font-family:var(--mono)">support@sigmadynamix.com</b>
     </p>
     <p style="font-size:13px;color:var(--muted);margin-top:18px">
-      Nothing has been recorded, no application has been started.
+      Nothing has been recorded — no application has been started.
     </p>
   </div>
 </div>
@@ -692,7 +714,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <b>It cannot be completed on a phone or a small tablet.</b><br><br>
       Please open the link from your email, or this page, on a desktop or laptop computer:<br>
       <b style="font-family:var(--mono)">sigmadynamix.com/assessment/</b><br><br>
-      Nothing has been recorded, your application starts when you open it on a computer.
+      Nothing has been recorded — your application starts when you open it on a computer.
     </p>
     <p style="font-size:13px;color:var(--muted);margin-top:18px">
       Already on a computer? Widen your browser window, or
@@ -735,7 +757,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     <label for="fCountry">Country of residence</label>
     <select id="fCountry" autocomplete="country-name"
       style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--strong);background:var(--panel2);color:var(--text);font-size:15px">
-      <option value="">Select your country</option>
+      <option value="">— Select your country —</option>
     </select>
     <div id="questions"></div>
     <div class="err hidden" id="formErr"></div>
@@ -746,7 +768,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== FAQ (après le questionnaire) ===== -->
 <div class="stage hidden" id="stageFaq">
   <div class="card">
-    <h2>Good, a few things to know</h2>
+    <h2>Good — a few things to know</h2>
     <p class="lead">Quick answers about the role, before the strategy presentation.</p>
     <div id="faqList"></div>
     <button class="btn" id="btnFaqNext">Continue</button>
@@ -808,9 +830,9 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <div class="stage hidden" id="stageDemoConfirm">
   <div class="card">
     <h2>Did you understand everything?</h2>
-    <p class="lead">You can rewatch the demo if anything is unclear. Otherwise, continue to the trading tests.</p>
+    <p class="lead">You can rewatch the demo if anything is unclear — otherwise, continue to the trading tests.</p>
     <button class="btn ghost" id="btnRewatch">↺ Rewatch the demo</button>
-    <button class="btn" id="btnDemoOk">I understood, continue</button>
+    <button class="btn" id="btnDemoOk">I understood — continue</button>
   </div>
 </div>
 
@@ -831,7 +853,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       • You can take this assessment <b>only once</b>.
     </div>
     <div class="err hidden" id="warnErr"></div>
-    <button class="btn" id="btnStartTests">I understand, start the tests</button>
+    <button class="btn" id="btnStartTests">I understand — start the tests</button>
   </div>
 </div>
 
@@ -847,7 +869,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the ORB and the order flow tools (opens in a new tab)">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label></div></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Levels of the previous session (pPOC, pVAH, pVAL) and the virgin POCs (nPOC) of the sessions before, as in the Terminal">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the ORB and the order flow tools (opens in a new tab)">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label><div class="dsep"></div><div class="thmHd">Colours</div><div class="thmRow"><button type="button" data-thm="default" title="Default theme: softer colours, as in the Terminal by default"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Default</button><button type="button" data-thm="bright" title="Bright theme: stronger colours"><i><b style="background:#22C55E"></b><b style="background:#EF4444"></b></i>Bright</button><button type="button" data-thm="light" title="Light theme: white background, dark text"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Light</button></div></div></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -889,12 +911,15 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
         <button id="btnClose" disabled>✕ Close</button>
       </div>
       <div id="stBox" class="hidden">
-        <div class="sthead">STOP / TP</div>
+        <div class="sthead">STOP / TP<span id="stHelp" title="">?<span id="stHelpTip">
+          <p>Stop loss: placed automatically. Drag its red line on the chart.</p>
+          <p>+TP: adds a take profit on the chart at the chosen ratio (2R = 2 times the stop loss distance).</p>
+          <p>Take profit on chart: click it, then click the chart to place your take profit by hand.</p>
+          <p>Qty: the number of contracts of the take profits you create (all by default).</p>
+          <p>Drag a TP line to move it. Double-click it to remove it.</p></span></span></div>
         <div class="strow tprow"><label for="tpQty">Qty</label><select id="tpQty"></select>
           <button class="mini g" id="btnAddTp">+TP</button><select id="tpR" title="Distance of +TP from the entry, in units of the maximum stop (1R = the stop distance). 2R by default."><option value="1">1R</option><option value="2" selected>2R</option><option value="3">3R</option><option value="4">4R</option><option value="5">5R</option></select><button class="mini" id="btnClearTp">Clear TP</button></div>
-        <div class="strow"><label for="stPrice">Price</label><input id="stPrice" type="number" step="0.25" inputmode="decimal">
-          <button class="mini r" id="btnSlAt">SL @</button><button class="mini g" id="btnTpAt">TP @</button></div>
-        <div id="stSummary"></div>
+        <button id="btnTpChart" type="button">Take profit<br>on chart</button>
       </div>
     </div>
     <div class="pbox" id="pauseBox">
@@ -965,9 +990,9 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     <div class="verdict" id="rVerdict"></div>
     <div id="sendStatus" style="margin-top:14px;font-size:14px;color:var(--muted)">Sending your results…</div>
     <div class="warnbox hidden" id="manualSend" style="margin-top:12px">
-      <b>Automatic sending failed, please send your results manually:</b><br>
+      <b>Automatic sending failed — please send your results manually:</b><br>
       1. Click "Download my results file" below.<br>
-      2. Email the downloaded file to <b id="reportEmailTxt"></b> (the email button opens a pre-filled message, just attach the file and send).
+      2. Email the downloaded file to <b id="reportEmailTxt"></b> (the email button opens a pre-filled message — just attach the file and send).
     </div>
     <button class="btn hidden" id="btnDlResults">⬇ Download my results file</button>
     <button class="btn ghost hidden" id="btnMailResults">✉ Open email</button>
@@ -1072,12 +1097,12 @@ const QUESTIONNAIRE = {
         { label: "Yes, every weekday", points: 3 },
         { label: "Most weekdays", points: 1 },
         { label: "Rarely at that time", points: 0 } ]},
-    { text: "This is a side job, around 30 minutes of trading per day, not a full-time position. Does that match what you are looking for?",
+    { text: "This is a side job — around 30 minutes of trading per day, not a full-time position. Does that match what you are looking for?",
       options: [
         { label: "Yes, a short daily side job is exactly what I want", points: 2 },
         { label: "I would prefer more hours, but I'm interested", points: 1 },
         { label: "I was looking for a full-time position", points: 0 } ]},
-    { text: "In our model, operators execute signals generated by the firm's strategy, you do not trade your own analysis. How do you feel about that?",
+    { text: "In our model, operators execute signals generated by the firm's strategy — you do not trade your own analysis. How do you feel about that?",
       options: [
         { label: "Very comfortable: execution is a skill in itself", points: 3 },
         { label: "Comfortable, though I would sometimes want to add my view", points: 1 },
@@ -1097,7 +1122,7 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v22.3";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v22.4";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + " · TEST";
   const b = document.createElement("div");
@@ -1144,7 +1169,7 @@ const TOUR = [
   { el:"ptBox",     title:"Key levels",
     text:"The key levels of the desk that can trigger your next signal. ARMED: ready to fire. WAIT: fires again only after price moves away and comes back. TICKS: distance from the price." },
   { el:"signalBox", title:"Actions",
-    text:"When price reaches a level: AUTHORIZED, 5 minutes to enter. Buy or Sell, your choice, 10 MNQ. The stop starts at 20 points: closer allowed, never further. +TP adds a take profit (2R, 40 points by default). Close: all or part of the position." },
+    text:"When price reaches a level: AUTHORIZED, 5 minutes to enter. Buy or Sell, your choice, 10 MNQ. The stop starts at 20 points: closer allowed, never further. +TP adds a take profit on the chart (2R, 40 points by default); Take profit on chart: click it, then click the chart where you want it. Close: all or part of the position." },
   { el:"perfBox",   title:"Performance",
     text:"Your net result for the session, in dollars, costs included." },
   { el:"log",       title:"Trade log",
@@ -1333,7 +1358,7 @@ function resizePane(p){
 function resizeCharts(){ PANES.forEach(resizePane); }
 
 const CHART_OPTS = {
-  layout:{ background:{color:"#0E1729"}, textColor:"#93A2BD" },
+  layout:{ background:{color:"#0F121A"}, textColor:"#93A2BD" },
   grid:{ vertLines:{color:"rgba(148,163,184,0.10)"}, horzLines:{color:"rgba(148,163,184,0.10)"} },
   timeScale:{ timeVisible:true, secondsVisible:true, borderColor:"rgba(148,163,184,0.16)",
     rightOffset:32, tickMarkFormatter:(t)=>fmtAxis(t) },
@@ -1343,6 +1368,47 @@ const CHART_OPTS = {
 };
 const CANDLE_OPTS = { upColor:"#22C55E", downColor:"#EF4444",
   wickUpColor:"#22C55E", wickDownColor:"#EF4444", borderVisible:false };
+/* v6.10 (Nicolas, 03/11) : themes de couleur des graphiques, les memes que le Terminal 2.5.1.38 :
+   Default (couleurs douces du Terminal), Bright (l'ancien aspect du training, par defaut ici) et Light
+   (fond blanc, textes fonces). Communs a tous les graphiques, gardes par navigateur (sd_train_theme). */
+const TRAIN_THEMES = {
+  default:{ bg:"#11141D",   // v6.11 : fond gris commun Default / Bright, comme le Terminal (avant #131722)
+            up:"#26A69A", down:"#EF5350", text:"#D1D4DC", grid:"#1E222D", border:"#2A2E39" },
+  bright: { bg:"#0F121A", up:"#22C55E",   // v6.13 : gris fonce 15,18,26, comme le Terminal (avant #11141D)
+            down:"#EF4444", text:"#93A2BD", grid:"rgba(148,163,184,0.10)", border:"rgba(148,163,184,0.16)" },
+  light:  { bg:"#FFFFFF", up:"#26A69A", down:"#EF5350", text:"#334155", grid:"rgba(15,23,42,0.08)", border:"#CBD5E1" }
+};
+let THEME_K = "bright";
+try{ const v = localStorage.getItem("sd_eval2_theme"); if(TRAIN_THEMES[v]) THEME_K = v; }catch(e){}
+function themeOpts(){
+  const t = TRAIN_THEMES[THEME_K];
+  CHART_OPTS.layout = { background:{color:t.bg}, textColor:t.text };
+  CHART_OPTS.grid = { vertLines:{color:t.grid}, horzLines:{color:t.grid} };
+  CHART_OPTS.timeScale.borderColor = t.border;
+  CHART_OPTS.rightPriceScale.borderColor = t.border;
+  Object.assign(CANDLE_OPTS, { upColor:t.up, downColor:t.down, wickUpColor:t.up, wickDownColor:t.down });
+}
+themeOpts();
+function themePaint(){
+  document.querySelectorAll("#viewMenu button[data-thm]").forEach(b => b.classList.toggle("on", b.dataset.thm === THEME_K));
+}
+function themeSet(k){
+  if(!TRAIN_THEMES[k]) return;
+  THEME_K = k;
+  try{ localStorage.setItem("sd_eval2_theme", k); }catch(e){}
+  themeOpts();
+  for(const p of PANES){
+    try{
+      p.chart.applyOptions({ layout:CHART_OPTS.layout, grid:CHART_OPTS.grid,
+        timeScale:{ borderColor:CHART_OPTS.timeScale.borderColor }, rightPriceScale:{ borderColor:CHART_OPTS.rightPriceScale.borderColor } });
+      p.series.applyOptions({ upColor:CANDLE_OPTS.upColor, downColor:CANDLE_OPTS.downColor,
+        wickUpColor:CANDLE_OPTS.wickUpColor, wickDownColor:CANDLE_OPTS.wickDownColor });
+    }catch(e){}
+    p.box.style.background = TRAIN_THEMES[k].bg;
+    if(p.fPrim) p.fPrim.touch();
+  }
+  themePaint();
+}
 
 /* Construit — ou reconstruit — les graphiques affiches. Appelee au premier
    affichage et a chaque changement du nombre de graphiques. */
@@ -1369,6 +1435,7 @@ function buildPanes(){
     host.insertBefore(box, $("caption"));
     const chart = LightweightCharts.createChart(div, CHART_OPTS);
     const series = chart.addCandlestickSeries(CANDLE_OPTS);
+    box.style.background = TRAIN_THEMES[THEME_K].bg;   // v6.10
     const p = { idx, k:LAY.tf[idx], box, div, sel, chart, series, bars:[], inBar:0, iS:{}, iNote:{} };
     sel.addEventListener("change", () => { LAY.tf[idx] = sel.value; laySave(); setPaneTf(PANES.indexOf(p)); });
     indWire(p);
@@ -1418,11 +1485,24 @@ function layGrid(){
 }
 /* v6.7 -- un graphique place sous la barre CHARTS / FLOW / Draw / VIEW (en haut a droite) :
    son unite de temps, son bouton Indicators et sa legende descendent d'une ligne. */
+/* v6.10 (Nicolas, 03/11) : la barre CHARTS / FLOW / Draw / VIEW debordait sur l'echelle des prix du
+   graphique de droite. Elle se cale maintenant a gauche de cette echelle (largeur lue sur la bibliotheque). */
+function layBarPlace(){
+  const bar = $("layBar"), host = $("charts"); if(!bar || !host) return;
+  const hr = host.getBoundingClientRect();
+  let w = 0;
+  for(const p of PANES){
+    const r = p.box.getBoundingClientRect();
+    if(r.width > 0 && Math.abs(r.right - hr.right) < 4 && r.top < hr.top + 60){
+      try{ w = Math.max(w, p.chart.priceScale("right").width()); }catch(e){}
+    }
+  }
+  const right = (w > 0 ? w : 70) + 10;
+  if(bar.style.right !== right + "px") bar.style.right = right + "px";
+}
 function layUnderBar(){
+  layBarPlace();
   const bar = $("layBar"); if(!bar) return;
-  /* demo : la barre se place juste a gauche des boutons Pause / Voice */
-  const db = $("demoBar"), demo = $("charts").classList.contains("demoOn") && db && !db.classList.contains("hidden");
-  bar.style.right = demo ? (db.offsetWidth + 22) + "px" : "";
   const br = bar.getBoundingClientRect();
   for(const p of PANES){
     const r = p.box.getBoundingClientRect();
@@ -1432,6 +1512,7 @@ function layUnderBar(){
   }
 }
 addEventListener("resize", () => { if(PANES.length) layUnderBar(); });
+setInterval(() => { if(PANES.length) layUnderBar(); }, 1000);   // v6.10 : l'echelle des prix change de largeur avec les prix
 /* ================================================================
    v6.8 -- RETOURS D'UN OPERATEUR (31/10)
    - Le graphique revenait tout seul a droite a chaque nouvelle bougie (ecart
@@ -1609,14 +1690,33 @@ $("layBar").addEventListener("click", e => {
 
 /* Ajoute un tick a la bougie courante d'un graphique, en ouvre une si besoin.
    Rend vrai quand une nouvelle bougie vient de s'ouvrir. */
+/* v2.5.1.43 : heure REELLE d'une bougie : time peut etre decale (bougies de ticks tombees
+   dans la meme seconde, poussees d'une seconde chacune pour l'axe) ; rt garde l'heure reelle. */
+const bRt = b => (b.rt != null ? b.rt : b.time);
+/* v2.5.1.43 : heure de PLACEMENT des dessins, strictement croissante : l'heure reelle, et pour les bougies de la
+   meme seconde un petit decalage (1/256 s, puis la moitie de ce qui reste avant la seconde suivante), comme
+   le Terminal 2.5.1.43 : un point pose sur la 3e bougie d'une seconde reste sur elle. */
+function placeTime(p, rt){
+  const n = p.bars.length;
+  if(n < 2) return rt;
+  const prev = p.bars[n - 2].pt;
+  if(prev == null || rt > prev) return rt;
+  const cap = Math.floor(prev) + 1, t = prev + 1 / 256;
+  return t < cap ? t : prev + (cap - prev) / 2;
+}
 function paneTick(p, nyMs, price){
   const tf = tfOf(p.k);
   let nb = false;
   if(tf.ticks){
     if(p.inBar === 0){
-      p.bars.push({ time:Math.floor(nyMs/1000), open:price, high:price, low:price, close:price });
+      const real = Math.floor(nyMs/1000);
+      p.bars.push({ time:real, open:price, high:price, low:price, close:price });
       const n = p.bars.length;
-      if(n > 1 && p.bars[n-1].time <= p.bars[n-2].time) p.bars[n-1].time = p.bars[n-2].time + 1;
+      if(n > 1 && p.bars[n-1].time <= p.bars[n-2].time){
+        p.bars[n-1].time = p.bars[n-2].time + 1;
+        p.bars[n-1].rt = real;   // v2.5.1.43 : heure reelle gardee (ORB, VWAP / CVD, dessins, gros ordres)
+      }
+      p.bars[n-1].pt = placeTime(p, real);
       nb = true;
     }
     p.inBar = (p.inBar + 1) % tf.ticks;
@@ -1624,7 +1724,7 @@ function paneTick(p, nyMs, price){
     const t = Math.floor(nyMs/(tf.sec*1000)) * tf.sec;
     const last = p.bars[p.bars.length-1];
     if(!last || last.time !== t){
-      p.bars.push({ time:t, open:price, high:price, low:price, close:price });
+      p.bars.push({ time:t, open:price, high:price, low:price, close:price, pt:t });
       nb = true;
     }
   }
@@ -1816,6 +1916,7 @@ function applyTick(ms, price, bulk){
     }
   }
   lvlStep(ms, price);                 // états des niveaux (Partner Trading)
+  npocStep(ms, price);                // v6.9 : POC vierges touches pendant la seance
   forEachSlot(() => { if(S.pos){ trailStep(price); checkFills(price); } });   // stop (suiveur) et take profits
   /* déclenchement sur la table figée : identique pour tous les candidats.
      v17.1 : un signal qui tombe pendant un trade (ou une fenêtre ouverte) est
@@ -1903,6 +2004,13 @@ const VIEW = { cd:false, lblChart:true, lblAxis:true };
 try{
   const sv = JSON.parse(localStorage.getItem("sd_eval2_view") || "{}");
   ["cd", "lblChart", "lblAxis"].forEach(k => { if(typeof sv[k] === "boolean") VIEW[k] = sv[k]; });
+  /* v6.10 (Nicolas, 03/11) : « Labels on the chart » coche par defaut -- remis une fois pour tout le monde,
+     y compris les navigateurs qui l'avaient decoche avant ; ensuite le choix de l'operateur est garde. */
+  if(!localStorage.getItem("sd_eval2_view_v610")){
+    VIEW.lblChart = true;
+    localStorage.setItem("sd_eval2_view_v610", "1");
+    localStorage.setItem("sd_eval2_view", JSON.stringify(VIEW));
+  }
 }catch(e){}
 /* v6.5 -- etiquettes masquables (menu VIEW) : keep = ligne d'ordre (position, stop, TP, entree /
    sortie), jamais masquee. Les autres (niveaux, ORB, volume profile, dessins) suivent VIEW. */
@@ -2228,16 +2336,16 @@ function setSL(price){
 }
 function renderStopTp(){
   const p = S.pos, box = $("stBox"); if(!box) return;
-  if(!p){ box.classList.add("hidden"); return; }
+  if(!p){ box.classList.add("hidden"); if(TPPICK) tpPickOff(); return; }
   box.classList.remove("hidden");
   const free = freeQty(), sel = $("tpQty"), cur = +sel.value || free;
   sel.innerHTML = "";
   for(let q = 1; q <= Math.max(free, 0); q++) sel.insertAdjacentHTML("beforeend", `<option value="${q}">${q}</option>`);
   sel.value = Math.min(Math.max(cur, 1), free);
   sel.disabled = free < 1; $("btnAddTp").disabled = free < 1 || MODE !== "test";
-  const tps = p.tps.filter(t => !t.filled);
-  $("stSummary").innerHTML = `SL ${fmtP(p.sl)}` + (tps.length ? " · " + tps.map(t => `TP${t.n} ${t.qty}@${fmtP(t.price)}`).join(" · ") : "")
-    + `<br><span>Drag the SL / TP lines on the chart. Double-click a TP line to remove it.</span>`;
+  /* v6.14 : plus de liste sous le panneau (comme le Terminal) ; « Take profit on chart » actif si trade ouvert */
+  $("btnTpChart").disabled = free < 1 || MODE !== "test";
+  if(TPPICK && free < 1) tpPickOff();
 }
 $("btnBuy").addEventListener("click", () => { if(MODE === "test") openPos("BUY"); });
 $("btnSell").addEventListener("click", () => { if(MODE === "test") openPos("SELL"); });
@@ -2258,16 +2366,29 @@ $("btnCloseAll").addEventListener("click", () => {
 });
 $("btnAddTp").addEventListener("click", () => { if(MODE === "test" && S.pos) addTP(+$("tpQty").value); });
 $("btnClearTp").addEventListener("click", () => { if(MODE === "test" && S.pos) clearTPs(); });
-$("btnSlAt").addEventListener("click", () => {
+/* v6.14 -- « Take profit on chart » (comme le Terminal 2.5.1.43) : le clic suivant sur un graphique pose un
+   take profit de la quantite choisie a ce prix. Second clic sur le bouton ou Echap : annule. */
+var TPPICK = null;   // var : lu par renderStopTp avant cette ligne au chargement
+function tpPickOff(msg){
+  TPPICK = null;
+  $("btnTpChart").classList.remove("armed");
+  document.querySelectorAll(".tpPicking").forEach(d => d.classList.remove("tpPicking"));
+  PANES.forEach(p => { if(p.div) p.div.style.cursor = ""; });
+  if(msg) setStatus(msg);
+}
+$("btnTpChart").addEventListener("click", () => {
   if(MODE !== "test" || !S.pos) return;
-  const v = parseFloat($("stPrice").value); if(!(v > 0)){ flash("Type a price first"); return; }
-  if(setSL(v)) $("stPrice").value = "";
+  if(TPPICK){ tpPickOff("Take profit placement cancelled."); return; }
+  if(freeQty() < 1){ flash("Every contract already has a take profit"); return; }
+  if(DRAW.mode) setDrawMode(null);
+  TPPICK = { qty: +$("tpQty").value || freeQty() };
+  $("btnTpChart").classList.add("armed");
+  PANES.forEach(p => { if(p.div) p.div.style.cursor = "crosshair"; });
+  setStatus(`Click the chart to place your take profit (${TPPICK.qty}). Esc to cancel.`);
 });
-$("btnTpAt").addEventListener("click", () => {
-  if(MODE !== "test" || !S.pos) return;
-  const v = parseFloat($("stPrice").value); if(!(v > 0)){ flash("Type a price first"); return; }
-  if(addTP(+$("tpQty").value, v)) $("stPrice").value = "";
-});
+addEventListener("keydown", e => { if(e.key === "Escape" && TPPICK) tpPickOff("Take profit placement cancelled."); });
+$("stHelp").addEventListener("click", e => { e.stopPropagation(); $("stHelp").classList.toggle("open"); });
+document.addEventListener("click", e => { if(!$("stHelp").contains(e.target)) $("stHelp").classList.remove("open"); });
 
 /* ---------------- glisser les lignes SL / TP sur les graphiques ---------------- */
 let DRAG = null;
@@ -2292,8 +2413,25 @@ function lineAt(series, y){
 function paneDrag(p){
   const box = p.div;
   const yOf = e => e.clientY - box.getBoundingClientRect().top;
+  /* v6.14 -- « Take profit on chart » arme : un clic (pas un glisser) pose le take profit a ce prix */
+  let tpDown = null;
   box.addEventListener("mousedown", e => {
-    if(MODE !== "test" || !anyPos() || e.button !== 0 || DRAW.mode) return;
+    if(!TPPICK || e.button !== 0) return;
+    tpDown = [e.clientX, e.clientY];
+    e.stopPropagation();                              // pas de deplacement de ligne pendant la pose
+  }, true);
+  box.addEventListener("mouseup", e => {
+    if(!TPPICK || !tpDown || e.button !== 0) return;
+    const moved = Math.hypot(e.clientX - tpDown[0], e.clientY - tpDown[1]); tpDown = null;
+    if(moved > 4) return;                             // glisser = deplacer le graphique
+    if(e.clientX - box.getBoundingClientRect().left > p.chart.timeScale().width()) return;   // echelle des prix
+    if(MODE !== "test" || !S.pos){ tpPickOff(); return; }
+    const pr = p.series.coordinateToPrice(yOf(e)); if(pr == null) return;
+    const qty = Math.min(TPPICK.qty, freeQty());
+    if(addTP(qty, pr)) tpPickOff(posStatus());       // prix refuse (mauvais cote) : reste arme, message deja affiche
+  });
+  box.addEventListener("mousedown", e => {
+    if(MODE !== "test" || !anyPos() || e.button !== 0 || DRAW.mode || TPPICK) return;
     const hit = lineAt(p.series, yOf(e)); if(!hit) return;
     e.preventDefault(); e.stopPropagation();
     if(hit.slot !== SLOT) selectSlot(hit.slot);
@@ -2303,6 +2441,7 @@ function paneDrag(p){
   }, true);
   box.addEventListener("mousemove", e => {
     if(DRAG || MODE !== "test" || !anyPos()) return;
+    if(TPPICK){ box.style.cursor = "crosshair"; return; }
     box.style.cursor = lineAt(p.series, yOf(e)) ? "ns-resize" : "";
   });
   box.addEventListener("dblclick", e => {
@@ -2928,10 +3067,12 @@ const FLOW = {
 try{
   const sv = JSON.parse(localStorage.getItem("sd_eval2_flow") || "{}");
   if(sv.on) for(const k of Object.keys(FLOW.on)) if(typeof sv.on[k] === "boolean") FLOW.on[k] = sv.on[k];
+  // v6.11 : nouveaux defauts appliques UNE fois a tous (CVD eteint, BIG allume) ; ensuite le choix est garde.
+  if(sv.v !== 4){ FLOW.on.cvd = false; FLOW.on.bo = true; }
   // v6.3.3 : un choix fait a la main (boAuto false) est garde ; sinon le minimum suit le symbole
-  if(sv.v === 3 && sv.boAuto === false && [20,30,50,100].includes(sv.boMin)){ FLOW.boMin = sv.boMin; FLOW.boAuto = false; }
+  if((sv.v === 3 || sv.v === 4) && sv.boAuto === false && [20,30,50,100].includes(sv.boMin)){ FLOW.boMin = sv.boMin; FLOW.boAuto = false; }
 }catch(e){}
-const flowSave = () => { try{ localStorage.setItem("sd_eval2_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin, boAuto:FLOW.boAuto, v:3 })); }catch(e){} };
+const flowSave = () => { try{ localStorage.setItem("sd_eval2_flow", JSON.stringify({ on:FLOW.on, boMin:FLOW.boMin, boAuto:FLOW.boAuto, v:4 })); }catch(e){} };
 const flowUrl = dayIso => CONFIG.packDir + "flow_" + dayIso.replace(/-/g, "") + ".json";
 
 /* Charge le flow_ d'une journee ; null s'il n'existe pas (journee sans volumes). */
@@ -2972,6 +3113,8 @@ function flowActive(){ return !!S.flow; }
 function flowStart(f){
   flowClearLines();
   S.flow = f || null;
+  S.npoc = f && f.raw && Array.isArray(f.raw.npoc) ? f.raw.npoc.map(n => ({ day:n.day, poc:+n.poc, touched:false })) : [];   // v6.9
+  S.npocLast = null;
   S.flowN = -1;
   // v6.3.3 : big orders -- minimum par defaut selon le symbole des donnees : 100 en MNQ, 50 en NQ
   if(f && FLOW.boAuto && MODE !== "demo") FLOW.boMin = 100;   // evaluation : les candidats tradent le MNQ, minimum 100
@@ -3056,6 +3199,23 @@ function flowValueArea(v){
 }
 const flowPx = k => (S.flow.raw.base + k) * S.flow.tick;
 
+/* ================================================================
+   v6.9 -- POC VIERGES (nPOC), regle du Terminal 2.5.1.25
+   Le POC d'une seance d'avant la veille (jusqu'a 5 seances en arriere) que le prix n'a plus
+   traite pendant AUCUNE seance 09:30-16:00 depuis : la liste est preparee par
+   make_training_flow.py (flow["npoc"]). Pendant la journee rejouee, un nPOC est efface des que le
+   prix l'atteint ou le traverse PENDANT la seance (avant 09:30 et apres 16:00 : rien ne compte).
+   Affiches avec PREV (lignes violettes pointillees « nPOC Thu 29 »).
+   ================================================================ */
+const npocLabel = iso => { const d = new Date(iso + "T12:00:00Z"); return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getUTCDay()] + " " + String(d.getUTCDate()).padStart(2, "0"); };
+function npocStep(ms, price){
+  const f = S.flow; if(!f || !S.npoc || !S.npoc.length) return;
+  if(ms < f.raw.m0 || ms >= f.raw.rth.t1){ S.npocLast = null; return; }
+  const a = S.npocLast == null ? price : S.npocLast, lo = Math.min(a, price) - 1e-6, hi = Math.max(a, price) + 1e-6;
+  for(const n of S.npoc) if(!n.touched && n.poc >= lo && n.poc <= hi){ n.touched = true; n.at = ms; }
+  S.npocLast = price;
+}
+
 /* Lignes de prix : POC / VAH / VAL de la seance et de la veille (sur tous les graphiques). */
 function flowSyncLines(){
   const f = S.flow;
@@ -3071,6 +3231,8 @@ function flowSyncLines(){
     want.push(["ppoc", p.poc, "#F472B6", "pPOC", 2]);
     want.push(["pvah", p.vah, "#F9A8D4", "pVAH", 2]);
     want.push(["pval", p.val, "#F9A8D4", "pVAL", 2]);
+    /* v6.9 : POC vierges des seances d'avant (comme le Terminal), effaces des qu'ils sont touches en seance */
+    for(const n of (S.npoc || [])) if(!n.touched) want.push(["np" + n.day, n.poc, "#C9A2FF", (CONFIG.hideHours ? "nPOC" : "nPOC " + npocLabel(n.day)), 1]);   // evaluation : pas de date
   }
   const key = want.map(w => w[0]).join(",");
   if(!S.flowL || S.flowL.key !== key){
@@ -3123,9 +3285,9 @@ function flowPaneData(p, n){
   const dl = [], cv = [], hi = [], lo = [];
   for(let i = 0; i < p.bars.length; i++){
     const b = p.bars[i];
-    const startMs = b.time * 1000 - off;
+    const startMs = bRt(b) * 1000 - off;   // v2.5.1.43 : heure reelle (ticks)
     const endMs = tf.sec ? Math.min(startMs + tf.sec * 1000, nowMs)
-                         : Math.min(i + 1 < p.bars.length ? p.bars[i+1].time * 1000 - off : nowMs, nowMs);
+                         : Math.min(i + 1 < p.bars.length ? bRt(p.bars[i+1]) * 1000 - off : nowMs, nowMs);
     const c = flowCvdAt(endMs, n);
     if(c === null) continue;
     cv.push({ time:b.time, value:c });
@@ -3246,9 +3408,9 @@ function indOrb(b, minutes){
   const partial = n > 1 && step >= 60 && (minutes * 60) % step !== 0;
   let cur = null;
   for(let i = 0; i < n; i++){
-    const t = b[i].time, ws = Math.floor(t / 86400) * 86400 + OPEN, we = ws + minutes * 60;
+    const t = bRt(b[i]), ws = Math.floor(t / 86400) * 86400 + OPEN, we = ws + minutes * 60;   // v2.5.1.43 : heure reelle
     if(t >= ws && t < we){
-      if(!cur || cur.ws !== ws){ cur = { ws, hi:b[i].high, lo:b[i].low, valid: i > 0 && b[i-1].time < ws }; continue; }
+      if(!cur || cur.ws !== ws){ cur = { ws, hi:b[i].high, lo:b[i].low, valid: i > 0 && bRt(b[i-1]) < ws }; continue; }
       cur.hi = Math.max(cur.hi, b[i].high); cur.lo = Math.min(cur.lo, b[i].low);
     }
     if(cur && cur.valid){ hi[i] = cur.hi; lo[i] = cur.lo; }
@@ -3272,8 +3434,8 @@ function indVwap(p){
   const w = indVwapPrep(f), n = flowDoneMinutes(), off = S.nyOff + (S.dayShift || 0), tf = tfOf(p.k), now = S.marketMs, m0 = f.raw.m0;
   const B = p.bars, out = new Array(B.length).fill(null);
   for(let i = 0; i < B.length; i++){
-    const st = B[i].time * 1000 - off;
-    const end = tf.sec ? Math.min(st + tf.sec * 1000, now) : Math.min(i + 1 < B.length ? B[i+1].time * 1000 - off : now, now);
+    const st = bRt(B[i]) * 1000 - off;   // v2.5.1.43 : heure reelle (ticks)
+    const end = tf.sec ? Math.min(st + tf.sec * 1000, now) : Math.min(i + 1 < B.length ? bRt(B[i+1]) * 1000 - off : now, now);
     if(end <= m0) continue;
     const k = Math.max(0, Math.min(n, Math.floor((end - m0) / 60000)));
     if(w.vv[k] > 0) out[i] = w.pv[k] / w.vv[k];
@@ -3445,7 +3607,7 @@ addEventListener("keydown", e => { if(e.key === "Escape"){ document.querySelecto
 
 const IND_FLOW_ROWS = [
   ["vp",   "Volume profile",   "Volume profile of the session, built minute by minute (POC, VAH, VAL)"],
-  ["prev", "Previous session", "Volume profile and POC / VAH / VAL of the previous session"],
+  ["prev", "Previous session", "Levels of the previous session (pPOC, pVAH, pVAL) and the virgin POCs (nPOC) of the sessions before, as in the Terminal"],
   ["cvd",  "Delta / CVD",      "Delta per candle and cumulative delta, reset at 09:30 NY"],
   ["bo",   "Big orders",       "Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed"]
 ];
@@ -3562,6 +3724,11 @@ $("viewMenu").addEventListener("change", e => {
   const cb = e.target.closest("input[data-v]"); if(!cb) return;
   viewSet(cb.dataset.v, cb.checked);
 });
+$("viewMenu").addEventListener("click", e => {   // v6.10 : themes de couleur
+  const b = e.target.closest("button[data-thm]"); if(!b) return;
+  e.stopPropagation(); themeSet(b.dataset.thm);
+});
+themePaint();
 $("viewMain").addEventListener("click", () => $("viewDd").classList.toggle("open"));
 document.addEventListener("click", e => { if(!$("viewDd").contains(e.target)) $("viewDd").classList.remove("open"); });
 viewPaint();   // items : {type:"line", l} | {type:"trend"|"fib", a:{t,p}, b:{t,p}}
@@ -3578,6 +3745,7 @@ function drawPaint(){
 }
 function setDrawMode(m){
   DRAW.mode = (m && DRAW.mode !== m) ? m : null;
+  if(DRAW.mode && TPPICK) tpPickOff();   // v6.14 : un outil de dessin annule la pose du take profit
   DRAW.pend = null; DRAW.hover = null;
   drawPaint(); drawUpdate();
 }
@@ -3587,20 +3755,23 @@ function drawReset(){
   drawPaint(); drawUpdate();
 }
 /* duree d'une bougie de ce graphique (ticks : moyenne des 50 dernieres) */
+/* v2.5.1.43 : heures de PLACEMENT (pt : heure reelle, doublons de la meme seconde decales), comme le Terminal 2.5.1.43 */
+const bPt = b => (b.pt != null ? b.pt : bRt(b));
 function barDur(p){
   const tf = tfOf(p.k); if(!tf.ticks) return tf.sec;
   const B = p.bars, n = B.length; if(n < 2) return 1;
   const k = Math.min(50, n - 1);
-  return Math.max(0.2, (B[n - 1].time - B[n - 1 - k].time) / k);
+  return Math.max(0.2, (bPt(B[n - 1]) - bPt(B[n - 1 - k])) / k);
 }
-/* heure (s) <-> position logique sur l'axe de CE graphique */
+/* heure (s) <-> position logique sur l'axe de CE graphique : l'ouverture d'une bougie = son centre,
+   interpolation lineaire dans le temps entre deux ouvertures (meme regle que le Terminal 2.5.1.43) */
 function logicalOfTime(p, t){
   const B = p.bars, n = B.length; if(!n) return null;
   let lo = 0, hi = n - 1, i = -1;
-  while(lo <= hi){ const m = (lo + hi) >> 1; if(B[m].time <= t){ i = m; lo = m + 1; } else hi = m - 1; }
-  if(i < 0) return (t - B[0].time) / barDur(p);
-  if(i === n - 1) return n - 1 + (t - B[n - 1].time) / barDur(p);
-  return i + (t - B[i].time) / Math.max(1e-6, B[i + 1].time - B[i].time);
+  while(lo <= hi){ const m = (lo + hi) >> 1; if(bPt(B[m]) <= t){ i = m; lo = m + 1; } else hi = m - 1; }
+  if(i < 0) return (t - bPt(B[0])) / barDur(p);
+  if(i === n - 1) return n - 1 + (t - bPt(B[n - 1])) / barDur(p);
+  return i + (t - bPt(B[i])) / Math.max(1e-6, bPt(B[i + 1]) - bPt(B[i]));
 }
 /* la bibliotheque ne place que des positions logiques ENTIERES : interpolation entre deux bougies */
 function xOfTime(p, t){
@@ -3618,12 +3789,12 @@ function drawPoint(p, x, y){
   const i = Math.round(lg);
   let t, price = pr;
   if(i >= 0 && i < n){
-    const b = B[i]; t = b.time;
+    const b = B[i]; t = bPt(b);   // v2.5.1.43 : heure de placement (heure reelle) de la bougie cliquee
     const yh = p.series.priceToCoordinate(b.high), yl = p.series.priceToCoordinate(b.low);
     if(yh != null && Math.abs(yh - y) <= 12) price = b.high;
     else if(yl != null && Math.abs(yl - y) <= 12) price = b.low;
-  } else if(i >= n) t = B[n - 1].time + (lg - (n - 1)) * barDur(p);
-  else t = B[0].time + lg * barDur(p);
+  } else if(i >= n) t = bPt(B[n - 1]) + (lg - (n - 1)) * barDur(p);
+  else t = bPt(B[0]) + lg * barDur(p);
   return { t, p: rTick(price) };
 }
 function fibPrice(it, lvl){ return it.b.p + (it.a.p - it.b.p) * lvl; }   // 100 % au 1er clic, 0 % au 2e
@@ -3841,7 +4012,8 @@ class FlowPrimitive {
         const pr = f.raw.prev;
         if(!pr._vol){ let span = 0; for(const x of pr.pp) span = Math.max(span, x + 1); pr._vol = new Float64Array(span); pr.pp.forEach((x, i) => pr._vol[x] = pr.pv[i]); }
         const pva = { poc: Math.round(pr.poc / f.tick) - pr.base, vah: Math.round(pr.vah / f.tick) - pr.base, val: Math.round(pr.val / f.tick) - pr.base };
-        histo(pr._vol, null, null, pr.base, -1, W * 0.12, .14, pva);
+        /* v6.11 (Nicolas, 04/11) : plus de profil de la veille dessine a gauche -- seulement les niveaux
+           (pPOC / pVAH / pVAL, lignes) et les POC vierges, comme « Prior session levels » du Terminal. */
         /* niveaux de la veille hors de l'ecran : etiquette au bord, avec une fleche */
         const H = sc.bitmapSize.height, bottomEdge = FLOW.on.cvd ? H * 0.70 : H - 4 * vr;
         const up = [], down = [];
@@ -3877,7 +4049,7 @@ class FlowPrimitive {
           if(tf.sec) bt = Math.floor(sec / tf.sec) * tf.sec;
           else {
             let lo = 0, hi = p.bars.length - 1, r = -1;
-            while(lo <= hi){ const m = (lo + hi) >> 1; if(p.bars[m].time <= sec){ r = m; lo = m + 1; } else hi = m - 1; }
+            while(lo <= hi){ const m = (lo + hi) >> 1; if(bRt(p.bars[m]) <= sec){ r = m; lo = m + 1; } else hi = m - 1; }   // v2.5.1.43 : heure reelle
             if(r < 0) continue;
             bt = p.bars[r].time;
           }
@@ -3886,16 +4058,16 @@ class FlowPrimitive {
           // v6.8 : meme taille que le Terminal 2.5.1.24 (un peu plus grandes qu'avant : 8,5 px au minimum, 12,5 au plus)
           const rad = Math.min(12.5, 4 + 4.5 * Math.sqrt(o[2] / FLOW.boMin)) * hr;
           const pending = t + f.boSec * 1000 > now;
-          /* v6.8 (Nicolas, 31/10) : vert et rouge PLUS FONCES que les bougies (22C55E / EF4444), avec un fin
-             liseré clair : posee sur une bougie de la meme couleur, la bulle se distingue. */
-          const col = o[3] > 0 ? "21,128,61" : "185,28,28";
+          /* v6.10 (Nicolas, 03/11) : meme dessin que le Terminal 2.5.1.38 -- bulle transparente sans lisere, couleur
+             des BOUGIES du graphique : poussee 50 %, en attente 20 %, absorbee = creux (contour 1,5 px). */
+          const hx = h => [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16)).join(",");
+          const col = hx(o[3] > 0 ? CANDLE_OPTS.upColor : CANDLE_OPTS.downColor);
           ctx.beginPath(); ctx.arc(xc * hr, yc, rad, 0, Math.PI * 2);
-          if(pending){ ctx.fillStyle = `rgba(${col},.35)`; ctx.fill(); ctx.strokeStyle = "rgba(245,247,252,.35)"; ctx.lineWidth = 1 * hr; ctx.stroke(); }
-          else if(o[4] === 2){ ctx.fillStyle = `rgba(${col},.9)`; ctx.fill(); ctx.strokeStyle = "rgba(245,247,252,.6)"; ctx.lineWidth = 1 * hr; ctx.stroke(); }
-          else { ctx.fillStyle = "rgba(14,23,41,.55)"; ctx.fill(); ctx.strokeStyle = `rgba(${col},1)`; ctx.lineWidth = 2.5 * hr; ctx.stroke(); }
+          if(!pending && o[4] !== 2){ ctx.fillStyle = "rgba(14,23,41,.25)"; ctx.fill(); ctx.lineWidth = 1.5 * hr; ctx.strokeStyle = `rgba(${col},.9)`; ctx.stroke(); }
+          else { ctx.fillStyle = `rgba(${col},${pending ? .2 : .5})`; ctx.fill(); }
           if(rad > 7 * hr){
-            ctx.fillStyle = "#F5F7FC";   // v6.8 : nombre clair sur fond fonce
-            ctx.font = `${Math.round(9 * hr)}px IBM Plex Mono, monospace`;
+            ctx.fillStyle = THEME_K === "light" ? "#0F172A" : "#F5F7FC";   // v6.10 : nombre fonce sur fond blanc
+            ctx.font = `600 ${Math.round((rad >= 11 * hr ? 10 : 9) * hr)}px Segoe UI, Inter, sans-serif`;
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(String(o[2]), xc * hr, yc);
           }
@@ -4016,6 +4188,7 @@ function applySessionSettings(admin){
 }
 /* barre des positions (mode Multi) : la case choisie recoit Buy / Sell / Close / SL / TP */
 function selectSlot(i){
+  if(TPPICK && i !== SLOT) tpPickOff();   // v6.14 : la pose vaut pour la position choisie
   if(i < 0 || i >= SLOTS.length) return;
   SLOT = i;
   setSignalUI(S.winOpen);
@@ -4260,7 +4433,7 @@ const candidate = { first:"", last:"", email:"", score:0 };
         opts += `<option value="${y}">${y}${y===q.max?"+":""}</option>`;
       d.innerHTML = `<div class="qt">${qi+1}. ${q.text}</div>
         <select id="years${qi}" style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--strong);background:var(--panel2);color:var(--text);font-size:15px">
-          <option value="">Select</option>${opts}</select>`;
+          <option value="">— Select —</option>${opts}</select>`;
     } else {
       /* v16.6 : note facultative sous la question (q.note) et avertissement
          affiché quand une réponse précise est cochée (option.warn) */
@@ -4381,7 +4554,7 @@ async function sendLink(idx){
     if(!notified) try{
       fetch("https://formsubmit.co/ajax/" + CONFIG.reportEmail, { method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ _subject: `New lead: ${candidate.first} ${candidate.last} (${candidate.country || "?"})`,
+        body: JSON.stringify({ _subject: `New lead — ${candidate.first} ${candidate.last} (${candidate.country || "?"})`,
           _template: "box", candidate: `${candidate.first} ${candidate.last} <${candidate.email}>`,
           country: candidate.country, screening_score: candidate.score, link_email_sent: res === "sent" ? "yes" : "NO",
           link, answers: candidate.answers.map(a => `${a.q} => ${a.answer}`).join(" || ") }) }).catch(()=>{});
@@ -4479,7 +4652,7 @@ const BACKEND_MESSAGES = {
   /* codes d'erreur encore renvoyés par le serveur actuel */
   invite_not_assigned: `This assessment link was issued before our latest update and can no longer be used. `
     + `Email ${SUPPORT_EMAIL} and we will send you a new one right away.`,
-  service_unavailable: `Our assessment service is temporarily unavailable. This is on our side, not yours, please try again in a few minutes. If the problem persists, email us at ${SUPPORT_EMAIL} and we will get you back on track.`,
+  service_unavailable: `Our assessment service is temporarily unavailable. This is on our side, not yours — please try again in a few minutes. If the problem persists, email us at ${SUPPORT_EMAIL} and we will get you back on track.`,
   service_paused:      `Our assessment service is waking up. Please wait a minute and click the button again. If it still fails, email us at ${SUPPORT_EMAIL}.`,
   already_completed: "Our records show you have already completed this assessment. Each candidate may only take it once.",
   already_started:   "An assessment has already been started with these details. If you were interrupted, please contact us so we can reopen it for you.",
@@ -4487,7 +4660,7 @@ const BACKEND_MESSAGES = {
   invalid_token:     "This assessment link is not recognised. Please check the link we sent you.",
   missing_identity:  "Please provide your name and a valid email address.",
   pack_unavailable:  "Market data is temporarily unavailable. Please try again in a few minutes.",
-  default:           `We could not start the assessment. Please check your connection and try again, and if it keeps failing, email us at ${SUPPORT_EMAIL}.`
+  default:           `We could not start the assessment. Please check your connection and try again — and if it keeps failing, email us at ${SUPPORT_EMAIL}.`
 };
 
 /* Récupère les journées attribuées par le serveur puis télécharge les packs */
@@ -4551,7 +4724,7 @@ const FAQ = [
   ["How and when will I be paid?",
    "If selected, by bank transfer at the beginning of each month."],
   ["What happens if I am selected?",
-   "A two-week evaluation on the Terminal first, under live session conditions and with the same debrief requirements. It confirms that what you showed here holds day after day. This evaluation period is <b>not compensated</b>. Compensation starts when you move to live sessions on desk capital.<div class='steps'><div class='step'><span>STEP 01</span><b>Online assessment</b><i>The simulation you are about to take. About " + CONFIG.estimatedMinutes + " minutes.</i></div><div class='step'><span>STEP 02</span><b>Ranking &amp; selection</b><i>Scored on execution quality, timing and discipline.</i></div><div class='step'><span>STEP 03</span><b>Two-week evaluation</b><i>Daily sessions on the Terminal, debrief every day.</i></div><div class='step hl'><span>STEP 04</span><b>Live desk capital</b><i>Firm signals on firm capital. Compensation starts.</i></div></div>"]
+   "A two-week evaluation on the Terminal first, under live session conditions and with the same debrief requirements. It confirms that what you showed here holds day after day. This evaluation period is <b>not compensated</b> — compensation starts when you move to live sessions on desk capital.<div class='steps'><div class='step'><span>STEP 01</span><b>Online assessment</b><i>The simulation you are about to take. About " + CONFIG.estimatedMinutes + " minutes.</i></div><div class='step'><span>STEP 02</span><b>Ranking &amp; selection</b><i>Scored on execution quality, timing and discipline.</i></div><div class='step'><span>STEP 03</span><b>Two-week evaluation</b><i>Daily sessions on the Terminal, debrief every day.</i></div><div class='step hl'><span>STEP 04</span><b>Live desk capital</b><i>Firm signals on firm capital. Compensation starts.</i></div></div>"]
 ];
 /* Les trois questions de rémunération passent en tête, dans cet ordre. Le montant garanti ne figure plus dans les annonces : le
    candidat arrive sans le connaître, il doit le trouver tout de suite.
@@ -4769,7 +4942,7 @@ function showFinal(){
   localStorage.setItem(ATTEMPT_KEY, JSON.stringify(flag));
   $("stage4").classList.remove("hidden");
   $("resName").textContent =
-    `${candidate.first} ${candidate.last} · ${candidate.email}`;   /* v16.7 : le score de screening n'est plus montré au candidat */
+    `${candidate.first} ${candidate.last} — ${candidate.email}`;   /* v16.7 : le score de screening n'est plus montré au candidat */
   let allT=[], missed=0;
   EV.results.forEach((r,i)=>{
     allT = allT.concat(r.records.filter(x=>x.result==="trade"));
@@ -4783,7 +4956,7 @@ function showFinal(){
                missed <= c.maxMissed && avgReact <= c.maxAvgReactionSec;
   const v = $("rVerdict");
   v.className = "verdict ok";
-  v.textContent = "✓ Assessment complete, thank you. We will analyse your results and get back to you within the next few days.";
+  v.textContent = "✓ Assessment complete — thank you. We will analyse your results and get back to you within the next few days.";
   /* le verdict interne (pass) reste calculé pour Sigma Dynamix, sans être montré au candidat */
   /* export des résultats : fichier téléchargé par le candidat + email pré-rempli */
   const report = {
@@ -4794,7 +4967,7 @@ function showFinal(){
     retakeCode: window.__retakeCode || null,
     demoSkipped: !!window.__demoSkipped,     /* v21 : démo passée par le candidat */
     generatedUtc: new Date().toISOString(),
-    strategy: { kind: "levels", platform: "training-v6.8", qty: CONFIG.qty, symbol: CONFIG.symbol, maxSlTicks: CONFIG.maxSlTicks,
+    strategy: { kind: "levels", platform: "training-v6.14", qty: CONFIG.qty, symbol: CONFIG.symbol, maxSlTicks: CONFIG.maxSlTicks,
                 tpDefaultPts: CONFIG.tpDefaultPts, tpDefaultR: CONFIG.tpDefaultR, windowSec: CONFIG.signalWindowSec,
                 pointValue: CONFIG.pointValue, costs: CONFIG.costs, hideHours: CONFIG.hideHours },
     layout: { charts: LAY.n, tf: LAY.tf.slice(0, LAY.n), flow: Object.assign({}, FLOW.on), boMin: FLOW.boMin },
@@ -4866,7 +5039,7 @@ function showFinal(){
       const msg = String(data.message || "");
       if(/activat|confirm/i.test(msg)){
         /* premier envoi : FormSubmit vient d'expédier le mail d'activation */
-        $("sendStatus").textContent = "✓ Results submitted. (First-time setup: the recruiter must confirm the activation email once, your results will be delivered after that.)";
+        $("sendStatus").textContent = "✓ Results submitted. (First-time setup: the recruiter must confirm the activation email once — your results will be delivered after that.)";
         $("sendStatus").style.color = "var(--amber)";
         $("manualSend").classList.remove("hidden");
         $("btnDlResults").classList.remove("hidden");
@@ -4897,7 +5070,7 @@ function showFinal(){
     const body = encodeURIComponent(
       `Hello,\n\nPlease find attached my assessment results file.\n\n` +
       `Name: ${candidate.first} ${candidate.last}\nEmail: ${candidate.email}\n` +
-      `Total PnL: ${pnl.toFixed(2)} pts, Win rate: ${(winRate*100).toFixed(0)}%, Missed: ${missed}\n\n` +
+      `Total PnL: ${pnl.toFixed(2)} pts — Win rate: ${(winRate*100).toFixed(0)}% — Missed: ${missed}\n\n` +
       `(Do not forget to attach the downloaded results file.)`);
     location.href = `mailto:${CONFIG.reportEmail}?cc=${CONFIG.reportCc}&subject=${subj}&body=${body}`;
   };
@@ -4911,6 +5084,7 @@ $("btnReset").addEventListener("click", ()=>{
 /* ================================================================
    DEMARRAGE
    ================================================================ */
+(() => { const h = document.querySelector("header"), d = $("demoBar"); if(h && d) h.insertBefore(d, $("hstat")); })();
 applyModeUI();
 
 </script>

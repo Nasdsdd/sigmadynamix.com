@@ -773,7 +773,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <input id="lsLink" readonly style="flex:1;min-width:0;font-family:var(--mono);font-size:12px;padding:10px 12px;border-radius:10px;border:1px solid var(--strong);background:var(--panel2);color:var(--text)">
       <button class="btn" id="btnCopyLink" style="width:auto;margin:0;padding:0 16px">Copy</button>
     </div>
-    <div class="warnbox">The simulation takes <b>about <span id="lsMinutes">90</span> minutes</b>, in one sitting, on a <b>desktop or laptop computer</b>. Your answers are saved in the link. No email? Check your spam folder.</div>
+    <div class="warnbox">The simulation takes <b>about <span id="lsMinutes">30</span> minutes</b>, in one sitting, on a <b>desktop or laptop computer</b>. Your answers are saved in the link. No email? Check your spam folder.</div>
     <button class="btn hidden" id="btnStartNow">Start now →</button>
     <p class="lead" id="lsMobile" style="margin-top:14px">Open the link from your email on a <b>desktop or laptop computer</b> when you are ready.</p>
   </div>
@@ -995,7 +995,7 @@ const CONFIG = {
      d/<id>.v.json (volumes : VP, CVD, gros ordres). */
   packDir:         "d/",
   signalWindowSec: 300,           // fenetre d'entree de 5 minutes apres chaque signal (comme le training)
-  estimatedMinutes: 90,           // duree annoncee au candidat (demo + 3 sessions, ~20 trades)
+  estimatedMinutes: 30,           // duree annoncee au candidat
   tradesPerSession: 7,            // remplace a chaque session par SESSION_ROSTER[].trades
   historyMin:      60,            // minutes de bougies 1-min visibles avant le depart
   historyTickMin:  10,            // minutes de bougies tick visibles avant le depart

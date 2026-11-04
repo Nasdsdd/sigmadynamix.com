@@ -181,6 +181,13 @@
   .btn.ghost:hover:not(:disabled){background:rgba(0,96,248,.10);border-color:var(--accent)}
 
   .err{color:var(--red);font-size:13px;margin-top:12px}
+  #flowHelp{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;
+    border:1px solid var(--border);color:var(--muted);font:700 11px var(--mono);text-decoration:none;margin-left:2px}
+  #flowHelp:hover{color:var(--text);border-color:var(--link)}
+  #warnGuide{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:14px 0}
+  #guideStep #warnGuide p{margin:0;max-width:62ch}
+  #guideStep #warnGuide .btn{white-space:nowrap;margin:0}
+  #guideStep.warnGuide{margin-top:16px}
   .warnbox{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.5);
     border-radius:var(--r-ctl);padding:14px 16px;font-size:14px;line-height:1.6;
     color:var(--text);margin:14px 0}
@@ -812,6 +819,10 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
   <div class="card">
     <h2>Before you start the trading tests</h2>
     <p class="lead" id="warnLead"></p>
+    <div id="guideStep" class="warnGuide"><div id="warnGuide">
+      <p><b style="color:var(--text)">Before you start, read the order flow guide.</b> The ORB, the volume profile, the previous session and its virgin POCs, the delta and the big orders: what they show and how to use them around the key levels. It opens in a new tab, this page stays open.</p>
+      <a class="btn ghost" href="/guides/order-flow.html" target="_blank" rel="noopener">Open the order flow guide &#8599;</a>
+    </div></div>
     <div class="warnbox">
       ⚠ Please read carefully:<br>
       • The full test takes <b><span id="warnDuration">30</span> minutes</b>.<br>
@@ -836,7 +847,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label></div></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Volume profile and POC / VAH / VAL of the previous session">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the ORB and the order flow tools (opens in a new tab)">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label></div></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -1071,6 +1082,12 @@ const QUESTIONNAIRE = {
         { label: "Very comfortable: execution is a skill in itself", points: 3 },
         { label: "Comfortable, though I would sometimes want to add my view", points: 1 },
         { label: "I prefer trading my own analysis", points: 0 } ]},
+    { text: "Do you prefer trading the US open, which is more volatile, or later in the session when the market is more directional?",
+      note: "Both are covered in the tests. There is no right answer, it helps us place you on the session that fits you.",
+      options: [
+        { label: "The US open, I am comfortable with fast conditions", points: 0 },
+        { label: "Later, when the move is more directional", points: 0 },
+        { label: "No preference, I adapt to the session", points: 0 } ]},
     { text: "Which operating system do you use?",
       note: "Our trading software runs on Windows only.",
       options: [
@@ -4084,7 +4101,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
      Les liens nominatifs (?t=…) continuent de fonctionner : une invitation
      déjà envoyée ne doit jamais être invalidée par la fermeture du site.
      Mettre HIRING_LOCK_ALL à true pour bloquer aussi les liens nominatifs. */
-  const HIRING_OPEN     = false;  /* v13.3 : acces libre, sans jeton */
+  const HIRING_OPEN     = true;   /* ouvert au lien direct : le site public reste ferme */
   const HIRING_LOCK_ALL = false;
 
   if(!HIRING_OPEN){

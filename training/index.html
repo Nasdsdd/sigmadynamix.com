@@ -840,7 +840,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.12";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.13";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1123,7 +1123,7 @@ function resizePane(p){
 function resizeCharts(){ PANES.forEach(resizePane); }
 
 const CHART_OPTS = {
-  layout:{ background:{color:"#11141D"}, textColor:"#93A2BD" },
+  layout:{ background:{color:"#0F121A"}, textColor:"#93A2BD" },
   grid:{ vertLines:{color:"rgba(148,163,184,0.10)"}, horzLines:{color:"rgba(148,163,184,0.10)"} },
   timeScale:{ timeVisible:true, secondsVisible:true, borderColor:"rgba(148,163,184,0.16)",
     rightOffset:32, tickMarkFormatter:(t)=>fmtAxis(t) },
@@ -1139,7 +1139,7 @@ const CANDLE_OPTS = { upColor:"#22C55E", downColor:"#EF4444",
 const TRAIN_THEMES = {
   default:{ bg:"#11141D",   // v6.11 : fond gris commun Default / Bright, comme le Terminal (avant #131722)
             up:"#26A69A", down:"#EF5350", text:"#D1D4DC", grid:"#1E222D", border:"#2A2E39" },
-  bright: { bg:"#11141D", up:"#22C55E",   // v6.11 : fond gris commun Default / Bright (avant #0E1729)
+  bright: { bg:"#0F121A", up:"#22C55E",   // v6.13 : gris fonce 15,18,26, comme le Terminal (avant #11141D)
             down:"#EF4444", text:"#93A2BD", grid:"rgba(148,163,184,0.10)", border:"rgba(148,163,184,0.16)" },
   light:  { bg:"#FFFFFF", up:"#26A69A", down:"#EF5350", text:"#334155", grid:"rgba(15,23,42,0.08)", border:"#CBD5E1" }
 };

@@ -1123,7 +1123,7 @@ function resizePane(p){
 function resizeCharts(){ PANES.forEach(resizePane); }
 
 const CHART_OPTS = {
-  layout:{ background:{color:"#0E1729"}, textColor:"#93A2BD" },
+  layout:{ background:{color:"#11141D"}, textColor:"#93A2BD" },
   grid:{ vertLines:{color:"rgba(148,163,184,0.10)"}, horzLines:{color:"rgba(148,163,184,0.10)"} },
   timeScale:{ timeVisible:true, secondsVisible:true, borderColor:"rgba(148,163,184,0.16)",
     rightOffset:32, tickMarkFormatter:(t)=>fmtAxis(t) },
@@ -1137,8 +1137,10 @@ const CANDLE_OPTS = { upColor:"#22C55E", downColor:"#EF4444",
    Default (couleurs douces du Terminal), Bright (l'ancien aspect du training, par defaut ici) et Light
    (fond blanc, textes fonces). Communs a tous les graphiques, gardes par navigateur (sd_train_theme). */
 const TRAIN_THEMES = {
-  default:{ bg:"#131722", up:"#26A69A", down:"#EF5350", text:"#D1D4DC", grid:"#1E222D", border:"#2A2E39" },
-  bright: { bg:"#0E1729", up:"#22C55E", down:"#EF4444", text:"#93A2BD", grid:"rgba(148,163,184,0.10)", border:"rgba(148,163,184,0.16)" },
+  default:{ bg:"#11141D",   // v6.11 : fond gris commun Default / Bright, comme le Terminal (avant #131722)
+            up:"#26A69A", down:"#EF5350", text:"#D1D4DC", grid:"#1E222D", border:"#2A2E39" },
+  bright: { bg:"#11141D", up:"#22C55E",   // v6.11 : fond gris commun Default / Bright (avant #0E1729)
+            down:"#EF4444", text:"#93A2BD", grid:"rgba(148,163,184,0.10)", border:"rgba(148,163,184,0.16)" },
   light:  { bg:"#FFFFFF", up:"#26A69A", down:"#EF5350", text:"#334155", grid:"rgba(15,23,42,0.08)", border:"#CBD5E1" }
 };
 let THEME_K = "bright";

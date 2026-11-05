@@ -189,6 +189,8 @@
   #layBar #flowBar button{width:auto;padding:0 7px}
   #layBar #flowBar button:disabled{opacity:.35;cursor:not-allowed}
   #flowBar.off span{opacity:.45}
+  /* v6.16 : bouton Signals (comme le Terminal) -- niveaux, zones et ORB sur les graphiques */
+  #layBar #sigBtn{width:auto;padding:0 8px;font:700 10.5px var(--mono)}
   /* ---- v6.4 : outils de dessin (comme le Terminal) ---- */
   #drawDd{position:relative;display:flex}
   #layBar #drawMain{width:auto;padding:0 8px;font:700 10.5px var(--mono)}
@@ -670,15 +672,11 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     <div class="choice" id="startChoice"></div>
     <p class="swnote" id="startNote"></p>
 
-    <h3 class="sect">3 &middot; Training aid</h3>
-    <div class="swrow">
-      <input type="checkbox" id="setLevels" checked>
-      <label for="setLevels">Show the levels and their zones on the charts</label>
-    </div>
-    <p class="swnote">On by default, to see what triggers a signal. The assessment never shows them: turn it off once you are comfortable.</p>
+    <!-- v6.16 : la case « Show the levels » est remplacee par le bouton Signals de la barre des graphiques (comme le Terminal) -->
+    <input type="checkbox" id="setLevels" checked style="display:none">
 
     <div id="adminWrap" class="hidden">
-      <h3 class="sect">4 &middot; Admin <span class="sub">session settings</span></h3>
+      <h3 class="sect">3 &middot; Admin <span class="sub">session settings</span></h3>
       <div id="adminBox">
         <div class="arow"><span>Profile</span>
           <div class="seg" id="admMode"><button type="button" data-v="single">Single</button><button type="button" data-v="multi">Multi 2</button></div></div>
@@ -700,7 +698,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== SIMULATEUR ===== -->
 <div id="sim" class="hidden">
   <div id="charts">
-    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Levels of the previous session (pPOC, pVAH, pVAL) and the virgin POCs (nPOC) of the sessions before, as in the Terminal">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label><div class="dsep"></div><div class="thmHd">Colours</div><div class="thmRow"><button type="button" data-thm="default" title="Default theme: softer colours, as in the Terminal by default"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Default</button><button type="button" data-thm="bright" title="Bright theme: stronger colours"><i><b style="background:#22C55E"></b><b style="background:#EF4444"></b></i>Bright</button><button type="button" data-thm="light" title="Light theme: white background, dark text"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Light</button></div></div></div></div>
+    <div id="layBar"><span>CHARTS</span><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><div id="layDd"><button type="button" id="layPick" title="Choose the layout of the charts"></button><div id="layMenu"></div></div><i class="sep"></i><div id="flowBar" class="off"><span>FLOW</span><button type="button" data-f="vp" title="Volume profile of the session, built minute by minute (POC, VAH, VAL)">VP</button><button type="button" data-f="prev" title="Levels of the previous session (pPOC, pVAH, pVAL) and the virgin POCs (nPOC) of the sessions before, as in the Terminal">PREV</button><button type="button" data-f="cvd" title="Delta per candle and cumulative delta, reset at 09:30 NY">CVD</button><button type="button" data-f="bo" title="Big orders: pale = still under watch (30 s), filled = pushed the price, hollow = absorbed">BIG</button><select id="boMin" title="Minimum size of a big order (contracts)"><option value="20">≥20</option><option value="30">≥30</option><option value="50">≥50</option><option value="100">≥100</option></select><a id="flowHelp" href="/guides/order-flow.html" target="_blank" rel="noopener" title="How to read the order flow tools">?</a></div><i class="sep"></i><button type="button" id="sigBtn" class="on" title="Show the signal levels on the charts: key levels with their zone and ORB high / low (as the Signals button of the Terminal)">Signals</button><i class="sep"></i><div id="drawDd"><button type="button" id="drawMain" title="Drawing tools: horizontal line, trend line, Fibonacci, erase, clear">✎ Draw ▾</button><div id="drawMenu"><button type="button" data-t="line" title="Horizontal line at the clicked price (shown on every chart)"><i>―</i>Line</button><button type="button" data-t="trend" title="Trend line: click point A, then point B"><i>╱</i>Trend</button><button type="button" data-t="fib" title="Fibonacci retracement: click the start of the move, then its end"><i>φ</i>Fibonacci</button><div class="dsep"></div><button type="button" data-t="erase" title="Remove the drawing nearest to the click"><i>✕</i>Erase</button><button type="button" data-t="clear" title="Remove every drawing"><i>⊘</i>Clear all</button></div></div><div id="viewDd"><button type="button" id="viewMain" title="Bar countdown and labels">VIEW ▾</button><div id="viewMenu"><label title="Time left before the current candle closes, under the last price (minute charts)"><input type="checkbox" data-v="cd">Bar countdown</label><div class="dsep"></div><label title="Names written on the chart: levels, ORB, volume profile (POC, VAH, VAL...)"><input type="checkbox" data-v="lblChart">Labels on the chart</label><label title="Price tags on the price scale for levels, ORB and volume profile (positions, stops and take profits always keep theirs)"><input type="checkbox" data-v="lblAxis">Labels on the price axis</label><div class="dsep"></div><div class="thmHd">Colours</div><div class="thmRow"><button type="button" data-thm="default" title="Default theme: softer colours, as in the Terminal by default"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Default</button><button type="button" data-thm="bright" title="Bright theme: stronger colours"><i><b style="background:#22C55E"></b><b style="background:#EF4444"></b></i>Bright</button><button type="button" data-thm="light" title="Light theme: white background, dark text"><i><b style="background:#26A69A"></b><b style="background:#EF5350"></b></i>Light</button></div></div></div></div>
     <div id="caption" class="hidden"></div>
     <div id="demoBar" class="hidden">
       <button id="btnDemoPause">⏸ Pause</button>
@@ -757,7 +755,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     <div class="pbox" id="pauseBox">
       <button id="btnSkip" style="width:100%;background:var(--panel2);border:1px solid var(--strong);color:var(--text);border-radius:10px;padding:10px 0;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px">⏭ Next signal</button>
       <button id="btnPause">⏸ Pause</button>
-      <label id="lvToggle"><input type="checkbox" id="lvShow" checked> Show levels on the charts</label>
+      <label id="lvToggle" style="display:none"><input type="checkbox" id="lvShow" checked> Show levels on the charts</label>
       <button id="btnQuit">■ End session</button>
     </div>
     <div class="pbox tight" id="ptBox">
@@ -857,7 +855,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.15";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.16";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -4095,9 +4093,20 @@ function setShowLevels(on){
   S.showLevels = !!on;
   $("lvShow").checked = S.showLevels;
   $("setLevels").checked = S.showLevels;
+  $("sigBtn").classList.toggle("on", S.showLevels);   // v6.16
   if(S.showLevels) renderLevelLines(); else clearLevelLines();
 }
 $("lvShow").addEventListener("change", e => setShowLevels(e.target.checked));
+/* v6.16 -- bouton Signals (comme le Terminal) : allume par defaut ; le choix de l'operateur est garde (ce navigateur). */
+const SIG_KEY = "sd_train_signals";
+const sigStored = () => { try{ return localStorage.getItem(SIG_KEY) !== "0"; }catch(e){ return true; } };
+$("setLevels").checked = sigStored();
+$("sigBtn").classList.toggle("on", $("setLevels").checked);
+$("sigBtn").addEventListener("click", () => {
+  const on = !S.showLevels;
+  if(MODE !== "demo"){ try{ localStorage.setItem(SIG_KEY, on ? "1" : "0"); }catch(e){} }
+  setShowLevels(on);
+});
 $("setLevels").addEventListener("change", e => { S.showLevels = e.target.checked; });
 
 /* ================================================================

@@ -722,7 +722,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <div class="phead">TERMINAL CONFIG</div>
       <div class="cfg">
         <div><span>ROLE</span><b>BUY/SELL</b></div><div><span>Symbol</span><b id="cfgSym">MNQ</b></div>
-        <div><span>Qty</span><b class="num" id="cfgQty">10</b></div><div><span>Max SL</span><b class="num" id="cfgSl">80</b></div>
+        <div><span>Qty</span><b class="num" id="cfgQty">10</b></div><div><span>Max SL</span><b class="num" id="cfgSl">20 pts</b></div>
       </div>
     </div>
     <div class="pbox" id="signalBox">
@@ -857,7 +857,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.14";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.15";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1914,7 +1914,8 @@ function setSignalUI(on){
 function applyModeUI(){
   $("logHead").innerHTML = `<th>SIG</th><th>SIDE</th><th>NET</th>`;
   $("cfgQty").textContent = multiOn() ? `${SLOTS.length} × ${CONFIG.qty}` : CONFIG.qty;
-  $("cfgSl").textContent = (trailOn() ? "Trail " : "") + CONFIG.maxSlTicks;
+  /* v6.15 : en points avec l'unite (« 20 pts » et non « 80 », ticks ou points ?), comme le Terminal 2.5.1.43 */
+  $("cfgSl").textContent = (trailOn() ? "Trail " : "") + (+(CONFIG.maxSlTicks * TICKSZ).toFixed(2)) + " pts";
   $("cfgSym").textContent = CONFIG.symbol;
   updatePerf();
 }

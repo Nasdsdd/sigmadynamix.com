@@ -167,7 +167,12 @@
   #layBar button:hover{color:var(--text);border-color:var(--border)}
   #layBar button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
   #charts.demoOn #layBar{top:48px}
-  #closeRow{margin-top:12px}
+  /* v6.18 -- panneau D (comme le Terminal 2.5.1.46) : une quantite pour Close et +TP, Close all fixe */
+  .strow.qrow{grid-template-columns:56px 1fr auto auto}
+  .strow.trow{grid-template-columns:56px 66px 1fr}
+  .actrow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px}
+  .actrow .mini{padding:9px 0;font-size:13px}
+  .mini.on{background:rgba(31,78,168,.55);border-color:#4D8FFA}
   /* v6.3 -- mode Multi : une case par position, celle choisie recoit les ordres */
   #slotBar{display:flex;gap:6px;margin:4px 0 10px}
   #slotBar button{flex:1;border:1px solid var(--strong);background:var(--panel2);color:var(--muted);border-radius:9px;
@@ -326,8 +331,9 @@
   .tbtn{flex:1;border:none;border-radius:var(--r-ctl);padding:14px 0;font-family:var(--sans);
     font-size:15px;font-weight:700;cursor:pointer;color:#fff}
   #btnBuy{background:var(--green)} #btnSell{background:var(--red)}
-  #btnClose{background:var(--panel2);border:1px solid var(--strong);color:var(--text);width:100%;
-    margin-top:8px;padding:10px 0;border-radius:var(--r-ctl);font-weight:600;cursor:pointer}
+  #btnClose{background:#232C46;border:1px solid #3A4766;color:#fff;width:100%;
+    margin-top:8px;padding:11px 0;border-radius:var(--r-ctl);font-weight:700;font-size:14px;cursor:pointer}   /* v6.18 : Close all fixe, gris sombre */
+  #btnClose:hover:not(:disabled){background:#2C3754;border-color:#56658C}
   .tbtn:disabled,#btnClose:disabled{opacity:.3;cursor:not-allowed}
   #log{max-height:170px;overflow-y:auto;font-size:12px}
   #panelHint{position:sticky;bottom:0;margin-top:-10px;padding:16px 0 6px;text-align:center;font-size:12px;
@@ -394,6 +400,16 @@
     font:400 11.5px/1.45 var(--sans);color:var(--text);letter-spacing:0}
   #stHelpTip p{margin:0 0 7px} #stHelpTip p:last-child{margin:0}
   #stHelp:hover #stHelpTip,#stHelp.open #stHelpTip{display:block}
+  /* v6.18 -- bulle : chaque bouton dessine comme a l'ecran, puis ce qu'il fait (comme le Terminal 2.5.1.46) */
+  #stHelpTip .hh{font:700 10.5px var(--sans);letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+  #stHelpTip .hi{display:grid;grid-template-columns:118px 1fr;gap:8px;align-items:start;margin-bottom:7px}
+  #stHelpTip .hi:last-child{margin-bottom:0}
+  #stHelpTip .chip{justify-self:start;border:1px solid var(--strong);background:var(--panel2);color:var(--text);border-radius:6px;
+    padding:3px 8px;font:700 11px var(--sans);white-space:nowrap}
+  #stHelpTip .chip.ca{background:#232C46;border-color:#3A4766;color:#fff}
+  #stHelpTip .chip.on{background:rgba(31,78,168,.55);border-color:#4D8FFA}
+  #stHelpTip .chip.g{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.55);color:#86efac}
+  #stHelpTip .chip.sl{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.6);color:#fca5a5}
   #btnTpChart{width:100%;margin-top:2px;padding:8px 0;border-radius:8px;border:1px solid rgba(34,197,94,.6);
     background:rgba(34,197,94,.18);color:var(--text);font:600 12.5px/1.25 var(--sans);cursor:pointer}
   #btnTpChart:hover:not(:disabled){filter:brightness(1.2)} #btnTpChart:disabled{opacity:.35;cursor:not-allowed}
@@ -738,20 +754,26 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
           <button class="tbtn" id="btnBuy" disabled>↑ Buy</button>
           <button class="tbtn" id="btnSell" disabled>↓ Sell</button>
         </div>
-        <div class="strow hidden" id="closeRow"><label for="closeQty">Close</label>
-          <select id="closeQty"></select>
-          <button class="mini" id="btnCloseHalf">Half</button><button class="mini" id="btnCloseAll">All</button></div>
-        <button id="btnClose" disabled>✕ Close</button>
+        <button id="btnClose" disabled title="Closes the whole position, whatever the quantity chosen below.">✕ Close all</button>
       </div>
-      <div id="stBox" class="hidden">
+      <div id="stBox">
         <div class="sthead">STOP / TP<span id="stHelp" title="">?<span id="stHelpTip">
-          <p>Stop loss: placed automatically. Drag its red line on the chart.</p>
-          <p>+TP: adds a take profit on the chart at the chosen ratio (2R = 2 times the stop loss distance).</p>
-          <p>Take profit on chart: click it, then click the chart to place your take profit by hand.</p>
-          <p>Qty: the number of contracts of the take profits you create (all by default).</p>
-          <p>Drag a TP line to move it. Double-click it to remove it.</p></span></span></div>
-        <div class="strow tprow"><label for="tpQty">Qty</label><select id="tpQty"></select>
-          <button class="mini g" id="btnAddTp">+TP</button><select id="tpR" title="Distance of +TP from the entry, in units of the maximum stop (1R = the stop distance). 2R by default."><option value="1">1R</option><option value="2" selected>2R</option><option value="3">3R</option><option value="4">4R</option><option value="5">5R</option></select><button class="mini" id="btnClearTp">Clear TP</button></div>
+          <span class="hh" style="display:block">HOW EACH BUTTON WORKS</span>
+          <span class="hi"><span class="chip ca">✕ Close all (10)</span><span>Under Buy / Sell. Closes the WHOLE position at market, whatever the quantity below.</span></span>
+          <span class="hi"><span class="chip">Quantity&nbsp; 5 ⌄</span><span>Contracts used by Close and +TP. The whole position by default; back to All at each new trade.</span></span>
+          <span class="hi"><span class="chip on">Half</span><span>Sets the quantity to half of the position (rounded down). Sends nothing.</span></span>
+          <span class="hi"><span class="chip">All</span><span>Sets the quantity to the whole position. Sends nothing. Blue = the active choice.</span></span>
+          <span class="hi"><span class="chip">✕ Close 5</span><span>Closes the chosen quantity at market. The rest of the position keeps running.</span></span>
+          <span class="hi"><span class="chip g">+TP 5</span><span>Adds a take profit for the chosen quantity, at the ratio set in TP at (2R = twice the stop distance).</span></span>
+          <span class="hi"><span class="chip">TP at&nbsp; 2R ⌄</span><span>Distance of +TP from your entry: 1R to 5R, 1R = the stop distance. 2R by default.</span></span>
+          <span class="hi"><span class="chip">Clear TP</span><span>Removes all your take profits. The stop stays.</span></span>
+          <span class="hi"><span class="chip g">Take profit on chart</span><span>Click it, then click the chart at your price: a take profit for the chosen quantity is placed there. Click it again or press Esc to cancel.</span></span>
+          <span class="hi"><span class="chip sl">SL (red line)</span><span>Your stop, placed automatically at Max SL. Drag it on the chart: closer is always allowed, further never.</span></span>
+          <span class="hi"><span class="chip g">TP (green line)</span><span>A take profit. Drag it to move it; double-click it to remove it.</span></span></span></span></div>
+        <div class="strow qrow"><label for="actQty">Quantity</label><select id="actQty"></select>
+          <button class="mini" id="btnQtyHalf" title="Half of the position (rounded down). Sends nothing.">Half</button><button class="mini" id="btnQtyAll" title="The whole position. Sends nothing.">All</button></div>
+        <div class="actrow"><button class="mini" id="btnClosePart" title="Closes the chosen quantity.">✕ Close</button><button class="mini g" id="btnAddTp" title="Adds a take profit for the chosen quantity, at the distance chosen in « TP at ».">+TP</button></div>
+        <div class="strow trow"><label for="tpR">TP at</label><select id="tpR" title="Distance of +TP from the entry, in units of the maximum stop (1R = the stop distance). 2R by default."><option value="1">1R</option><option value="2" selected>2R</option><option value="3">3R</option><option value="4">4R</option><option value="5">5R</option></select><button class="mini" id="btnClearTp">Clear TP</button></div>
         <button id="btnTpChart" type="button">Take profit<br>on chart</button>
       </div>
     </div>
@@ -858,7 +880,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.17";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.18";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1910,7 +1932,7 @@ function setSignalUI(on){
   $("btnPause").disabled = on || anyPos() || MODE === "demo";
   $("btnSkip").disabled  = on || anyPos() || S.winClosed || MODE !== "test";
   renderSlotBar();
-  $("stBox").classList.toggle("hidden", !S.pos);
+  /* v6.18 : #stBox reste visible (boutons eteints sans position) */
   renderStopTp(); renderCloseQty();
 }
 /* conservé pour les appels existants (démo, sessions) */
@@ -2017,21 +2039,29 @@ function closePos(manual, qty){
   fillQty(q, S.price - d * sp, "MANUAL");
 }
 
-/* Quantite proposee a la cloture : de 1 au nombre de contrats encore ouverts.
-   Le choix precedent est garde tant qu'il reste possible. */
+/* v6.18 -- panneau D (comme le Terminal 2.5.1.46). UNE quantite (liste + Half / All) pour « Close N » et
+   « +TP N » ; « Close all (N) » sous Buy / Sell ferme toujours toute la position. La quantite revient sur
+   « tout » a chaque nouveau trade ; Half et All la reglent sans rien envoyer. */
+function actQty(){ const p = S.pos; if(!p) return 0; const v = +$("actQty").value; return v >= 1 && v <= p.open ? v : p.open; }
+function tpQtyNow(){ return Math.min(actQty(), Math.max(freeQty(), 0)); }
 function renderCloseQty(){
-  const p = S.pos, row = $("closeRow"), sel = $("closeQty"), btn = $("btnClose");
-  row.classList.toggle("hidden", !p);
-  /* position soldee : la liste repart a zero, pour qu'un nouveau trade
-     propose « tout » et non la quantite partielle du precedent */
-  if(!p){ sel.innerHTML = ""; btn.textContent = "✕ Close"; return; }
+  const p = S.pos, sel = $("actQty"), btn = $("btnClose");
+  /* position soldee : la liste repart a zero, pour qu'un nouveau trade propose « tout » */
+  if(!p){ sel.innerHTML = ""; btn.textContent = "✕ Close all"; return; }
   const cur = Math.min(+sel.value || p.open, p.open);
   sel.innerHTML = "";
   for(let q = 1; q <= p.open; q++)
     sel.insertAdjacentHTML("beforeend", `<option value="${q}">${q}</option>`);
   sel.value = cur || p.open;
   sel.disabled = p.open <= 1;
-  btn.textContent = (+sel.value >= p.open) ? `✕ Close all (${p.open})` : `✕ Close ${sel.value}`;
+  btn.textContent = `✕ Close all (${p.open})`;
+  const q = actQty(), half = Math.floor(p.open / 2);
+  $("btnClosePart").textContent = `✕ Close ${q}`;
+  $("btnQtyHalf").disabled = $("btnQtyAll").disabled = p.open < 2;
+  $("btnQtyHalf").classList.toggle("on", p.open >= 2 && q === half && q < p.open);
+  $("btnQtyAll").classList.toggle("on", q >= p.open);
+  const t = tpQtyNow();
+  $("btnAddTp").textContent = t > 0 ? `+TP ${t}` : "+TP";
 }
 function closeTrade(kind){
   const pos = S.pos, d = dirOf(pos.side), q = pos.qty;
@@ -2121,13 +2151,18 @@ function setSL(price){
 }
 function renderStopTp(){
   const p = S.pos, box = $("stBox"); if(!box) return;
-  if(!p){ box.classList.add("hidden"); if(TPPICK) tpPickOff(); return; }
-  box.classList.remove("hidden");
-  const free = freeQty(), sel = $("tpQty"), cur = +sel.value || free;
-  sel.innerHTML = "";
-  for(let q = 1; q <= Math.max(free, 0); q++) sel.insertAdjacentHTML("beforeend", `<option value="${q}">${q}</option>`);
-  sel.value = Math.min(Math.max(cur, 1), free);
-  sel.disabled = free < 1; $("btnAddTp").disabled = free < 1 || MODE !== "test";
+  /* v6.18 : panneau et bulle « ? » toujours visibles ; sans position, les boutons sont eteints */
+  if(!p){
+    ["actQty","btnQtyHalf","btnQtyAll","btnClosePart","btnAddTp","btnClearTp","btnTpChart"].forEach(id => $(id).disabled = true);
+    $("btnClosePart").textContent = "✕ Close"; $("btnAddTp").textContent = "+TP";
+    $("btnQtyHalf").classList.remove("on"); $("btnQtyAll").classList.remove("on");
+    if(TPPICK) tpPickOff(); return;
+  }
+  $("btnClearTp").disabled = MODE !== "test";
+  const free = freeQty();
+  $("btnAddTp").disabled = free < 1 || MODE !== "test";
+  $("btnClosePart").disabled = MODE !== "test";
+  renderCloseQty();   // v6.18 : libelles « Close N » / « +TP N »
   /* v6.14 : plus de liste sous le panneau (comme le Terminal) ; « Take profit on chart » actif si trade ouvert */
   $("btnTpChart").disabled = free < 1 || MODE !== "test";
   if(TPPICK && free < 1) tpPickOff();
@@ -2135,21 +2170,24 @@ function renderStopTp(){
 $("btnBuy").addEventListener("click", () => { if(MODE === "test") openPos("BUY"); });
 $("btnSell").addEventListener("click", () => { if(MODE === "test") openPos("SELL"); });
 $("btnClose").addEventListener("click", () => {
-  if(MODE === "test" && S.pos) closePos(true, +$("closeQty").value || S.pos.open);
+  if(MODE === "test" && S.pos) closePos(true, S.pos.open);   // v6.18 : Close all, toute la position
 });
-$("closeQty").addEventListener("change", renderCloseQty);
-/* deux raccourcis : la moitie, ou tout */
-$("btnCloseHalf").addEventListener("click", () => {
-  const p = S.pos; if(!p) return;
-  $("closeQty").value = Math.max(1, Math.floor(p.open / 2));
+$("btnClosePart").addEventListener("click", () => {
+  if(MODE === "test" && S.pos) closePos(true, actQty());
+});
+$("actQty").addEventListener("change", renderCloseQty);
+/* deux raccourcis : la moitie, ou tout (ils reglent la quantite, rien n'est envoye) */
+$("btnQtyHalf").addEventListener("click", () => {
+  const p = S.pos; if(!p || p.open < 2) return;
+  $("actQty").value = Math.floor(p.open / 2);
   renderCloseQty();
 });
-$("btnCloseAll").addEventListener("click", () => {
+$("btnQtyAll").addEventListener("click", () => {
   const p = S.pos; if(!p) return;
-  $("closeQty").value = p.open;
+  $("actQty").value = p.open;
   renderCloseQty();
 });
-$("btnAddTp").addEventListener("click", () => { if(MODE === "test" && S.pos) addTP(+$("tpQty").value); });
+$("btnAddTp").addEventListener("click", () => { if(MODE === "test" && S.pos) addTP(tpQtyNow()); });
 $("btnClearTp").addEventListener("click", () => { if(MODE === "test" && S.pos) clearTPs(); });
 /* v6.14 -- « Take profit on chart » (comme le Terminal 2.5.1.43) : le clic suivant sur un graphique pose un
    take profit de la quantite choisie a ce prix. Second clic sur le bouton ou Echap : annule. */
@@ -2166,7 +2204,7 @@ $("btnTpChart").addEventListener("click", () => {
   if(TPPICK){ tpPickOff("Take profit placement cancelled."); return; }
   if(freeQty() < 1){ flash("Every contract already has a take profit"); return; }
   if(DRAW.mode) setDrawMode(null);
-  TPPICK = { qty: +$("tpQty").value || freeQty() };
+  TPPICK = { qty: tpQtyNow() || freeQty() };
   $("btnTpChart").classList.add("armed");
   PANES.forEach(p => { if(p.div) p.div.style.cursor = "crosshair"; });
   setStatus(`Click the chart to place your take profit (${TPPICK.qty}). Esc to cancel.`);

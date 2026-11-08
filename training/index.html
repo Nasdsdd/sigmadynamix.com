@@ -326,6 +326,7 @@
     cursor:pointer;transition:border-color .2s,background-color .2s}
   #btnPause:hover:not(:disabled){border-color:var(--accent);background:rgba(0,96,248,.10)}
   #btnPause:disabled{opacity:.3;cursor:not-allowed}
+  #btnPause.on{border-color:var(--accent);background:rgba(0,96,248,.22);color:#fff}   /* v6.19 : en pause */
 
   .btnrow{display:flex;gap:8px}
   .tbtn{flex:1;border:none;border-radius:var(--r-ctl);padding:14px 0;font-family:var(--sans);
@@ -825,14 +826,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 
 
 
-<!-- ===== PAUSE ===== -->
-<div id="pauseOverlay" class="hidden">
-  <div class="card">
-    <h2>Paused</h2>
-    <p class="lead">The market replay is frozen. Nothing is recorded: you can resume, or end the session from the right-hand panel.</p>
-    <button class="btn" id="btnResumeNow">Resume</button>
-  </div>
-</div>
+<!-- v6.19 : plus de fenetre de pause (le bouton Pause / Resume suffit) -->
 
 
 
@@ -880,7 +874,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.18";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.19";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1929,7 +1923,7 @@ function setSignalUI(on){
   $("btnBuy").disabled  = !(auth && live);
   $("btnSell").disabled = !(auth && live);
   $("btnClose").disabled = !(live && S.pos);
-  $("btnPause").disabled = on || anyPos() || MODE === "demo";
+  $("btnPause").disabled = MODE === "demo";   // v6.19 : pause a tout moment (trade ouvert, autorisation en cours)
   $("btnSkip").disabled  = on || anyPos() || S.winClosed || MODE !== "test";
   renderSlotBar();
   /* v6.18 : #stBox reste visible (boutons eteints sans position) */
@@ -2429,7 +2423,7 @@ document.addEventListener("visibilitychange", ()=>{
   const running = (MODE === "demo" || MODE === "test") && !$("sim").classList.contains("hidden");
   if(!running) return;
   if(document.hidden){
-    if(demoPaused) return;                  // deja en pause a la main
+    if(demoPaused || userPaused) return;    // deja en pause a la main
     hiddenPause = true;
     stopClock();
     clearTimeout(S.autopilotT);
@@ -4242,6 +4236,7 @@ function startSession(pack){
   setTimeout(() => verifyCharts("session +600ms"), 600);
   updateSessionHeader();
   setSignalUI(false);
+  userPaused = false; $("btnPause").textContent = "⏸ Pause"; $("btnPause").classList.remove("on");   // v6.19
   runClock();
 }
 
@@ -4321,14 +4316,21 @@ $("btnSkip").addEventListener("click", () => {
   if(target > S.marketMs) fastForwardTo(target);
 });
 
+/* v6.19 (Nicolas, 08/11) -- Pause a tout moment, meme en position ou pendant une autorisation, et SANS fenetre :
+   le bouton fige le replay (prix, bougies, compte a rebours) et devient « Resume ». Les boutons d'ordre, le
+   stop et les take profits restent utilisables au prix fige. */
+var userPaused = false;   // var : lu par le gestionnaire de visibilite et le depart de seance
+function setUserPaused(on){
+  userPaused = !!on;
+  const b = $("btnPause");
+  b.textContent = userPaused ? "▶ Resume" : "⏸ Pause";
+  b.classList.toggle("on", userPaused);
+  if(userPaused) stopClock();
+  else { S.lastFrame = performance.now(); runClock(); }
+}
 $("btnPause").addEventListener("click", () => {
-  if(S.winOpen || S.winClosed || anyPos() || MODE !== "test") return;
-  stopClock();
-  $("pauseOverlay").classList.remove("hidden");
-});
-$("btnResumeNow").addEventListener("click", () => {
-  $("pauseOverlay").classList.add("hidden");
-  runClock();
+  if(MODE !== "test" || $("sim").classList.contains("hidden")) return;
+  setUserPaused(!userPaused);
 });
 
 /* ================================================================
@@ -4365,6 +4367,7 @@ $("btnQuit").addEventListener("click", () => {
 });
 
 function endSession(){
+  userPaused = false; $("btnPause").textContent = "⏸ Pause"; $("btnPause").classList.remove("on");   // v6.19
   stopClock();
   clearLevelLines();
   const st = sessionStats(S.records || []);

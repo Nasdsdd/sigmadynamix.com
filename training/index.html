@@ -792,7 +792,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     <div class="pbox tight" id="speedBox">
       <span class="speedlab">REPLAY SPEED</span>
       <div class="spd" id="speedSel">
-        <button class="on" data-x="1">x1</button><button data-x="5">x5</button>
+        <button class="on" data-x="1">x1</button><button data-x="2">x2</button><button data-x="5">x5</button>
       </div>
     </div>
     <div class="pbox" id="log">
@@ -870,7 +870,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    take profits partiels, meme panneau de droite.
    Ce qui est propre au training : connexion par code, choix de la journee
    dans un calendrier, demarrage automatique avant le premier signal,
-   affichage facultatif des niveaux, vitesse x1 / x5, seance de 5 trades,
+   affichage facultatif des niveaux, vitesse x1 / x2 / x5, seance de 5 trades,
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
@@ -976,7 +976,7 @@ const TOUR = [
   { el:"log",       title:"Trade log",
     text:"One line per signal: the direction you chose and your net result in dollars." },
   { el:"pauseBox",  title:"Replay speed, Next signal & Pause",
-    text:"x1 replays the market in real time, x5 five times faster: use it to cross the quiet stretches. \"Next signal\" jumps straight to a few seconds before the next authorization. Pause is allowed between two signals only, never while a signal is live or a position is open. \"End session\" stops the day whenever you want, and closes an open position at the market." }
+    text:"x1 replays the market in real time, x2 twice as fast, x5 five times faster: use them to cross the quiet stretches. \"Next signal\" jumps straight to a few seconds before the next authorization. Pause is allowed between two signals only, never while a signal is live or a position is open. \"End session\" stops the day whenever you want, and closes an open position at the market." }
 ];
 
 

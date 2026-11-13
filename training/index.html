@@ -918,7 +918,9 @@ const CONFIG = {
      l'operateur, elles ne comptent ni comme prises ni comme manquees. */
   startTimes: [
     { t:"09:45", lab:"US open · 09:45 NY",   note:"The session starts at the cash open, like the assessment." },
-    { t:"10:05", lab:"Post open · 10:05 NY", note:"The session starts after the opening drive: the authorizations before 10:05 are left out." }
+    { t:"10:05", lab:"Post open · 10:05 NY", note:"The session starts after the opening drive: the authorizations before 10:05 are left out." },
+    /* v6.20 (Nicolas, 14/11) : depart a 10:30, profil Admin seulement pour le moment. */
+    { t:"10:30", lab:"Late · 10:30 NY",      note:"Admin only for now: the session starts at 10:30, the authorizations before 10:30 are left out.", admin:true }
   ],
 
   /* ---- POSITION (identique a l'evaluation v17.2) ----
@@ -2878,6 +2880,7 @@ function doLogin(){
   S.isAdmin = !!res.admin;
   $("adminWrap").classList.toggle("hidden", !S.isAdmin);
   if(S.isAdmin) renderAdmin();
+  renderStartChoice();   // v6.20 : 10:30 visible pour un code Admin seulement
   $("hName").textContent = name;
   $("loginErr").classList.add("hidden");
   $("stageLogin").classList.add("hidden");
@@ -2888,15 +2891,21 @@ function doLogin(){
 }
 /* ---- horaire de depart ----
    Le choix est garde d'une ouverture de la page a l'autre. */
+/* v6.20 : un horaire marque admin n'est propose (et n'est retenu) que pour un code Admin. */
+const startList = () => CONFIG.startTimes.filter(x => !x.admin || S.isAdmin);
 S.startPick = CONFIG.startTimes[0].t;
 try{
   const sv = localStorage.getItem("sd_train_start");
   if(CONFIG.startTimes.some(x => x.t === sv)) S.startPick = sv;
 }catch(e){}
 function renderStartChoice(){
-  $("startChoice").innerHTML = CONFIG.startTimes.map(x =>
-    `<button class="chip${x.t === S.startPick ? " on" : ""}" data-start="${x.t}">${x.lab}</button>`).join("");
-  const cur = CONFIG.startTimes.find(x => x.t === S.startPick) || CONFIG.startTimes[0];
+  const list = startList();
+  /* horaire garde mais pas propose (10:30 sans code Admin) : le premier est montre, le choix garde reste
+     en memoire pour une connexion Admin ; startMsOf retombe sur 09:45. */
+  const eff = list.some(x => x.t === S.startPick) ? S.startPick : list[0].t;
+  $("startChoice").innerHTML = list.map(x =>
+    `<button class="chip${x.t === eff ? " on" : ""}" data-start="${x.t}">${x.lab}</button>`).join("");
+  const cur = list.find(x => x.t === eff) || list[0];
   $("startNote").textContent = cur.note;
 }
 $("startChoice").addEventListener("click", e => {
@@ -4169,6 +4178,7 @@ $("speedSel").addEventListener("click", e => {
    ================================================================ */
 $("btnStart").addEventListener("click", async () => {
   if(!S.day) return;
+  if(!startList().some(x => x.t === S.startPick)) S.startPick = startList()[0].t;   // v6.20 : 10:30 = Admin seulement
   $("btnStart").disabled = true;
   $("loadStatus").textContent = "Loading day pack…";
   try{
@@ -4195,7 +4205,7 @@ $("btnStart").addEventListener("click", async () => {
 
 /* Heure de depart retenue, en horodatage, pour la journee du pack. */
 function startMsOf(pack){
-  const t = (CONFIG.startTimes.some(x => x.t === S.startPick) ? S.startPick : CONFIG.startTimes[0].t);
+  const t = (startList().some(x => x.t === S.startPick) ? S.startPick : CONFIG.startTimes[0].t);
   return nyToUtcMs(pack.day, t + ":00");
 }
 

@@ -702,6 +702,8 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
           <div class="seg" id="admMode"><button type="button" data-v="single">Single</button><button type="button" data-v="multi">Multi 2</button></div></div>
         <div class="arow"><span>Stop loss</span>
           <div class="seg" id="admStop"><button type="button" data-v="fixed">Fixed</button><button type="button" data-v="trail">Trailing</button></div></div>
+        <div class="arow"><span>Signals</span>
+          <div class="seg" id="admSig"><button type="button" data-v="all">All levels</button><button type="button" data-v="orb">ORB levels only</button></div></div>
         <div class="arow"><span>Stop distance</span>
           <input type="number" id="admPts" min="1" max="100" step="0.25"> <span style="min-width:0">pts from entry</span></div>
         <p class="swnote" id="admNote"></p>
@@ -874,7 +876,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.19";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.21";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -1113,14 +1115,33 @@ const multiOn = () => SLOTS.length > 1;
 const slotTag = p => (multiOn() && p && p.slot != null) ? `P${p.slot + 1} ` : "";
 /* reglages de la seance (admin) : stop fixe ou suiveur, distance du stop */
 const DEFAULT_SL_TICKS = 80;
-const ADMIN = { multi:false, stopMode:"fixed", stopPts:20 };
+const ADMIN = { multi:false, stopMode:"fixed", stopPts:20, orbOnly:false };
 try{
   const sv = JSON.parse(localStorage.getItem("sd_train_admin") || "{}");
   if(typeof sv.multi === "boolean") ADMIN.multi = sv.multi;
   if(sv.stopMode === "fixed" || sv.stopMode === "trail") ADMIN.stopMode = sv.stopMode;
   if(+sv.stopPts >= 1 && +sv.stopPts <= 100) ADMIN.stopPts = +sv.stopPts;
+  if(typeof sv.orbOnly === "boolean") ADMIN.orbOnly = sv.orbOnly;   // v6.21
 }catch(e){}
 const adminSave = () => { try{ localStorage.setItem("sd_train_admin", JSON.stringify(ADMIN)); }catch(e){} };
+/* v6.21 (Nicolas, 15/11) -- MODE « ORB LEVELS ONLY » (admin seulement pour le moment) : la seance ne garde que
+   les signaux tires sur un bord de l'ORB (plus haut / plus bas 09:30-09:45), c'est-a-dire les niveaux poses au
+   prix d'un des deux bords (a un tick pres). Les autres niveaux ne declenchent rien et ne sont pas affiches.
+   Heure de depart choisie comme d'habitude. Operateur : toujours tous les signaux. */
+const orbOnlyOn = () => !!(S.isAdmin && ADMIN.orbOnly);
+function orbLevelIds(dayId){
+  const m = LEVELS_TABLE[dayId];
+  if(!m || !m.orb) return new Set();
+  const tick = 0.25 + 1e-9;
+  return new Set(m.levels.filter(l => ["hi", "lo"].some(b => m.orb[b] != null && Math.abs(+l.price - m.orb[b]) <= tick)).map(l => l.id));
+}
+/* signaux de la seance : tous, ou ceux des niveaux ORB seulement */
+function sessionSignals(dayId){
+  const all = SIGNAL_TABLE[dayId] || [];
+  if(!orbOnlyOn()) return all;
+  const ids = orbLevelIds(dayId);
+  return all.filter(x => ids.has(x.level));
+}
 const trailOn = () => MODE === "test" && S.sessTrail === true;
 let MODE = "test";     // "demo" | "test"
 
@@ -1577,7 +1598,7 @@ function setupReplay(pack, maxSignals, startMs){
   drawReset();   // v6.4 : les dessins de la session precedente ne passent pas a la suivante
   Object.assign(S, {
     pack, maxSignals,
-    sigTable: SIGNAL_TABLE[pack.id] || null,   // signaux figés (null en démo)
+    sigTable: (MODE === "test" && S.sessOrbOnly ? sessionSignals(pack.id) : SIGNAL_TABLE[pack.id]) || null,   // signaux figés (null en démo) ; v6.21 : ORB seulement si choisi
     sigIdx: 0, tabIdx: 0, skipped: [], records: [],
     tickIdx: 0, marketMs: 0,
     price: null, pos: null, sig: null, sigTaken: false, sigRecord: null,
@@ -1751,7 +1772,8 @@ const COL = { pos:"#4F8CFF", sl:"#EF4444", tp:"#22C55E", exit:"#4F8CFF" };
 function lvlSetup(pack){
   const m = LEVELS_TABLE[pack.id] || null;
   S.lvMeta = m;
-  S.levels = m ? m.levels.filter(l => l.on !== false).map(l => ({ ...l,
+  const orbIds = MODE === "test" && S.sessOrbOnly ? orbLevelIds(pack.id) : null;   // v6.21
+  S.levels = m ? m.levels.filter(l => l.on !== false && (!orbIds || orbIds.has(l.id))).map(l => ({ ...l,
     lo: l.price - l.zone, hi: l.price + l.zone, fired: 0, state: "armed", init: false })) : [];
   S.lvLastSig = -Infinity; S.lvPrev = null;
 }
@@ -4130,8 +4152,10 @@ function clearLevelLines(){
 function renderLevelLines(){
   clearLevelLines();
   const m = S.lvMeta; if(!m || !S.showLevels) return;
+  const orbIds = MODE === "test" && S.sessOrbOnly ? orbLevelIds(S.pack.id) : null;   // v6.21
   for(const l of m.levels){
     if(l.on === false) continue;
+    if(orbIds && !orbIds.has(l.id)) continue;     // v6.21 : ORB seulement
     if((l.fromMs || 0) > S.marketMs) continue;    // niveau pas encore pose
     levelLines.push(mkLine(l.price, "#A78BFA", "LVL " + fmtP(l.price), 0));
     levelLines.push(mkLine(l.price + l.zone, "#7C3AED", "", 2));
@@ -4187,7 +4211,13 @@ $("btnStart").addEventListener("click", async () => {
     $("loadStatus").textContent = "";
     /* Depart tardif sur une journee dont tous les signaux sont deja passes :
        on le dit plutot que d'ouvrir une seance sans rien a prendre. */
-    const sigs = SIGNAL_TABLE[pack.id] || [];
+    const sigs = sessionSignals(pack.id);   // v6.21 : ORB seulement si le mode est choisi
+    if(orbOnlyOn() && !sigs.some(x => x.t >= startMsOf(pack))){
+      setupFlash("No ORB signal " + (sigs.length ? "after " + S.startPick + " NY " : "") + "on " + pack.day
+        + ". Pick " + (sigs.length ? "an earlier start, " : "") + "another day, or All levels in the Admin settings.");
+      $("btnStart").disabled = false;
+      return;
+    }
     if(sigs.length && !sigs.some(x => x.t >= startMsOf(pack))){
       setupFlash("No authorization after " + S.startPick + " NY on " + pack.day
         + ". Pick " + CONFIG.startTimes[0].t + " or another day.");
@@ -4211,7 +4241,7 @@ function startMsOf(pack){
 
 function startSession(pack){
   MODE = "test";
-  const sigs = SIGNAL_TABLE[pack.id] || [];
+  const sigs = sessionSignals(pack.id);   // v6.21
   $("sim").classList.remove("hidden");
   $("hstat").classList.remove("hidden");
   $("hName").textContent = S.operator || "Operator";
@@ -4232,7 +4262,7 @@ function startSession(pack){
                 : (sigs.length ? sigs[0].t - CONFIG.leadInSec * 1000 : pack.ticks[0][0]);
   const nb = jouables.length || sigs.length;
   $("siSub").textContent = CONFIG.symbol + " · live replay · start " + S.startPick
-    + " NY · " + nb + " signal" + (nb > 1 ? "s" : "") + " from there";
+    + " NY · " + nb + (orbOnlyOn() ? " ORB" : "") + " signal" + (nb > 1 ? "s" : "") + " from there";
   flowStart(FLOW.cache[pack.id] || null);
   applySessionSettings(true);            // v6.3 : reglages admin (operateur : standard)
   setupReplay(pack, nb, startMs);
@@ -4257,14 +4287,17 @@ function renderAdmin(){
   $("admMode").querySelectorAll("button").forEach(b => b.classList.toggle("on", (b.dataset.v === "multi") === ADMIN.multi));
   $("admStop").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === ADMIN.stopMode));
   $("admPts").value = ADMIN.stopPts;
+  $("admSig").querySelectorAll("button").forEach(b => b.classList.toggle("on", (b.dataset.v === "orb") === ADMIN.orbOnly));
   $("admNote").textContent = (ADMIN.multi
       ? "Multi 2: each authorization gives two positions of " + CONFIG.qty + " " + CONFIG.symbol + ", traded and managed separately. "
       : "Single: one position per authorization. ")
     + (ADMIN.stopMode === "trail"
       ? "Trailing stop: it follows the best price reached by " + fmtP(ADMIN.stopPts) + " pts and never moves back."
-      : "Fixed stop at " + fmtP(ADMIN.stopPts) + " pts from the entry; it can be brought closer, never further.");
+      : "Fixed stop at " + fmtP(ADMIN.stopPts) + " pts from the entry; it can be brought closer, never further.")
+    + (ADMIN.orbOnly ? " ORB levels only: the authorizations come only from the ORB high and low (09:30-09:45); the other levels are not used." : "");
 }
 $("admMode").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; ADMIN.multi = b.dataset.v === "multi"; adminSave(); renderAdmin(); });
+$("admSig").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; ADMIN.orbOnly = b.dataset.v === "orb"; adminSave(); renderAdmin(); });   // v6.21
 $("admStop").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; ADMIN.stopMode = b.dataset.v; adminSave(); renderAdmin(); });
 $("admPts").addEventListener("change", e => {
   const v = Math.round(parseFloat(e.target.value) * 4) / 4;
@@ -4276,6 +4309,7 @@ function applySessionSettings(admin){
   const on = admin && S.isAdmin;
   S.sessSlots = on && ADMIN.multi ? 2 : 1;
   S.sessTrail = on && ADMIN.stopMode === "trail";
+  S.sessOrbOnly = on && ADMIN.orbOnly;   // v6.21
   CONFIG.maxSlTicks = on ? Math.round(ADMIN.stopPts * 4) : DEFAULT_SL_TICKS;
 }
 /* barre des positions (mode Multi) : la case choisie recoit Buy / Sell / Close / SL / TP */

@@ -30,6 +30,13 @@ Contenu (rien n'est recalcule par la page, sauf l'agregation progressive) :
                            les achats / ventes de Rithmic a ce prix dans cette minute (les totaux
                            par prix restent exacts).
 
+v6.24 : gros ordres gardes des 1 ecart type (z de chaque ordre) avec leur avancee a 10/20/30/45/60 s : la page
+    applique elle-meme les reglages du Terminal (ecarts types, fenetre d'absorption, ticks).
+v6.24 : --context DOSSIER_TICKS ecrit ctx_AAAAMMJJ.json a cote de chaque daypack (voir build_context) :
+    bougies 15 min / 1 h / 4 h / 1 jour (heure de New York, 4 h et 1 jour ancres a 18:00) et plus haut /
+    plus bas de la seance US precedente. Sans dossier History.
+        python3 make_training_flow.py --context "<dossier des ticks_AAAAMMJJ.csv>" [-d daypacks] [--since 2026-09-01]
+
 v6.9 : ajoute aussi a chaque flow_ la liste des POC VIERGES des seances precedentes (voir add_npoc) ;
     python3 make_training_flow.py --npoc-only [-d daypacks]  -> seulement ce calcul, sans dossier History.
 
@@ -49,6 +56,8 @@ from zoneinfo import ZoneInfo
 NY = ZoneInfo("America/New_York")
 FORMAT = "sigma-flow-v1"
 BO = {"sigma": 2.0, "minLots": 10, "seconds": 30, "ticks": 2}
+BO_ZMIN = 1.0                      # v6.24 : ordres gardes des 1 ecart type ; la page filtre (2 par defaut)
+BO_EXC = [10, 20, 30, 45, 60]      # v6.24 : avancee dans le sens de l'ordre apres 10, 20, 30, 45, 60 s
 BO_WINDOW, BO_MIN_SAMPLES = 3000, 200
 
 
@@ -159,8 +168,9 @@ def big_orders(trades_path, prof, tick, keep_from):
         if count >= BO_MIN_SAMPLES:
             mean = s1 / count
             sd = math.sqrt(max(0.0, s2 / count - mean * mean))
-            if size >= max(BO["minLots"], mean + BO["sigma"] * sd):   # meme regle que le Terminal (>=)
-                found.append([ms, px, size, side])
+            if size >= max(BO["minLots"], mean + BO_ZMIN * sd):   # v6.24 : des 1 ecart type, z garde
+                z = (size - mean) / sd if sd > 0 else 99.0
+                found.append([ms, px, size, side, z])
         if count == BO_WINDOW:
             old = sizes[nxt]; s1 -= old; s2 -= old * old
         else:
@@ -172,19 +182,23 @@ def big_orders(trades_path, prof, tick, keep_from):
     out = []
     j = 0
     win = BO["seconds"] * 1000
-    for ms, px, size, side in found:
+    for ms, px, size, side, z in found:
         if ms < keep_from:
             continue
         while j < len(prints) and prints[j][0] <= ms:
             j += 1
         ext = px
         k = j
-        while k < len(prints) and prints[k][0] <= ms + win:
-            ext = max(ext, prints[k][1]) if side > 0 else min(ext, prints[k][1])
-            k += 1
-        move = (ext - px) * side
+        exc = []
+        for sec in BO_EXC:                      # v6.24 : extreme atteint apres 10, 20, 30, 45, 60 s
+            while k < len(prints) and prints[k][0] <= ms + sec * 1000:
+                ext = max(ext, prints[k][1]) if side > 0 else min(ext, prints[k][1])
+                k += 1
+            exc.append(round((ext - px) * side, 2))
+        move = exc[BO_EXC.index(BO["seconds"])]
         state = 2 if move > BO["ticks"] * tick + 1e-9 else 1
-        out.append([ms, px, size, side, state, round(move, 2)])
+        # 6 premiers champs inchanges (pages anterieures) ; z et avancees a la suite
+        out.append([ms, px, size, side, state, round(move, 2), round(min(z, 99.0), 2), exc])
     return out, ("aggressor" if has_aggr else "tick-rule bounded by profile")
 
 
@@ -230,7 +244,7 @@ def build(day, hist, daypack, prev_day):
     tpath = os.path.join(hist, f"trades_{ymd}.csv")
     if os.path.exists(tpath) and os.path.getsize(tpath) > 0:
         lst, mode = big_orders(tpath, prof, tick, keep_from=int(daypack.get("t0", t0)))
-        out["bo"] = {"params": BO, "side": mode, "list": lst}
+        out["bo"] = {"params": dict(BO, zMin=BO_ZMIN, exc=BO_EXC), "side": mode, "list": lst}
         summary["bo"] = len(lst)
     return out, summary
 
@@ -303,13 +317,198 @@ def add_npoc(daypacks_dir):
     return changed
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+#  v6.24 -- CONTEXTE : bougies longues et seance US precedente, depuis les ticks
+# ═══════════════════════════════════════════════════════════════════════════════
+
+CTX_FORMAT = "sigma-ctx-v1"
+CTX_KEEP = {"15m": 3, "1h": 8, "4h": 30, "1D": 45}   # jours calendaires d'historique avant la journee
+CACHE_NAME = "_training_bars15m_cache.json"
+
+
+def bars15_of_file(path):
+    """Bougies de 15 min (debut en ms UTC -> [o, h, l, c]) du symbole principal d'un fichier ticks_."""
+    rows, count = [], {}
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            f = line.split(";")
+            if len(f) < 3:
+                continue
+            try:
+                t, px = int(f[0]), float(f[2])
+            except ValueError:
+                continue
+            rows.append((t, f[1], px))
+            count[f[1]] = count.get(f[1], 0) + 1
+    if not rows:
+        return None, {}
+    sym = max(count, key=count.get)
+    bars = {}
+    for t, sy, px in rows:
+        if sy != sym:
+            continue
+        k = t // 900000 * 900000            # 15 min : alignees en UTC comme a New York
+        b = bars.get(k)
+        if b is None:
+            bars[k] = [px, px, px, px]
+        else:
+            if px > b[1]: b[1] = px
+            if px < b[2]: b[2] = px
+            b[3] = px
+    return sym, bars
+
+
+def load_bars15(ticks_dir, since):
+    """Toutes les bougies 15 min depuis `since`, avec un cache (nom, taille, date) dans le dossier des ticks."""
+    cache_path = os.path.join(ticks_dir, CACHE_NAME)
+    try:
+        with open(cache_path, encoding="utf-8") as fh:
+            cache = json.load(fh)
+    except (OSError, ValueError):
+        cache = {}
+    out, dirty = {}, False
+    for path in sorted(glob.glob(os.path.join(ticks_dir, "ticks_*.csv"))):
+        name = os.path.basename(path)
+        ymd = name[6:14]
+        if len(name) != 18 or not ymd.isdigit():          # ticks_AAAAMMJJ.csv seulement (pas les _U6 / _Z6)
+            continue
+        if datetime.date(int(ymd[:4]), int(ymd[4:6]), int(ymd[6:])) < since:
+            continue
+        st = os.stat(path)
+        key = f"{st.st_size}:{int(st.st_mtime)}"
+        ent = cache.get(name)
+        if not ent or ent.get("key") != key:
+            sym, bars = bars15_of_file(path)
+            ent = {"key": key, "sym": sym, "bars": [[k] + v for k, v in sorted(bars.items())]}
+            cache[name] = ent
+            dirty = True
+        for k, o, h, l, c in ent["bars"]:
+            b = out.get(k)
+            if b is None:
+                out[k] = [o, h, l, c]
+            else:                                         # meme quart d'heure dans deux fichiers
+                b[1] = max(b[1], h); b[2] = min(b[2], l); b[3] = c
+    if dirty:
+        with open(cache_path + ".tmp", "w", encoding="utf-8") as fh:
+            json.dump(cache, fh, separators=(",", ":"))
+        os.replace(cache_path + ".tmp", cache_path)
+    return out
+
+
+def bucket_start(t_ms, tf):
+    """Debut de la bougie `tf` contenant t (ms UTC), a l'heure de New York ; 4 h et 1 jour ancres a 18:00."""
+    dt = datetime.datetime.fromtimestamp(t_ms / 1000, NY)
+    if tf == "15m":
+        s = dt.replace(minute=dt.minute // 15 * 15, second=0, microsecond=0)
+    elif tf == "1h":
+        s = dt.replace(minute=0, second=0, microsecond=0)
+    else:
+        a = dt.replace(hour=18, minute=0, second=0, microsecond=0)
+        if dt < a:
+            a -= datetime.timedelta(days=1)
+            a = a.replace(hour=18)                        # meme heure locale (changement d'heure)
+        if tf == "1D":
+            s = a
+        else:
+            h = int((dt - a).total_seconds() // 3600) // 4 * 4
+            s = a + datetime.timedelta(hours=h)
+    return int(s.timestamp() * 1000)
+
+
+def bucket_end(start_ms, tf):
+    """Fin de la bougie : sa duree, et au plus 17:00 New York (fin de seance du CME)."""
+    dur = {"15m": 900000, "1h": 3600000, "4h": 14400000, "1D": 86400000}[tf]
+    end = start_ms + dur
+    st = datetime.datetime.fromtimestamp(start_ms / 1000, NY)
+    close = st.replace(hour=17, minute=0, second=0, microsecond=0)
+    if st >= close:
+        close += datetime.timedelta(days=1)
+        close = close.replace(hour=17)
+    return min(end, int(close.timestamp() * 1000))
+
+
+def aggregate(bars15, tf):
+    out = {}
+    for k in sorted(bars15):
+        o, h, l, c = bars15[k]
+        s = k if tf == "15m" else bucket_start(k, tf)
+        b = out.get(s)
+        if b is None:
+            out[s] = [o, h, l, c]
+        else:
+            b[1] = max(b[1], h); b[2] = min(b[2], l); b[3] = c
+    return out
+
+
+def build_context(day, t0, bars15, aggs):
+    """ctx d'une journee : bougies (debut, o, h, l, c, fin) jusqu'a la fin de la journee, et seance US precedente.
+    La page ne montre une bougie qu'une fois finie (Prior Candle) ; pour les graphiques, l'historique s'arrete au
+    debut des ticks du daypack (t0) et la bougie en cours y est amorcee par `seed`."""
+    end_day = ny_ms(day, 17, 0)
+    out = {"format": CTX_FORMAT, "day": day.isoformat(), "t0": t0, "bars": {}, "seed": {}}
+    for tf, keep in CTX_KEEP.items():
+        lo = ny_ms(day - datetime.timedelta(days=keep), 0, 0)
+        rows = []
+        for s, (o, h, l, c) in sorted(aggs[tf].items()):
+            if lo <= s < end_day:
+                rows.append([s, o, h, l, c, bucket_end(s, tf)])
+        out["bars"][tf] = rows
+        # bougie en cours au debut des ticks du daypack : 15 min deja finies avant t0
+        s0 = bucket_start(t0, tf)
+        part = [bars15[k] for k in sorted(bars15) if s0 <= k and k + 900000 <= t0]   # finies avant t0
+        if part:
+            out["seed"][tf] = [s0, part[0][0], max(b[1] for b in part), min(b[2] for b in part), part[-1][3]]
+    # seance US (09:30-16:00) precedente : le dernier jour ouvre avant `day` qui a des ticks
+    x = day
+    for _ in range(10):
+        x -= datetime.timedelta(days=1)
+        if x.weekday() >= 5:
+            continue
+        rth = [bars15[k] for k in bars15 if ny_ms(x, 9, 30) <= k < ny_ms(x, 16, 0)]
+        if rth:
+            out["prevUs"] = {"day": x.isoformat(), "high": max(b[1] for b in rth), "low": min(b[2] for b in rth)}
+            break
+    return out
+
+
+def write_contexts(ticks_dir, daypacks_dir, since):
+    bars15 = load_bars15(ticks_dir, since)
+    if not bars15:
+        print(f"Aucun ticks_AAAAMMJJ.csv depuis {since} dans {ticks_dir}")
+        return 0
+    aggs = {tf: aggregate(bars15, tf) for tf in CTX_KEEP}
+    n = 0
+    print(f"{'JOURNEE':<12}{'15m':>6}{'1h':>6}{'4h':>6}{'1D':>6}   SEANCE US PRECEDENTE")
+    for p in sorted(glob.glob(os.path.join(daypacks_dir, "daypack_*.json"))):
+        ymd = os.path.basename(p)[8:16]
+        day = datetime.date(int(ymd[:4]), int(ymd[4:6]), int(ymd[6:]))
+        with open(p, encoding="utf-8") as fh:
+            t0 = int(json.load(fh).get("t0") or ny_ms(day, 8, 0))
+        ctx = build_context(day, t0, bars15, aggs)
+        dest = os.path.join(daypacks_dir, f"ctx_{ymd}.json")
+        with open(dest + ".tmp", "w", encoding="utf-8") as fh:
+            json.dump(ctx, fh, separators=(",", ":"))
+        os.replace(dest + ".tmp", dest)
+        n += 1
+        pu = ctx.get("prevUs")
+        print(f"{day.isoformat():<12}" + "".join(f"{len(ctx['bars'][tf]):>6}" for tf in CTX_KEEP) +
+              (f"   {pu['day']}  H {pu['high']:.2f}  L {pu['low']:.2f}" if pu else "   -"))
+    return n
+
+
 def main():
     ap = argparse.ArgumentParser(description="Ajoute les volumes Rithmic aux journees du training.")
     ap.add_argument("history", nargs="?", help="dossier History de SigmaTradeHistory (profile1m_*.csv, trades_*.csv)")
     ap.add_argument("-d", "--daypacks", default="daypacks", help="dossier des daypacks (defaut : daypacks)")
     ap.add_argument("--force", action="store_true", help="refaire les flow_ deja presents")
     ap.add_argument("--npoc-only", action="store_true", help="seulement les POC vierges des flow_ existants")
+    ap.add_argument("--context", metavar="DOSSIER_TICKS", help="v6.24 : ecrit les ctx_ (bougies longues, seance US precedente)")
+    ap.add_argument("--since", default="2026-09-01", help="v6.24 : ticks lus a partir de cette date (defaut 2026-09-01)")
     a = ap.parse_args()
+    if a.context:
+        since = datetime.date.fromisoformat(a.since)
+        print(f"ctx_ : {write_contexts(a.context, a.daypacks, since)} fichier(s) ecrit(s)")
+        return 0
     if a.npoc_only:
         print(f"POC vierges : {add_npoc(a.daypacks)} flow_ mis a jour")
         return 0

@@ -876,7 +876,7 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
    ecran de fin detaille. Rien n'est envoye sur un serveur.
    ================================================================ */
 
-const BUILD = "v6.21";   // numero de livraison, affiche a cote du titre
+const BUILD = "v6.22";   // numero de livraison, affiche a cote du titre
 
 const CONFIG = {
   /* ---- ACCES ----
@@ -966,7 +966,7 @@ let SPEED = 1;
    ================================================================ */
 const TOUR = [
   { el:"charts",    title:"The charts",
-    text:"One 1-minute chart to start with. Choose how many you want with 1, 2 or 3 at the top right (click the same number again to change the layout: stacked or side by side, big chart on the left, right, top or bottom), set the time frame of each one with the menu in its top-left corner and add indicators with the Indicators button next to it (moving averages, VWAP, Bollinger Bands, MACD, RSI, ATR, ORB): 100 or 500 ticks for execution, 1 to 15 minutes for context. Your position, stop loss and take profits are drawn on every chart: drag the red SL line or a green TP line with the mouse to move it, double-click a TP line to remove it." },
+    text:"One 1-minute chart to start with. Choose how many you want with 1, 2 or 3 at the top right (click the same number again to change the layout: stacked or side by side, big chart on the left, right, top or bottom), set the time frame of each one with the menu in its top-left corner and add indicators with the Indicators button next to it (moving averages, VWAP, Bollinger Bands, MACD, RSI, ATR, ORB): 50, 100, 200 or 500 ticks for execution, 1 to 15 minutes for context. Your position, stop loss and take profits are drawn on every chart: drag the red SL line or a green TP line with the mouse to move it, double-click a TP line to remove it." },
   { el:"flowBar",   title:"Order flow",
     text:"The FLOW bar switches the order flow tools on and off: VP (volume profile of the session), PREV (previous session), CVD (delta and cumulative delta) and BIG (big orders, with their minimum size). They give context; the key levels give the authorization. The ? opens the guide." },
   { el:"panel",     title:"Right-hand panel",
@@ -1055,7 +1055,9 @@ const LEVELS_TABLE = {};
    les graphiques affiches a chaque changement de disposition.
    ================================================================ */
 const TFS = [
+  { k:"50t",  lab:"50 ticks",   ticks:50,  hist:5   },   // v6.22 : 50 et 200 ticks, comme le Terminal
   { k:"100t", lab:"100 ticks",  ticks:100, hist:10  },
+  { k:"200t", lab:"200 ticks",  ticks:200, hist:20  },
   { k:"500t", lab:"500 ticks",  ticks:500, hist:30  },
   { k:"1m",   lab:"1 minute",   sec:60,    hist:60  },
   { k:"2m",   lab:"2 minutes",  sec:120,   hist:90  },

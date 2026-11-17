@@ -216,7 +216,7 @@
   .sigPane.on{background:#0066FE;border-color:#0066FE;color:#fff}
   /* v6.24 : roue des reglages du graphique et bouton Trades (comme le Terminal) */
   .gearPane{height:23px;width:26px;padding:0;border-radius:6px;border:1px solid var(--border);background:rgba(14,23,41,.92);
-    color:var(--text);font-size:13px;line-height:1;cursor:pointer}
+    color:var(--text);font-size:17px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}   /* v6.25 : roue plus grosse */
   .gearPane:hover,.gearPane.on{border-color:var(--accent)}
   .trdPane{height:23px;padding:0 9px;border-radius:6px;border:1px solid var(--border);background:rgba(14,23,41,.92);
     color:var(--text);font:600 11px var(--mono);letter-spacing:.04em;cursor:pointer;white-space:nowrap}
@@ -345,7 +345,7 @@
   .indLeg .irw{display:flex;align-items:center;gap:7px;width:max-content;background:rgba(14,23,41,.80);padding:2px 7px;border-radius:5px}
   .isw{width:9px;height:9px;border-radius:2px;display:inline-block;flex:none}
   .indLeg .ilb{font-size:11px;color:#D1D4DC}
-  .indLeg .ico{font-style:normal;font-size:12.5px;color:#7C8598;cursor:pointer;padding:0 1px}
+  .indLeg .ico{font-style:normal;font-size:14px;color:#7C8598;cursor:pointer;padding:0 1px}
   .indLeg .ico:hover{color:#D1D4DC}
   .indLeg .ico.del:hover{color:#EF5350}
   .indPop{position:absolute;top:38px;left:auto;right:78px;z-index:32;width:240px;background:var(--panel2);border:1px solid var(--strong);
@@ -4071,17 +4071,19 @@ function indLegend(p){
       extra += `<div class="irw"><span class="isw" style="background:${col}"></span><span class="ilb">${name}</span><i class="ico" data-fset="${f}" title="Settings">⚙</i><i class="ico del" data-foff="${f}" title="Remove">✕</i></div>`;
   for(const m of (S.vpMan || [])) if(m.pane === p.idx)
     extra += `<div class="irw"><span class="isw" style="background:#4D8CFF"></span><span class="ilb">VP ${hhmm(m.fromMs)} → ${m.toMs ? hhmm(m.toMs) : "now"} NY</span><i class="ico" data-vpset="1" title="Settings">⚙</i><i class="ico del" data-delvp="${m.id}" title="Remove">✕</i></div>`;
+  let pick = "";   // v6.25 : choix de periode en cours, toujours visible
   if(S.vpPick && S.vpPick.pane === p.idx)
-    extra += `<div class="irw"><span class="isw" style="background:#0066FE"></span><span class="ilb">VP period: click the ${S.vpPick.step === 1 ? "start" : "end"}</span><i class="ico del" data-cancelvp="1" title="Cancel">✕</i></div>`;
-  if(!keys.length && !extra){ L.innerHTML = ""; return; }
-  if(!keys.length){ L.innerHTML = extra; L.onclick = e => { e.stopPropagation(); vpLegendClick(p, e); }; return; }
+    pick += `<div class="irw"><span class="isw" style="background:#0066FE"></span><span class="ilb">VP period: click the ${S.vpPick.step === 1 ? "start" : "end"}</span><i class="ico del" data-cancelvp="1" title="Cancel">✕</i></div>`;
+  /* v6.25 : « Hide » replie TOUT (indicateurs, order flow, profils sur periode) ; le compte les inclut */
+  const nRows = keys.length + (extra.match(/class="irw"/g) || []).length;
+  if(!nRows && !pick){ L.innerHTML = ""; return; }
   const fold = IND_FOLD[p.idx];
-  let h = `<div class="itg" title="${fold ? "Show the indicators list" : "Hide the indicators list"}">${fold ? "&#9656; Indicators (" + keys.length + ")" : "&#9662; Hide"}</div>`;
+  let h = nRows ? `<div class="itg" title="${fold ? "Show the indicators list" : "Hide the indicators list"}">${fold ? "&#9656; Indicators (" + nRows + ")" : "&#9662; Hide"}</div>` : "";
   if(!fold) for(const k of keys){
     const q = st[k], args = indBase(k) === "pch" ? ((q.tfs || []).join(", ") || "none selected") : indNum(k).map(x => q[x]).join(", ");
     h += `<div class="irw"><span class="isw" style="background:${q.color}"></span><span class="ilb">${indDef(k).name}${args ? " (" + args + ")" : ""}${p.iNote[k] || ""}</span><i class="ico" data-set="${k}" title="Settings">⚙</i><i class="ico del" data-del="${k}" title="Remove">✕</i></div>`;
   }
-  L.innerHTML = h + extra;
+  L.innerHTML = h + (fold ? "" : extra) + pick;
   L.onclick = e => {
     e.stopPropagation();
     if(vpLegendClick(p, e)) return;

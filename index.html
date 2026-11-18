@@ -755,7 +755,8 @@ document.addEventListener("DOMContentLoaded", function(){
     delayMs: 600,               // affichée après 0,6 s …
     scrollPct: 0.30,            // … ou à 30 % de défilement, au premier des deux
     storageKey: "sdp_intake_v2",
-    hideForDays: 0              // 0 = refus valable pour la visite en cours ; n = masquée n jours
+    hideForDays: 0              // 0 = la fenetre revient a chaque rechargement de la page ;
+                                // -1 = refus valable pour toute la visite ; n = masquee n jours
   };
 
   var root = document.getElementById("sdpRoot");
@@ -768,13 +769,14 @@ document.addEventListener("DOMContentLoaded", function(){
         var v = localStorage.getItem(SDP_CONFIG.storageKey);
         return !!v && Date.now() - Number(v) < SDP_CONFIG.hideForDays * 864e5;
       }
-      return sessionStorage.getItem(SDP_CONFIG.storageKey) === "1";
+      if (SDP_CONFIG.hideForDays < 0) return sessionStorage.getItem(SDP_CONFIG.storageKey) === "1";
+      return false;              // 0 : rien n'est retenu, la fenetre revient au rechargement
     } catch (e) { return false; }
   }
   function remember() {
     try {
       if (SDP_CONFIG.hideForDays > 0) localStorage.setItem(SDP_CONFIG.storageKey, String(Date.now()));
-      else sessionStorage.setItem(SDP_CONFIG.storageKey, "1");
+      else if (SDP_CONFIG.hideForDays < 0) sessionStorage.setItem(SDP_CONFIG.storageKey, "1");
     } catch (e) {}
   }
 

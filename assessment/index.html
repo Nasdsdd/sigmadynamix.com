@@ -137,6 +137,48 @@
     border:1px solid var(--border);border-radius:999px;padding:6px 12px}
   .w-facts span em{font-style:normal;color:var(--muted)}
   .welcome .btn{padding:14px 30px;font-size:16px}
+
+  /* ══ pay- : ce que le poste rapporte, ecran d'accueil ══ */
+  .pay-wrap{text-align:left;margin:0 0 26px}
+  .pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .pay-c{background:rgba(6,8,15,.55);border:1px solid rgba(140,163,197,.17);
+    border-radius:var(--r-ctl);padding:15px 14px 17px}
+  .pay-c.pay-hl{border-color:rgba(0,96,248,.5);box-shadow:0 0 34px rgba(0,96,248,.12)}
+  .pay-m{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--link)}
+  .pay-v{font-family:var(--mono);font-size:26px;font-weight:500;margin-top:10px;color:var(--text)}
+  .pay-lab{font-family:var(--mono);font-size:12px;letter-spacing:.03em;color:#8E9CB5;margin-top:9px}
+  .pay-amt{font-size:19px;font-weight:600;color:#4FD9A8;margin-top:2px;white-space:nowrap}
+  .pay-amt.pay-none{color:var(--muted);font-weight:400;font-size:15px}
+  .pay-free{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px;
+    background:rgba(79,217,168,.07);border:1px solid rgba(79,217,168,.30);
+    border-radius:var(--r-ctl);padding:14px 16px}
+  .pay-ft{font-family:var(--disp);font-size:16px;font-weight:600;color:var(--text)}
+  .pay-fs{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .pay-f0{font-family:var(--mono);font-size:30px;font-weight:500;color:#4FD9A8;line-height:1}
+  .pay-coach{display:flex;gap:11px;align-items:flex-start;margin-top:12px;padding:13px 15px;
+    background:rgba(10,17,31,.62);border:1px solid rgba(140,163,197,.17);border-radius:var(--r-ctl)}
+  .pay-coach svg{width:20px;height:20px;flex:none;color:var(--link);margin-top:1px}
+  .pay-coach p{font-size:13.5px;line-height:1.55;color:var(--muted)}
+  .pay-coach p b{color:var(--text)}
+  .pay-fine{margin-top:10px;font-size:11.5px;line-height:1.55;color:#6B7891}
+
+  /* ══ route- : acheminement par appareil ══ */
+  .route-note{font-size:12.5px;line-height:1.55;color:var(--muted);margin-top:10px}
+  .route-mail{display:flex;gap:8px;max-width:420px;margin:16px auto 0}
+  .route-mail input{flex:1;min-width:0}
+  .route-mail .btn{margin:0;width:auto;padding:12px 20px;font-size:15px;white-space:nowrap}
+  .route-err{margin-top:10px}
+  .w-facts.route-facts{margin:18px 0 0}
+  .w-facts.route-facts span{font-size:11px;padding:5px 10px}
+  @media (max-width:640px){
+    .pay-grid{grid-template-columns:1fr}
+    .pay-f0{font-size:26px}
+    .pay-v{font-size:24px}
+  }
+  @media (max-width:480px){
+    .route-mail{flex-direction:column}
+    .route-mail .btn{width:100%}
+  }
   .welcome > *{animation:wIn .6s cubic-bezier(.2,.7,.2,1) both}
   .welcome > :nth-child(2){animation-delay:.05s} .welcome > :nth-child(3){animation-delay:.10s}
   .welcome > :nth-child(4){animation-delay:.15s} .welcome > :nth-child(5){animation-delay:.22s}
@@ -731,17 +773,57 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     <h2>Welcome to Sigma Dynamix</h2>
     <p class="w-lead">We recruit remote operators to execute the firm's NQ futures signals.
       This assessment shows us how you trade: your timing, your entries and your discipline.</p>
+    <div class="pay-wrap">
+      <div class="pay-grid">
+        <div class="pay-c">
+          <div class="pay-m">MONTH 1</div>
+          <div class="pay-v">50%</div>
+          <div class="pay-lab">PROFIT SPLIT</div>
+          <div class="pay-amt pay-none">No minimum</div>
+        </div>
+        <div class="pay-c">
+          <div class="pay-m">MONTH 2</div>
+          <div class="pay-v">50%</div>
+          <div class="pay-lab">+ MIN GUARANTEE</div>
+          <div class="pay-amt">$1,000/mo</div>
+        </div>
+        <div class="pay-c pay-hl">
+          <div class="pay-m">MONTH 3+</div>
+          <div class="pay-v">50%</div>
+          <div class="pay-lab">+ MIN GUARANTEE</div>
+          <div class="pay-amt">$2,000/mo</div>
+        </div>
+      </div>
+      <div class="pay-free">
+        <div>
+          <div class="pay-ft">You never pay anything</div>
+          <div class="pay-fs">No fees, no deposit, no subscription, ever.</div>
+        </div>
+        <div class="pay-f0">$0</div>
+      </div>
+      <div class="pay-coach">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-4 9 4-9 4-9-4z"/><path d="M7 11.5V16c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5"/></svg>
+        <p><b>You are never on your own.</b> The desk prepares the levels, sends the signals and reviews what you trade. The execution stays yours.</p>
+      </div>
+      <p class="pay-fine">Compensation depends on performance. The guaranteed minimum tops up your profit split when it falls short. The two-week evaluation before the live desk is unpaid.</p>
+    </div>
     <div class="w-steps">
       <div class="w-step"><span>01</span><b>Application</b><i>A few questions about you and your trading experience.</i></div>
       <div class="w-step"><span>02</span><b>Strategy demo</b><i>A guided replay showing exactly how our operators trade.</i></div>
       <div class="w-step"><span>03</span><b>Trading tests</b><i>3 sessions on a real market replay, with the order flow tools of our desk: on every signal, you choose to buy or sell, and you manage your stop and take profits.</i></div>
     </div>
-    <div class="w-facts">
+    <button class="btn" id="btnVideoNext">Start the assessment →</button>
+    <p class="route-note hidden" id="routeNote">The simulation needs a computer. We'll send you a link to open there.</p>
+    <div class="route-mail hidden" id="routeMail">
+      <input type="email" id="routeEmail" placeholder="your@email.com" autocomplete="email" inputmode="email" aria-label="Email">
+      <button class="btn" id="btnRouteSend">Send the link</button>
+    </div>
+    <div class="err route-err hidden" id="routeErr"></div>
+    <div class="w-facts route-facts">
       <span>~<b id="wMinutes">30</b> min <em>· in one sitting</em></span>
       <span>Desktop <em>· computer</em></span>
-      <span>One attempt <em>· only</em></span>
+      <span>One scored attempt <em>· only</em></span>
     </div>
-    <button class="btn" id="btnVideoNext">Start my application →</button>
   </div>
 </div>
 
@@ -1116,7 +1198,40 @@ const QUESTIONNAIRE = {
   ]
 };
 
-const BUILD = "v22.5";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+/* ════════════════════════════════════════════════════════════════
+   SUIVI PUBLICITAIRE — sdTrack + parametres UTM + type d'appareil
+   TRACK_ENDPOINT vide : les evenements partent seulement en console.
+   ════════════════════════════════════════════════════════════════ */
+const TRACK_ENDPOINT = "";          /* <- colle ici l'URL qui recoit les evenements */
+const ROUTE_EMAIL_VIA_BACKEND = true;   /* true : le lien part par la fonction send-link */
+
+const SD_UTM = (function(){
+  const q = new URLSearchParams(location.search), o = {};
+  ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"]
+    .forEach(k => { const v = (q.get(k) || "").trim(); if(v) o[k] = v; });
+  return o;
+})();
+const SD_UTM_QS = new URLSearchParams(SD_UTM).toString();
+
+/* ordinateur = large ET pointeur fin ; tout le reste est traite comme mobile */
+function sdDevice(){
+  try{
+    const fine = window.matchMedia && matchMedia("(pointer: fine)").matches;
+    return (window.innerWidth >= 1024 && fine) ? "desktop" : "mobile";
+  }catch(e){ return window.innerWidth >= 1024 ? "desktop" : "mobile"; }
+}
+
+function sdTrack(event, payload){
+  const body = { event: event, utm: SD_UTM, device: sdDevice(), ts: new Date().toISOString() };
+  if(payload) body.payload = payload;
+  try{
+    if(!TRACK_ENDPOINT){ console.log("[sdTrack]", body); return; }
+    fetch(TRACK_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body), keepalive: true, mode: "cors" }).catch(()=>{});
+  }catch(e){}
+}
+
+const BUILD = "v23";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -4276,6 +4391,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     const hasInvite = !!(q.get("t") || q.get("token") || "").trim();
     if(HIRING_LOCK_ALL || !hasInvite){
       $("stageClosed").classList.remove("hidden");
+      sdTrack("page_view", { stage: "closed" });
       return;
     }
   }
@@ -4317,9 +4433,83 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   const fd = $("formDuration");
   if(fd) fd.textContent = CONFIG.estimatedMinutes;
   /* v20.3 : lien personnel reçu par mail → directement la FAQ (questionnaire déjà rempli) */
-  if(RESUME && applyResume()){ $("stageFaq").classList.remove("hidden"); prefetchAll(); return; }
+  if(RESUME && applyResume()){ $("stageFaq").classList.remove("hidden"); prefetchAll(); sdTrack("page_view", { stage: "resume" }); return; }
   $("stageVideo").classList.remove("hidden");
+  routeWelcome();
+  sdTrack("page_view", { stage: "welcome" });
 });
+
+/* ════════════════════════════════════════════════════════════════
+   ACHEMINEMENT PAR APPAREIL — ordinateur : questionnaire tout de suite.
+   Telephone ou tablette : une seule ligne, l'email, et le lien suit.
+   ════════════════════════════════════════════════════════════════ */
+function routeWelcome(){
+  const btn = $("btnVideoNext");
+  if(!btn) return;
+  if(RESUME){ btn.textContent = "Continue my application →"; return; }
+  if(sdDevice() === "desktop"){ btn.textContent = "Start the assessment →"; return; }
+  btn.textContent = "Email me the link →";
+  $("routeNote").classList.remove("hidden");
+}
+
+function routeShowMail(){
+  $("routeMail").classList.remove("hidden");
+  $("btnVideoNext").classList.add("hidden");
+  try{ $("routeEmail").focus(); }catch(e){}
+}
+
+function routeError(msg){
+  const e = $("routeErr");
+  e.textContent = msg; e.classList.remove("hidden");
+}
+
+async function routeSendMailLink(){
+  const email = ($("routeEmail").value || "").trim();
+  $("routeErr").classList.add("hidden");
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+    routeError("Please enter a valid email address."); return;
+  }
+  const btn = $("btnRouteSend"), label = btn.textContent;
+  btn.disabled = true; btn.textContent = "Sending…";
+  const base = CONFIG.env === "PRODUCTION"
+    ? "https://sigmadynamix.com/assessment/" : location.origin + location.pathname;
+  const link = base + (SD_UTM_QS ? "?" + SD_UTM_QS : "");
+  let ok = false;
+  if(CONFIG.env === "PRODUCTION"){
+    if(ROUTE_EMAIL_VIA_BACKEND){
+      try{
+        const r = await callBackend("send-link", { name: email, first: "", email: email,
+          country: "", score: null, answers: [], link: link }, 15000);
+        ok = r.status === 200 && r.data && r.data.ok;
+      }catch(e){}
+    }
+    if(!ok){
+      try{
+        await fetch("https://formsubmit.co/ajax/" + CONFIG.reportEmail, { method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({ _subject: "Link request (mobile) — " + email, _template: "box",
+            candidate: email, source: "assessment mobile routing",
+            utm: SD_UTM_QS || "none", link: link }) });
+        ok = true;
+      }catch(e){}
+    }
+  } else ok = true;
+  btn.disabled = false; btn.textContent = label;
+  if(!ok){ routeError("We could not send it right now. Please try again in a few minutes."); return; }
+  sdTrack("form_submitted", { path: "mobile_link" });
+  const safe = email.replace(/</g, "&lt;");
+  $("stageVideo").classList.add("hidden");
+  $("btnStartNow").classList.add("hidden");
+  $("lsLinkBox").classList.add("hidden");
+  $("lsTitle").textContent = "Check your inbox";
+  $("lsLead").innerHTML = "We have sent your assessment link to <b>" + safe + "</b>.";
+  const wb = $("stageLinkSent").querySelector(".warnbox");
+  if(wb) wb.innerHTML = "The assessment takes <b>about " + CONFIG.estimatedMinutes
+    + " minutes</b>, in one sitting, on a <b>desktop or laptop computer</b>. No email? Check your spam folder.";
+  $("lsMobile").innerHTML = "Open the link on a <b>desktop or laptop computer</b> when you are ready.";
+  $("stageLinkSent").classList.remove("hidden");
+  window.scrollTo(0, 0);
+}
 
 /* écran d'avertissement : nombre de sessions et règles de position */
 function applyWarnText(){
@@ -4380,6 +4570,8 @@ function applyResume(){
 }
 /* v16.1 : la vidéo d'introduction est supprimée — tout est dans la démo */
 $("btnVideoNext").addEventListener("click", ()=>{
+  sdTrack("cta_click", { label: $("btnVideoNext").textContent.trim() });
+  if(!RESUME && sdDevice() !== "desktop"){ routeShowMail(); return; }
   $("stageVideo").classList.add("hidden");
   if(RESUME && applyResume()){                 // v20 : lien personnel, questionnaire déjà rempli
     $("stageFaq").classList.remove("hidden"); window.scrollTo(0, 0); return;
@@ -4387,6 +4579,8 @@ $("btnVideoNext").addEventListener("click", ()=>{
   $("stage1").classList.remove("hidden");
 });
 if(RESUME) $("btnVideoNext").textContent = "Continue my application →";
+$("btnRouteSend").addEventListener("click", routeSendMailLink);
+$("routeEmail").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); routeSendMailLink(); } });
 
 /* ================================================================
    STAGE 1 — Application form + one-attempt lock
@@ -4529,7 +4723,8 @@ async function sendLink(idx){
     e: candidate.email, cc: candidate.countryCode, cn: candidate.country, a: idx }));
   const q = new URLSearchParams(location.search), t = (q.get("t") || q.get("token") || "").trim();
   const base = CONFIG.env === "PRODUCTION" ? "https://sigmadynamix.com/assessment/" : location.origin + location.pathname;
-  const link = base + "?k=" + k + (t ? "&t=" + encodeURIComponent(t) : "");
+  const link = base + "?k=" + k + (t ? "&t=" + encodeURIComponent(t) : "")
+             + (SD_UTM_QS ? "&" + SD_UTM_QS : "");
   let res = "failed", notified = false;                 // sent | failed ; copie equipe partie (Resend)
   if(CONFIG.env === "PRODUCTION"){
     try{
@@ -4546,6 +4741,7 @@ async function sendLink(idx){
         body: JSON.stringify({ _subject: `New lead — ${candidate.first} ${candidate.last} (${candidate.country || "?"})`,
           _template: "box", candidate: `${candidate.first} ${candidate.last} <${candidate.email}>`,
           country: candidate.country, screening_score: candidate.score, link_email_sent: res === "sent" ? "yes" : "NO",
+          utm: SD_UTM_QS || "none",
           link, answers: candidate.answers.map(a => `${a.q} => ${a.answer}`).join(" || ") }) }).catch(()=>{});
     }catch(e){}
   } else res = "test";
@@ -4563,6 +4759,7 @@ async function sendLink(idx){
   $("lsLinkBox").classList.toggle("hidden", res !== "test");   // le lien ne s'affiche qu'en version de test
   $("lsLink").value = link;
   $("lsMobile").innerHTML = "Open the link from your email on a <b>desktop or laptop computer</b> when you are ready.";
+  sdTrack("form_submitted", { path: "questionnaire", score: candidate.score });
   $("stageLinkSent").classList.remove("hidden");
   window.scrollTo(0, 0);
 }
@@ -4804,6 +5001,7 @@ $("btnStartTests").addEventListener("click", async () => {
   }
   try{ await requestSession(); }
   catch(e){ console.warn("start-attempt indisponible, on continue :", e.message); }
+  sdTrack("sim_started");
   if(!Array.isArray(EV.plan) || EV.plan.length !== SESSION_ROSTER.length)
     EV.plan = shuffledRoster(SESSION.token || (candidate && candidate.email) || "sigma");
   EV.sessionIdx = 0; EV.results = [];
@@ -4912,6 +5110,7 @@ $("btnNextSession").addEventListener("click", () => {
 });
 
 function showFinal(){
+  sdTrack("sim_completed");
   const flag = attemptFlag() || {};
   flag.completedUtc = new Date().toISOString();
   localStorage.setItem(ATTEMPT_KEY, JSON.stringify(flag));

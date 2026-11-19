@@ -164,9 +164,12 @@
 
   /* ══ route- : acheminement par appareil ══ */
   .route-note{font-size:12.5px;line-height:1.55;color:var(--muted);margin-top:10px}
-  .route-mail{display:flex;gap:8px;max-width:420px;margin:16px auto 0}
-  .route-mail input{flex:1;min-width:0}
-  .route-mail .btn{margin:0;width:auto;padding:12px 20px;font-size:15px;white-space:nowrap}
+  .route-steps{grid-template-columns:repeat(2,1fr);margin:18px 0 20px}
+  .route-steps .w-step i b{display:inline;color:var(--text);font-weight:600}
+  .route-choice{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+  .route-choice .btn{margin:0}
+  .route-choice .btn em{font-style:normal;font-weight:400;font-size:13px;opacity:.78}
+  .route-choice .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
   .route-err{margin-top:10px}
   .w-facts.route-facts{margin:18px 0 0}
   .w-facts.route-facts span{font-size:11px;padding:5px 10px}
@@ -176,8 +179,8 @@
     .pay-v{font-size:24px}
   }
   @media (max-width:480px){
-    .route-mail{flex-direction:column}
-    .route-mail .btn{width:100%}
+    .route-choice{flex-direction:column}
+    .route-choice .btn{width:100%;text-align:center}
   }
   .welcome > *{animation:wIn .6s cubic-bezier(.2,.7,.2,1) both}
   .welcome > :nth-child(2){animation-delay:.05s} .welcome > :nth-child(3){animation-delay:.10s}
@@ -809,18 +812,13 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
     </div>
     <div class="w-steps">
       <div class="w-step"><span>01</span><b>Application</b><i>A few questions about you and your trading experience.</i></div>
-      <div class="w-step"><span>02</span><b>Strategy demo</b><i>A guided replay showing exactly how our operators trade.</i></div>
-      <div class="w-step"><span>03</span><b>Trading tests</b><i>3 sessions on a real market replay, with the order flow tools of our desk: on every signal, you choose to buy or sell, and you manage your stop and take profits.</i></div>
+      <div class="w-step"><span>02</span><b>Online trading test</b><i>A guided replay of the desk strategy, then 3 sessions on a real market replay with our order flow tools. 20 to 30 minutes, on a computer.</i></div>
+      <div class="w-step"><span>03</span><b>Two-week evaluation</b><i>If selected: one live trading session with the desk every trading day, 20 to 30 minutes each.</i></div>
     </div>
     <button class="btn" id="btnVideoNext">Start the assessment →</button>
-    <p class="route-note hidden" id="routeNote">The simulation needs a computer. We'll send you a link to open there.</p>
-    <div class="route-mail hidden" id="routeMail">
-      <input type="email" id="routeEmail" placeholder="your@email.com" autocomplete="email" inputmode="email" aria-label="Email">
-      <button class="btn" id="btnRouteSend">Send the link</button>
-    </div>
-    <div class="err route-err hidden" id="routeErr"></div>
+    <p class="route-note hidden" id="routeNote">You can apply from your phone. The trading simulation itself needs a computer: at the end, we send you a link to open there.</p>
     <div class="w-facts route-facts">
-      <span>~<b id="wMinutes">30</b> min <em>· in one sitting</em></span>
+      <span>20 to 30 min <em>· in one sitting</em></span>
       <span>Desktop <em>· computer</em></span>
       <span>One scored attempt <em>· only</em></span>
     </div>
@@ -830,8 +828,8 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== STAGE 1 : APPLICATION FORM ===== -->
 <div class="stage hidden" id="stage1">
   <div class="card">
-    <h2>Get your assessment link</h2>
-    <div class="warnbox">Fill in this short form and we will <b>email you the link</b> to the trading simulation. The simulation takes <b>around <span id="formDuration">30</span> minutes</b>, in one sitting, on a <b>desktop or laptop computer</b>.</div>
+    <h2>Step 1 · Application</h2>
+    <div class="warnbox">A few questions, about a minute. At the end you choose: <b>take the online trading test now</b>, 20 to 30 minutes in one sitting, or <b>receive a link</b> and do it later on a computer.</div>
     <p class="lead">Your details, then a few quick questions.</p>
     <label for="fFirst">First name</label><input type="text" id="fFirst" autocomplete="given-name">
     <label for="fLast">Last name</label><input type="text" id="fLast" autocomplete="family-name">
@@ -860,12 +858,20 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== ENGAGEMENT (entre la FAQ et la presentation) ===== -->
 <div class="stage hidden" id="stageCommit">
   <div class="card">
-    <h2>One last thing</h2>
-    <p class="lead">If you are selected, the next step is a <b>two-week evaluation on live
-      daily trading</b>: one session every trading day, around <b>30 minutes</b> each.</p>
-    <p class="lead">We look at consistency across those sessions, not at a single good day.</p>
-    <p class="lead"><b>Are you available for that?</b></p>
-    <button class="btn" id="btnCommitYes">Yes, I am in</button>
+    <h2>Two steps left</h2>
+    <p class="lead">Here is what happens next.</p>
+    <div class="w-steps route-steps">
+      <div class="w-step"><span>NOW</span><b>Online trading test</b><i>A guided replay of the desk strategy, then 3 sessions on a real market replay. <b>20 to 30 minutes</b>, in one sitting, on a computer.</i></div>
+      <div class="w-step"><span>IF SELECTED</span><b>Two-week evaluation</b><i>One live trading session with the desk every trading day, <b>20 to 30 minutes</b> each. We look at consistency across those sessions, not at a single good day.</i></div>
+    </div>
+    <p class="lead">You start the online trading test now. Nothing else is asked of you today: the two-week evaluation only comes if you are selected, and we agree on the dates with you.</p>
+    <p class="lead"><b>If you want to move forward:</b></p>
+    <div class="route-choice">
+      <button class="btn" id="btnCommitYes">Take the test now <em>· 20 to 30 min</em></button>
+      <button class="btn ghost" id="btnCommitLater">Send me the link for later</button>
+    </div>
+    <p class="route-note hidden" id="commitNote">The simulation needs a computer. We send you a link, open it on a desktop or laptop when you are ready.</p>
+    <div class="err hidden" id="commitErr"></div>
   </div>
 </div>
 
@@ -1159,19 +1165,13 @@ const QUESTIONNAIRE = {
       options: [
         { label: "Yes, more than 2 years", points: 4 },
         { label: "Yes, between 6 months and 2 years", points: 3 },
-        { label: "Yes, less than 6 months", points: 1 },
-        { label: "No short-term intraday trading experience", points: 0 } ]},
+        { label: "Yes, less than 6 months", points: 1 } ]},
     { text: "Have you traded futures contracts?",
       options: [
         { label: "Yes, regularly", points: 3 },
         { label: "Yes, occasionally", points: 2 },
         { label: "No, other instruments only (CFDs, stocks, crypto...)", points: 1 },
         { label: "No trading experience with futures or similar", points: 0 } ]},
-    { text: "Have you traded the Nasdaq index?",
-      options: [
-        { label: "Yes, via NQ or MNQ futures", points: 3 },
-        { label: "Yes, via CFD, ETF or another product", points: 1 },
-        { label: "No", points: 0 } ]},
     { text: "How many years of trading experience do you have?",
       type: "years", min: 0, max: 5, points: 0 },
     { text: "Are you available to trade every weekday between 9:45 and 10:30 AM New York time?",
@@ -1231,7 +1231,7 @@ function sdTrack(event, payload){
   }catch(e){}
 }
 
-const BUILD = "v23.1";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v23.3";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -4447,82 +4447,22 @@ function routeWelcome(){
   const btn = $("btnVideoNext");
   if(!btn) return;
   if(RESUME){ btn.textContent = "Continue my application →"; return; }
-  if(sdDevice() === "desktop"){ btn.textContent = "Start the assessment →"; routeStage1Copy(); return; }
-  btn.textContent = "Email me the link →";
-  $("routeNote").classList.remove("hidden");
+  btn.textContent = "Start the assessment →";
+  if(sdDevice() !== "desktop") $("routeNote").classList.remove("hidden");
 }
 
-/* Sur ordinateur, le formulaire annonce la suite immediate et non un mail. */
-function routeStage1Copy(){
-  const h = $("stage1").querySelector("h2");
-  const wb = $("stage1").querySelector(".warnbox");
-  const btn = $("btnSubmitForm");
-  if(sdDevice() !== "desktop") return;
-  if(h) h.textContent = "Your application";
-  if(wb) wb.innerHTML = "A few questions, about a minute. The trading simulation starts "
-    + "right after, and takes <b>around <span id=\"formDuration\">" + CONFIG.estimatedMinutes
-    + "</span> minutes</b>, in one sitting, on this computer.";
-  if(btn) btn.textContent = "Continue →";
+/* Ecran « One last thing » : sur mobile, le test est verrouille, seul le lien
+   par mail reste possible. Sur ordinateur, les deux choix sont ouverts. */
+function routeCommit(){
+  const now = $("btnCommitYes"), later = $("btnCommitLater");
+  if(RESUME){ later.classList.add("hidden"); }
+  if(sdDevice() === "desktop") return;
+  now.disabled = true;
+  now.innerHTML = "Take the test now <em>· computer required</em>";
+  now.setAttribute("aria-disabled", "true");
+  $("commitNote").classList.remove("hidden");
 }
 
-function routeShowMail(){
-  $("routeMail").classList.remove("hidden");
-  $("btnVideoNext").classList.add("hidden");
-  try{ $("routeEmail").focus(); }catch(e){}
-}
-
-function routeError(msg){
-  const e = $("routeErr");
-  e.textContent = msg; e.classList.remove("hidden");
-}
-
-async function routeSendMailLink(){
-  const email = ($("routeEmail").value || "").trim();
-  $("routeErr").classList.add("hidden");
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
-    routeError("Please enter a valid email address."); return;
-  }
-  const btn = $("btnRouteSend"), label = btn.textContent;
-  btn.disabled = true; btn.textContent = "Sending…";
-  const base = CONFIG.env === "PRODUCTION"
-    ? "https://sigmadynamix.com/assessment/" : location.origin + location.pathname;
-  const link = base + (SD_UTM_QS ? "?" + SD_UTM_QS : "");
-  let ok = false;
-  if(CONFIG.env === "PRODUCTION"){
-    if(ROUTE_EMAIL_VIA_BACKEND){
-      try{
-        const r = await callBackend("send-link", { name: email, first: "", email: email,
-          country: "", score: null, answers: [], link: link }, 15000);
-        ok = r.status === 200 && r.data && r.data.ok;
-      }catch(e){}
-    }
-    if(!ok){
-      try{
-        await fetch("https://formsubmit.co/ajax/" + CONFIG.reportEmail, { method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({ _subject: "Link request (mobile) — " + email, _template: "box",
-            candidate: email, source: "assessment mobile routing",
-            utm: SD_UTM_QS || "none", link: link }) });
-        ok = true;
-      }catch(e){}
-    }
-  } else ok = true;
-  btn.disabled = false; btn.textContent = label;
-  if(!ok){ routeError("We could not send it right now. Please try again in a few minutes."); return; }
-  sdTrack("form_submitted", { path: "mobile_link" });
-  const safe = email.replace(/</g, "&lt;");
-  $("stageVideo").classList.add("hidden");
-  $("btnStartNow").classList.add("hidden");
-  $("lsLinkBox").classList.add("hidden");
-  $("lsTitle").textContent = "Check your inbox";
-  $("lsLead").innerHTML = "We have sent your assessment link to <b>" + safe + "</b>.";
-  const wb = $("stageLinkSent").querySelector(".warnbox");
-  if(wb) wb.innerHTML = "The assessment takes <b>about " + CONFIG.estimatedMinutes
-    + " minutes</b>, in one sitting, on a <b>desktop or laptop computer</b>. No email? Check your spam folder.";
-  $("lsMobile").innerHTML = "Open the link on a <b>desktop or laptop computer</b> when you are ready.";
-  $("stageLinkSent").classList.remove("hidden");
-  window.scrollTo(0, 0);
-}
 
 /* écran d'avertissement : nombre de sessions et règles de position */
 function applyWarnText(){
@@ -4584,7 +4524,6 @@ function applyResume(){
 /* v16.1 : la vidéo d'introduction est supprimée — tout est dans la démo */
 $("btnVideoNext").addEventListener("click", ()=>{
   sdTrack("cta_click", { label: $("btnVideoNext").textContent.trim() });
-  if(!RESUME && sdDevice() !== "desktop"){ routeShowMail(); return; }
   $("stageVideo").classList.add("hidden");
   if(RESUME && applyResume()){                 // v20 : lien personnel, questionnaire déjà rempli
     $("stageFaq").classList.remove("hidden"); window.scrollTo(0, 0); return;
@@ -4592,8 +4531,7 @@ $("btnVideoNext").addEventListener("click", ()=>{
   $("stage1").classList.remove("hidden");
 });
 if(RESUME) $("btnVideoNext").textContent = "Continue my application →";
-$("btnRouteSend").addEventListener("click", routeSendMailLink);
-$("routeEmail").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); routeSendMailLink(); } });
+$("btnSubmitForm").textContent = "Continue →";
 
 /* ================================================================
    STAGE 1 — Application form + one-attempt lock
@@ -4724,16 +4662,15 @@ $("btnSubmitForm").addEventListener("click", async ()=>{
      puis le candidat choisit de commencer maintenant ou plus tard */
   const idx = QUESTIONNAIRE.questions.map((q, qi) => q.type === "years"
     ? +$("years"+qi).value : +document.querySelector(`input[name=q${qi}]:checked`).value);
-  if(sdDevice() === "desktop"){ continueDirect(idx); return; }
-  await sendLink(idx);
+  continueToFaq(idx);
 });
 
-/* Ordinateur : on enchaine directement sur la FAQ puis le test, sans passer
-   par la boite mail. Le lien de reprise part quand meme en arriere plan, pour
-   qu'un candidat interrompu puisse revenir ou il en etait. */
-function continueDirect(idx){
-  sdTrack("form_submitted", { path: "questionnaire", score: candidate.score, direct: true });
-  try{ sendLink(idx, true); }catch(e){}
+/* Le questionnaire mene a la FAQ puis a « One last thing », sur tous les
+   appareils. Le choix entre tester maintenant ou recevoir le lien se fait la. */
+let PENDING_IDX = null;
+function continueToFaq(idx){
+  PENDING_IDX = idx;
+  sdTrack("form_submitted", { path: "questionnaire", score: candidate.score });
   $("stage1").classList.add("hidden");
   $("stageFaq").classList.remove("hidden");
   try{ prefetchAll(); }catch(e){}
@@ -4775,7 +4712,7 @@ async function sendLink(idx, silent){
   btn.disabled = false; btn.textContent = label;
   if(res === "failed"){
     err.textContent = "We could not send the email right now. Please try again in a few minutes.";
-    err.classList.remove("hidden"); return;
+    err.classList.remove("hidden"); return res;
   }
   $("stage1").classList.add("hidden");
   $("btnStartNow").classList.add("hidden");
@@ -4786,9 +4723,9 @@ async function sendLink(idx, silent){
   $("lsLinkBox").classList.toggle("hidden", res !== "test");   // le lien ne s'affiche qu'en version de test
   $("lsLink").value = link;
   $("lsMobile").innerHTML = "Open the link from your email on a <b>desktop or laptop computer</b> when you are ready.";
-  sdTrack("form_submitted", { path: "questionnaire", score: candidate.score });
   $("stageLinkSent").classList.remove("hidden");
   window.scrollTo(0, 0);
+  return res;
 }
 $("btnStartNow").addEventListener("click", ()=>{
   $("stageLinkSent").classList.add("hidden");
@@ -4958,16 +4895,33 @@ function renderFaq(){
 renderFaq();
 $("btnFaqNext").addEventListener("click", ()=>{
   $("stageFaq").classList.add("hidden");
+  routeCommit();
   $("stageCommit").classList.remove("hidden");
   window.scrollTo(0, 0);
 });
 /* donnees de la demo et des tests chargees en fond pendant la lecture */
 function prefetchAll(){ preloadDays().catch(()=>{}); loadDemoParts().catch(()=>{}); }
 $("btnCommitYes").addEventListener("click", ()=>{
+  sdTrack("cta_click", { label: "take_test_now" });
   prefetchAll();
   $("stageCommit").classList.add("hidden");
   $("stagePres").classList.remove("hidden");
   window.scrollTo(0, 0);
+});
+$("btnCommitLater").addEventListener("click", async ()=>{
+  sdTrack("cta_click", { label: "send_link_later" });
+  if(!PENDING_IDX) return;
+  const b = $("btnCommitLater"), lab = b.textContent, err = $("commitErr");
+  err.classList.add("hidden");
+  b.disabled = true; b.textContent = "Sending…";
+  let res = "failed";
+  try{ res = await sendLink(PENDING_IDX); }catch(e){}
+  b.disabled = false; b.textContent = lab;
+  if(res === "failed"){
+    err.textContent = "We could not send the email right now. Please try again in a few minutes.";
+    err.classList.remove("hidden"); return;
+  }
+  $("stageCommit").classList.add("hidden");
 });
 
 

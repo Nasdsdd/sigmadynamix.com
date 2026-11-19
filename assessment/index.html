@@ -573,7 +573,7 @@
   .gtier em{display:block;font-style:normal;margin-top:9px;font-family:var(--mono);font-size:12px;
     letter-spacing:.03em;line-height:1.6;color:#8E9CB5}
   .gtier em u{display:inline-block;text-decoration:none;font-family:var(--sans);font-weight:600;
-    font-size:17px;color:#4FD9A8;margin-top:2px}
+    font-size:21px;color:#4FD9A8;margin-top:3px}
   .gtier.hl{border-color:var(--accent)}
   .gtier.hl span{color:var(--link)}
   /* Schema des etapes de recrutement — meme grammaire visuelle que .gtiers */
@@ -1236,7 +1236,7 @@ function sdTrack(event, payload){
   }catch(e){}
 }
 
-const BUILD = "v23.5";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v23.6";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });

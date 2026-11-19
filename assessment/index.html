@@ -128,10 +128,18 @@
   .card.welcome h2{font-size:38px;line-height:1.15;margin-bottom:14px}
   .w-lead{color:var(--muted);font-size:15px;line-height:1.65;max-width:560px;margin:0 auto 34px}
   .w-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:left;margin-bottom:26px}
-  .w-step{background:rgba(6,8,15,.55);border:1px solid var(--border);border-radius:var(--r-ctl);padding:16px 16px 18px}
+  .w-step{display:flex;flex-direction:column;background:rgba(6,8,15,.55);border:1px solid var(--border);
+    border-radius:var(--r-ctl);padding:16px 16px 18px}
   .w-step span{font-family:var(--mono);font-size:11px;color:var(--link);letter-spacing:.08em}
   .w-step b{display:block;font-family:var(--disp);font-size:16px;font-weight:600;margin:8px 0 6px}
-  .w-step i{font-style:normal;color:var(--muted);font-size:13px;line-height:1.55}
+  .w-step i + .w-tag{margin-top:16px}
+  .w-step i{display:block;font-style:normal;color:var(--muted);font-size:13px;line-height:1.55}
+  .w-step.hl{border-color:rgba(0,96,248,.55);box-shadow:0 0 40px rgba(0,96,248,.16)}
+  .w-step.hl span{color:#3ECF8E}
+  .w-tag{align-self:flex-start;margin-top:auto;padding:6px 12px;border-radius:999px;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--muted);
+    background:rgba(255,255,255,.04);border:1px solid var(--border)}
+  .w-step.hl .w-tag{color:#4FD9A8;background:rgba(62,207,142,.07);border-color:rgba(62,207,142,.32)}
   .w-facts{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:30px}
   .w-facts span{font-family:var(--mono);font-size:12px;color:var(--text);background:var(--panel2);
     border:1px solid var(--border);border-radius:999px;padding:6px 12px}
@@ -816,9 +824,9 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <p class="pay-fine">Compensation depends on performance. The guaranteed minimum tops up your profit split when it falls short. The two-week evaluation before the live desk is unpaid.</p>
     </div>
     <div class="w-steps">
-      <div class="w-step"><span>STEP 01</span><b>Online assessment</b><i>A live market simulation in your browser: a guided replay of the desk strategy, then three sessions of real NQ data under time pressure. 20 to 30 minutes.</i></div>
-      <div class="w-step"><span>STEP 02</span><b>Two-week evaluation</b><i>If selected: daily sessions on the Terminal alongside the desk, under live conditions, closed by a full performance review at the end.</i></div>
-      <div class="w-step"><span>STEP 03</span><b>Live desk capital</b><i>You execute firm signals on firm capital. One session a day, between 09:45 and 11:00 New York time. Compensation starts.</i></div>
+      <div class="w-step"><span>STEP 01</span><b>Online assessment</b><i>A live market simulation in your browser: a guided replay of the desk strategy, then three sessions of real NQ data under time pressure.</i><span class="w-tag">20 TO 30 MIN</span></div>
+      <div class="w-step"><span>STEP 02</span><b>Two-week evaluation</b><i>If selected: daily sessions on the Terminal alongside the desk, under live conditions, closed by a full performance review at the end.</i><span class="w-tag">10 SESSIONS</span></div>
+      <div class="w-step hl"><span>STEP 03</span><b>Live desk capital</b><i>You execute firm signals on firm capital. One session a day, between 09:45 and 11:00 New York time.</i><span class="w-tag">COMPENSATION STARTS</span></div>
     </div>
     <button class="btn" id="btnVideoNext">Start the assessment →</button>
     <p class="route-note hidden" id="routeNote">You can apply from your phone. The trading simulation itself needs a computer: at the end, we send you a link to open there.</p>
@@ -1272,7 +1280,7 @@ function sdTrack(event, payload){
   }catch(e){}
 }
 
-const BUILD = "v23.7";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v23.8";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });

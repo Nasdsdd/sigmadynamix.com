@@ -1254,19 +1254,17 @@ function sdTrack(event, payload){
     utm_campaign: SD_UTM.utm_campaign || null,
     utm_content: SD_UTM.utm_content || null,
     device: sdDevice(),
-    page: location.pathname
+    page: location.pathname,
+    tz: (function(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone || null; }catch(e){ return null; } })()
   };
   try{
     const key = CONFIG.backend && CONFIG.backend.key;
     if(!TRACK_ENDPOINT || !key){ console.log("[sdTrack]", row, payload || ""); return; }
     const body = JSON.stringify(row);
-    /* sendBeacon ne transporte pas d'en-tetes : la cle passe en parametre, ce que
-       la passerelle Supabase accepte, comme pour les fonctions appelees plus bas.
-       En version de test on force fetch, pour lire la reponse dans la console. */
-    if(navigator.sendBeacon && CONFIG.env === "PRODUCTION"){
-      const url = TRACK_ENDPOINT + "?apikey=" + encodeURIComponent(key);
-      if(navigator.sendBeacon(url, new Blob([body], { type: "application/json" }))) return;
-    }
+    /* Pas de sendBeacon : un beacon en application/json declenche un controle CORS
+       prealable que le navigateur abandonne en silence, et la ligne n'arrive jamais.
+       fetch avec keepalive donne la meme garantie (la requete survit a la fermeture
+       de l'onglet) tout en portant les en-tetes apikey / Authorization. */
     fetch(TRACK_ENDPOINT, {
       method: "POST",
       headers: {
@@ -1280,7 +1278,7 @@ function sdTrack(event, payload){
   }catch(e){}
 }
 
-const BUILD = "v23.8";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v23.9";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });

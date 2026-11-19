@@ -1205,15 +1205,26 @@ const QUESTIONNAIRE = {
 
 /* ════════════════════════════════════════════════════════════════
    SUIVI PUBLICITAIRE — sdTrack + parametres UTM + type d'appareil
-   TRACK_ENDPOINT vide : les evenements partent seulement en console.
+   Sans URL ou sans cle, les evenements partent seulement en console.
    ════════════════════════════════════════════════════════════════ */
-const TRACK_ENDPOINT = "";          /* <- colle ici l'URL qui recoit les evenements */
+/* Table events du projet Supabase deja utilise par la page. La cle est la cle
+   publishable de CONFIG.backend : aucune cle supplementaire, jamais de service_role. */
+const TRACK_ENDPOINT = (CONFIG.backend && CONFIG.backend.url)
+  ? CONFIG.backend.url.replace(/\/+$/, "") + "/rest/v1/events" : "";
 const ROUTE_EMAIL_VIA_BACKEND = true;   /* true : le lien part par la fonction send-link */
 
+/* Les UTM de l'URL d'arrivee sont gardes toute la session : un evenement tardif
+   les porte encore, meme si le candidat a navigue entre temps. */
 const SD_UTM = (function(){
+  const KEY = "sd_utm";
   const q = new URLSearchParams(location.search), o = {};
   ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"]
     .forEach(k => { const v = (q.get(k) || "").trim(); if(v) o[k] = v; });
+  try{
+    if(Object.keys(o).length){ sessionStorage.setItem(KEY, JSON.stringify(o)); return o; }
+    const saved = JSON.parse(sessionStorage.getItem(KEY) || "null");
+    if(saved && typeof saved === "object") return saved;
+  }catch(e){}
   return o;
 })();
 const SD_UTM_QS = new URLSearchParams(SD_UTM).toString();
@@ -1226,17 +1237,42 @@ function sdDevice(){
   }catch(e){ return window.innerWidth >= 1024 ? "desktop" : "mobile"; }
 }
 
+/* Envoi sans attente et sans consequence : toute erreur est avalee, le parcours
+   du candidat ne depend jamais de cet appel. */
 function sdTrack(event, payload){
-  const body = { event: event, utm: SD_UTM, device: sdDevice(), ts: new Date().toISOString() };
-  if(payload) body.payload = payload;
+  const row = {
+    event: event,
+    utm_source: SD_UTM.utm_source || null,
+    utm_campaign: SD_UTM.utm_campaign || null,
+    utm_content: SD_UTM.utm_content || null,
+    device: sdDevice(),
+    page: location.pathname
+  };
   try{
-    if(!TRACK_ENDPOINT){ console.log("[sdTrack]", body); return; }
-    fetch(TRACK_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body), keepalive: true, mode: "cors" }).catch(()=>{});
+    const key = CONFIG.backend && CONFIG.backend.key;
+    if(!TRACK_ENDPOINT || !key){ console.log("[sdTrack]", row, payload || ""); return; }
+    const body = JSON.stringify(row);
+    /* sendBeacon ne transporte pas d'en-tetes : la cle passe en parametre, ce que
+       la passerelle Supabase accepte, comme pour les fonctions appelees plus bas.
+       En version de test on force fetch, pour lire la reponse dans la console. */
+    if(navigator.sendBeacon && CONFIG.env === "PRODUCTION"){
+      const url = TRACK_ENDPOINT + "?apikey=" + encodeURIComponent(key);
+      if(navigator.sendBeacon(url, new Blob([body], { type: "application/json" }))) return;
+    }
+    fetch(TRACK_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": key,
+        "Authorization": "Bearer " + key,
+        "Prefer": "return=minimal"
+      },
+      body: body, keepalive: true, mode: "cors"
+    }).catch(()=>{});
   }catch(e){}
 }
 
-const BUILD = "v23.6";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v23.7";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });

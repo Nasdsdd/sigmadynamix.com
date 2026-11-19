@@ -562,24 +562,29 @@
   /* colonne flex + interlignes serres : sans cela, le <b> inline herite du
      line-height 1.5 de la FAQ et cree ~4px d'espace fantome sous la valeur,
      ce qui fait remonter visuellement le libelle MONTH vers le haut. */
-  .gtier{flex:1;min-width:130px;background:var(--void);border:1px solid var(--border);
-    border-radius:var(--r-ctl);padding:13px 12px;
+  .gtier{flex:1;min-width:130px;background:rgba(6,8,15,.55);border:1px solid rgba(140,163,197,.17);
+    border-radius:var(--r-ctl);padding:15px 14px 17px;
     display:flex;flex-direction:column;justify-content:center}
-  .gtier span{display:block;font-size:10px;letter-spacing:.12em;color:var(--muted);
-    margin-bottom:7px;font-weight:600;line-height:1.2}
+  .gtier span{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    color:var(--link);margin-bottom:0;font-weight:400;line-height:1.2}
 
-  .gtier b{display:block;line-height:1.2;font-family:var(--mono);font-size:16px;
-    color:var(--text);font-variant-numeric:tabular-nums}
+  .gtier b{display:block;line-height:1.2;font-family:var(--mono);font-size:26px;font-weight:500;
+    color:var(--text);font-variant-numeric:tabular-nums;margin-top:10px}
+  .gtier em{display:block;font-style:normal;margin-top:9px;font-family:var(--mono);font-size:12px;
+    letter-spacing:.03em;line-height:1.6;color:#8E9CB5}
+  .gtier em u{display:inline-block;text-decoration:none;font-family:var(--sans);font-weight:600;
+    font-size:17px;color:#4FD9A8;margin-top:2px}
   .gtier.hl{border-color:var(--accent)}
   .gtier.hl span{color:var(--link)}
   /* Schema des etapes de recrutement — meme grammaire visuelle que .gtiers */
   .steps{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-  .step{flex:1;min-width:150px;background:var(--void);border:1px solid var(--border);
-    border-radius:var(--r-ctl);padding:13px 12px;display:flex;flex-direction:column}
+  .step{flex:1;min-width:150px;background:rgba(6,8,15,.55);border:1px solid rgba(140,163,197,.17);
+    border-radius:var(--r-ctl);padding:15px 14px 17px;display:flex;flex-direction:column}
   .step span{display:block;font-size:10px;letter-spacing:.12em;color:var(--link);
     margin-bottom:7px;font-weight:600;line-height:1.2;font-family:var(--mono)}
-  .step b{display:block;line-height:1.25;font-size:14px;color:var(--text);margin-bottom:6px}
-  .step i{display:block;font-style:normal;line-height:1.45;font-size:12px;color:var(--muted)}
+  .step b{display:block;font-family:var(--disp);font-weight:600;line-height:1.25;font-size:16px;
+    color:var(--text);margin:8px 0 6px}
+  .step i{display:block;font-style:normal;line-height:1.55;font-size:13px;color:var(--muted)}
   .step.hl{border-color:var(--accent)}
   .step.hl span{color:var(--green)}
   /* La regle generique "details.faq div" (specificite superieure) ecrasait le
@@ -1231,7 +1236,7 @@ function sdTrack(event, payload){
   }catch(e){}
 }
 
-const BUILD = "v23.4";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v23.5";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -4856,11 +4861,11 @@ const FAQ = [
   ["How is my variable compensation calculated?",
    "50% of net profits."],
   ["How does the minimum guarantee work?",
-   "If your variable compensation is lower than the guaranteed minimum for that month, the company pays the difference.<div class='gtiers'><div class='gtier'><span>MONTH 1</span><b>No minimum</b></div><div class='gtier'><span>MONTH 2</span><b>$1,000</b></div><div class='gtier hl'><span>MONTH 3 ONWARD</span><b>$2,000 / mo</b></div></div>"],
+   "If your variable compensation is lower than the guaranteed minimum for that month, the company pays the difference. The split itself never changes: it is always <b>50% of net profits</b>.<div class='gtiers'><div class='gtier'><span>MONTH 1</span><b>50%</b><em>PROFIT SPLIT<br>No minimum</em></div><div class='gtier'><span>MONTH 2</span><b>50%</b><em>+ MIN GUARANTEE<br><u>$1,000/mo</u></em></div><div class='gtier hl'><span>MONTH 3 ONWARD</span><b>50%</b><em>+ MIN GUARANTEE<br><u>$2,000/mo</u></em></div></div>"],
   ["How and when will I be paid?",
    "If selected, by bank transfer at the beginning of each month."],
   ["What happens if I am selected?",
-   "A two-week evaluation on the Terminal first, under live session conditions and with the same debrief requirements. It confirms that what you showed here holds day after day. This evaluation period is <b>not compensated</b> — compensation starts when you move to live sessions on desk capital.<div class='steps'><div class='step'><span>STEP 01</span><b>Online assessment</b><i>The simulation you are about to take. About " + CONFIG.estimatedMinutes + " minutes.</i></div><div class='step'><span>STEP 02</span><b>Ranking &amp; selection</b><i>Scored on execution quality, timing and discipline.</i></div><div class='step'><span>STEP 03</span><b>Two-week evaluation</b><i>Daily sessions on the Terminal, debrief every day.</i></div><div class='step hl'><span>STEP 04</span><b>Live desk capital</b><i>Firm signals on firm capital. Compensation starts.</i></div></div>"]
+   "A two-week evaluation on the Terminal first, under live session conditions, closed by a full review of your performance over the period. It confirms that what you showed here holds day after day. This evaluation period is <b>not compensated</b>. Compensation starts when you move to live sessions on desk capital.<div class='steps'><div class='step'><span>STEP 01</span><b>Online assessment</b><i>The simulation you are about to take. 20 to 30 minutes.</i></div><div class='step'><span>STEP 02</span><b>Two-week evaluation</b><i>Daily sessions on the Terminal alongside the desk, closed by a full performance review at the end.</i></div><div class='step hl'><span>STEP 03</span><b>Live desk capital</b><i>Firm signals on firm capital. One session a day, between 09:45 and 11:00 New York time. Compensation starts.</i></div></div>"]
 ];
 /* Les trois questions de rémunération passent en tête, dans cet ordre. Le montant garanti ne figure plus dans les annonces : le
    candidat arrive sans le connaître, il doit le trouver tout de suite.

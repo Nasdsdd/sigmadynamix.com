@@ -811,9 +811,9 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
       <p class="pay-fine">Compensation depends on performance. The guaranteed minimum tops up your profit split when it falls short. The two-week evaluation before the live desk is unpaid.</p>
     </div>
     <div class="w-steps">
-      <div class="w-step"><span>01</span><b>Application</b><i>A few questions about you and your trading experience.</i></div>
-      <div class="w-step"><span>02</span><b>Online trading test</b><i>A guided replay of the desk strategy, then 3 sessions on a real market replay with our order flow tools. 20 to 30 minutes, on a computer.</i></div>
-      <div class="w-step"><span>03</span><b>Two-week evaluation</b><i>If selected: one live trading session with the desk every trading day, 20 to 30 minutes each.</i></div>
+      <div class="w-step"><span>STEP 01</span><b>Online assessment</b><i>A live market simulation in your browser: a guided replay of the desk strategy, then three sessions of real NQ data under time pressure. 20 to 30 minutes.</i></div>
+      <div class="w-step"><span>STEP 02</span><b>Two-week evaluation</b><i>If selected: daily sessions on the Terminal alongside the desk, under live conditions, closed by a full performance review at the end.</i></div>
+      <div class="w-step"><span>STEP 03</span><b>Live desk capital</b><i>You execute firm signals on firm capital. One session a day, between 09:45 and 11:00 New York time. Compensation starts.</i></div>
     </div>
     <button class="btn" id="btnVideoNext">Start the assessment →</button>
     <p class="route-note hidden" id="routeNote">You can apply from your phone. The trading simulation itself needs a computer: at the end, we send you a link to open there.</p>
@@ -828,8 +828,8 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== STAGE 1 : APPLICATION FORM ===== -->
 <div class="stage hidden" id="stage1">
   <div class="card">
-    <h2>Step 1 · Application</h2>
-    <div class="warnbox">A few questions, about a minute. At the end you choose: <b>take the online trading test now</b>, 20 to 30 minutes in one sitting, or <b>receive a link</b> and do it later on a computer.</div>
+    <h2>Application</h2>
+    <div class="warnbox">A few questions, about a minute. At the end you choose: <b>start the online assessment now</b>, 20 to 30 minutes in one sitting, or <b>receive a link</b> and do it later on a computer.</div>
     <p class="lead">Your details, then a few quick questions.</p>
     <label for="fFirst">First name</label><input type="text" id="fFirst" autocomplete="given-name">
     <label for="fLast">Last name</label><input type="text" id="fLast" autocomplete="family-name">
@@ -858,16 +858,16 @@ input[type=password]:focus{outline:none;border-color:var(--accent)}
 <!-- ===== ENGAGEMENT (entre la FAQ et la presentation) ===== -->
 <div class="stage hidden" id="stageCommit">
   <div class="card">
-    <h2>Two steps left</h2>
-    <p class="lead">Here is what happens next.</p>
+    <h2>What happens next</h2>
+    <p class="lead">Your application is recorded. Two steps are left.</p>
     <div class="w-steps route-steps">
-      <div class="w-step"><span>NOW</span><b>Online trading test</b><i>A guided replay of the desk strategy, then 3 sessions on a real market replay. <b>20 to 30 minutes</b>, in one sitting, on a computer.</i></div>
-      <div class="w-step"><span>IF SELECTED</span><b>Two-week evaluation</b><i>One live trading session with the desk every trading day, <b>20 to 30 minutes</b> each. We look at consistency across those sessions, not at a single good day.</i></div>
+      <div class="w-step"><span>STEP 01 · NOW</span><b>Online assessment</b><i>A guided replay of the desk strategy, then three sessions of real NQ data under time pressure. <b>20 to 30 minutes</b>, in one sitting, on a computer.</i></div>
+      <div class="w-step"><span>STEP 02 · IF SELECTED</span><b>Two-week evaluation</b><i>Daily sessions on the Terminal alongside the desk, under live conditions, closed by a full performance review at the end. We look at consistency, not at a single good day.</i></div>
     </div>
-    <p class="lead">You start the online trading test now. Nothing else is asked of you today: the two-week evaluation only comes if you are selected, and we agree on the dates with you.</p>
+    <p class="lead">You start the online assessment now. Nothing else is asked of you today: the two-week evaluation only comes if you are selected, and we agree on the dates with you.</p>
     <p class="lead"><b>If you want to move forward:</b></p>
     <div class="route-choice">
-      <button class="btn" id="btnCommitYes">Take the test now <em>· 20 to 30 min</em></button>
+      <button class="btn" id="btnCommitYes">Start the assessment <em>· 20 to 30 min</em></button>
       <button class="btn ghost" id="btnCommitLater">Send me the link for later</button>
     </div>
     <p class="route-note hidden" id="commitNote">The simulation needs a computer. We send you a link, open it on a desktop or laptop when you are ready.</p>
@@ -1231,7 +1231,7 @@ function sdTrack(event, payload){
   }catch(e){}
 }
 
-const BUILD = "v23.3";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v23.4";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -4458,7 +4458,7 @@ function routeCommit(){
   if(RESUME){ later.classList.add("hidden"); }
   if(sdDevice() === "desktop") return;
   now.disabled = true;
-  now.innerHTML = "Take the test now <em>· computer required</em>";
+  now.innerHTML = "Start the assessment <em>· computer required</em>";
   now.setAttribute("aria-disabled", "true");
   $("commitNote").classList.remove("hidden");
 }

@@ -1231,7 +1231,7 @@ function sdTrack(event, payload){
   }catch(e){}
 }
 
-const BUILD = "v23";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
+const BUILD = "v23.1";   // incrémenté à chaque livraison — vérifie ce numéro après chaque upload
 document.addEventListener("DOMContentLoaded", ()=>{
   $("buildTag").textContent = "· " + BUILD + (CONFIG.env==="PRODUCTION" ? "" : " · TEST");
 });
@@ -4447,9 +4447,22 @@ function routeWelcome(){
   const btn = $("btnVideoNext");
   if(!btn) return;
   if(RESUME){ btn.textContent = "Continue my application →"; return; }
-  if(sdDevice() === "desktop"){ btn.textContent = "Start the assessment →"; return; }
+  if(sdDevice() === "desktop"){ btn.textContent = "Start the assessment →"; routeStage1Copy(); return; }
   btn.textContent = "Email me the link →";
   $("routeNote").classList.remove("hidden");
+}
+
+/* Sur ordinateur, le formulaire annonce la suite immediate et non un mail. */
+function routeStage1Copy(){
+  const h = $("stage1").querySelector("h2");
+  const wb = $("stage1").querySelector(".warnbox");
+  const btn = $("btnSubmitForm");
+  if(sdDevice() !== "desktop") return;
+  if(h) h.textContent = "Your application";
+  if(wb) wb.innerHTML = "A few questions, about a minute. The trading simulation starts "
+    + "right after, and takes <b>around <span id=\"formDuration\">" + CONFIG.estimatedMinutes
+    + "</span> minutes</b>, in one sitting, on this computer.";
+  if(btn) btn.textContent = "Continue →";
 }
 
 function routeShowMail(){
@@ -4711,14 +4724,27 @@ $("btnSubmitForm").addEventListener("click", async ()=>{
      puis le candidat choisit de commencer maintenant ou plus tard */
   const idx = QUESTIONNAIRE.questions.map((q, qi) => q.type === "years"
     ? +$("years"+qi).value : +document.querySelector(`input[name=q${qi}]:checked`).value);
+  if(sdDevice() === "desktop"){ continueDirect(idx); return; }
   await sendLink(idx);
 });
 
-async function sendLink(idx){
+/* Ordinateur : on enchaine directement sur la FAQ puis le test, sans passer
+   par la boite mail. Le lien de reprise part quand meme en arriere plan, pour
+   qu'un candidat interrompu puisse revenir ou il en etait. */
+function continueDirect(idx){
+  sdTrack("form_submitted", { path: "questionnaire", score: candidate.score, direct: true });
+  try{ sendLink(idx, true); }catch(e){}
+  $("stage1").classList.add("hidden");
+  $("stageFaq").classList.remove("hidden");
+  try{ prefetchAll(); }catch(e){}
+  window.scrollTo(0, 0);
+}
+
+async function sendLink(idx, silent){
   /* v20.3 : le lien personnel (?k=…) part UNIQUEMENT par mail ; en l'ouvrant, le candidat
      arrive directement sur la FAQ puis la démo et le test. Sans mail envoyé, il reste sur le formulaire. */
   const btn = $("btnSubmitForm"), label = btn.textContent, err = $("formErr");
-  btn.disabled = true; btn.textContent = "Sending…"; err.classList.add("hidden");
+  if(!silent){ btn.disabled = true; btn.textContent = "Sending…"; err.classList.add("hidden"); }
   const k = b64urlEncode(JSON.stringify({ v: idx.length, f: candidate.first, l: candidate.last,
     e: candidate.email, cc: candidate.countryCode, cn: candidate.country, a: idx }));
   const q = new URLSearchParams(location.search), t = (q.get("t") || q.get("token") || "").trim();
@@ -4745,6 +4771,7 @@ async function sendLink(idx){
           link, answers: candidate.answers.map(a => `${a.q} => ${a.answer}`).join(" || ") }) }).catch(()=>{});
     }catch(e){}
   } else res = "test";
+  if(silent) return res;              // envoi en arriere plan : aucun affichage
   btn.disabled = false; btn.textContent = label;
   if(res === "failed"){
     err.textContent = "We could not send the email right now. Please try again in a few minutes.";
